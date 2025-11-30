@@ -402,3 +402,67 @@ export const generateNoShowSMS = (
 ): string => {
   return `${guest.name} was expected at ${expectedTime}, still waiting?`.substring(0, 160);
 };
+
+/**
+ * Send SMS via email-to-SMS gateway
+ * Uses carrier email gateways (no API keys needed)
+ * Example: 07700900000 + vodafone = 07700900000@vodafone.net
+ */
+export const sendNotificationSMS = async (
+  host: Host,
+  smsMessage: string,
+  emailService?: {
+    send: (msg: NotificationMessage) => Promise<void>;
+  }
+): Promise<void> => {
+  if (!host.notifyBySMS || !host.phone || !host.smsCarrier) {
+    console.log('⚠️ SMS not configured for host:', host.name);
+    return;
+  }
+
+  // SMS Gateway mapping - converts phone number to email
+  const SMS_GATEWAYS: Record<string, string> = {
+    vodafone: '@vodafone.net',
+    ee: '@mms.ee.co.uk',
+    o2: '@o2.co.uk',
+    three: '@three.co.uk',
+    tmobile: '@tmomail.net',
+    att: '@txt.att.net',
+    verizon: '@vtext.com'
+  };
+
+  const gateway = SMS_GATEWAYS[host.smsCarrier];
+  if (!gateway) {
+    console.error('❌ Unknown SMS carrier:', host.smsCarrier);
+    return;
+  }
+
+  // Clean phone number (remove spaces, dashes, etc.)
+  const cleanPhone = host.phone.replace(/\s|-|\(|\)/g, '');
+  const smsEmailAddress = `${cleanPhone}${gateway}`;
+
+  const smsNotification: NotificationMessage = {
+    to: smsEmailAddress,
+    subject: 'Visitor Arrival (SMS)',
+    body: smsMessage,
+    timestamp: new Date().toISOString()
+  };
+
+  if (!emailService) {
+    console.log('📱 Phase 2: SMS service not configured');
+    console.log('SMS ready to send:', {
+      to: smsEmailAddress,
+      carrier: host.smsCarrier,
+      message: smsMessage
+    });
+    return;
+  }
+
+  try {
+    await emailService.send(smsNotification);
+    console.log(`✅ SMS sent to ${host.name} via ${host.smsCarrier}`);
+  } catch (error) {
+    console.error(`❌ Failed to send SMS to ${host.name}:`, error);
+    throw new Error(`Failed to send SMS: ${error}`);
+  }
+};

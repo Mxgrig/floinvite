@@ -545,37 +545,37 @@ export interface PaymentOption {
 export const STRIPE_PRICES: PaymentOption[] = [
   {
     tier: 'starter',
-    priceId: process.env.REACT_APP_STRIPE_STARTER_MONTHLY!,
+    priceId: import.meta.env.VITE_STRIPE_STARTER_MONTHLY || 'price_starter_monthly',
     amount: 5,
     interval: 'month'
   },
   {
     tier: 'starter',
-    priceId: process.env.REACT_APP_STRIPE_STARTER_YEARLY!,
+    priceId: import.meta.env.VITE_STRIPE_STARTER_YEARLY || 'price_starter_yearly',
     amount: 48,
     interval: 'year'
   },
   {
     tier: 'professional',
-    priceId: process.env.REACT_APP_STRIPE_PROFESSIONAL_MONTHLY!,
+    priceId: import.meta.env.VITE_STRIPE_PROFESSIONAL_MONTHLY || 'price_professional_monthly',
     amount: 15,
     interval: 'month'
   },
   {
     tier: 'professional',
-    priceId: process.env.REACT_APP_STRIPE_PROFESSIONAL_YEARLY!,
+    priceId: import.meta.env.VITE_STRIPE_PROFESSIONAL_YEARLY || 'price_professional_yearly',
     amount: 144,
     interval: 'year'
   },
   {
     tier: 'enterprise',
-    priceId: process.env.REACT_APP_STRIPE_ENTERPRISE_MONTHLY!,
+    priceId: import.meta.env.VITE_STRIPE_ENTERPRISE_MONTHLY || 'price_enterprise_monthly',
     amount: 25,
     interval: 'month'
   },
   {
     tier: 'enterprise',
-    priceId: process.env.REACT_APP_STRIPE_ENTERPRISE_YEARLY!,
+    priceId: import.meta.env.VITE_STRIPE_ENTERPRISE_YEARLY || 'price_enterprise_yearly',
     amount: 240,
     interval: 'year'
   }

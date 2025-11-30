@@ -9,6 +9,8 @@ import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
 import { usePersistedState, useDebounce } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
+import PageLayout from './PageLayout';
+import './Logbook.css';
 
 export function Logbook() {
   const [guests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
@@ -19,7 +21,7 @@ export function Logbook() {
 
   // Search and filter guests
   const filteredGuests = guests.filter(guest => {
-    const matchesSearch = !debouncedSearch || 
+    const matchesSearch = !debouncedSearch ||
       guest.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       guest.email?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       guest.company?.toLowerCase().includes(debouncedSearch.toLowerCase());
@@ -39,27 +41,19 @@ export function Logbook() {
 
   const stats = StorageService.getStats();
 
-  return (
-    <div className="logbook-container">
-      <div className="logbook-header">
-        <h1>Visitor Logbook</h1>
-        
-        <div className="stats-bar">
-          <div className="stat">
-            <span className="stat-value">{stats.totalGuests}</span>
-            <span className="stat-label">Total Visitors</span>
-          </div>
-          <div className="stat">
-            <span className="stat-value">{stats.todayCheckIns}</span>
-            <span className="stat-label">Today</span>
-          </div>
-          <div className="stat">
-            <span className="stat-value">{stats.checkedInToday}</span>
-            <span className="stat-label">Checked In</span>
-          </div>
-        </div>
-      </div>
+  const pageStats = [
+    { value: String(stats.totalGuests), label: 'Total visitors' },
+    { value: String(stats.todayCheckIns), label: 'Today' },
+    { value: String(stats.checkedInToday), label: 'Checked in' }
+  ];
 
+  return (
+    <PageLayout
+      eyebrow="Visitor history"
+      title="Live logbook & exports"
+      subtitle="Search everything, slice by status, and hand compliance a clean export."
+      stats={pageStats}
+    >
       <div className="logbook-controls">
         <div className="search-area">
           <input
@@ -135,6 +129,6 @@ export function Logbook() {
           </div>
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }
