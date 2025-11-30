@@ -1,0 +1,461 @@
+/**
+ * HostManagement Component Styles
+ */
+
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --danger: #ef4444;
+  --success: #10b981;
+  --dark: #1f2937;
+  --light: #f9fafb;
+  --border: #e5e7eb;
+  --text: #374151;
+  --text-light: #6b7280;
+}
+
+.host-management {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.host-management h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--dark);
+}
+
+.subtitle {
+  color: var(--text-light);
+  margin-bottom: 2rem;
+}
+
+.host-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: white;
+  border: 2px solid var(--border);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Hosts Table */
+/* ═══════════════════════════════════════════════════ */
+
+.hosts-table {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 1.2fr 1.5fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 1.2fr 1.5fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background: #f9fafb;
+}
+
+.table-row strong {
+  display: block;
+  color: var(--dark);
+}
+
+.table-row small {
+  display: block;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.col-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-action {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.btn-action.edit {
+  background: #dbeafe;
+  color: #0284c7;
+}
+
+.btn-action.edit:hover {
+  background: #bfdbfe;
+}
+
+.btn-action.delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-action.delete:hover {
+  background: #fecaca;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.badge.email {
+  background: #dbeafe;
+  color: #0284c7;
+}
+
+.badge.sms {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-light);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Host Form */
+/* ═══════════════════════════════════════════════════ */
+
+.host-form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.host-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: var(--light);
+}
+
+.host-form h1 {
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.error-message {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.error-message p {
+  margin: 0.25rem 0;
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Notification Section */
+/* ═══════════════════════════════════════════════════ */
+
+.notification-section {
+  background: var(--light);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin: 2rem 0;
+}
+
+.notification-section h3 {
+  margin-bottom: 1rem;
+  color: var(--dark);
+}
+
+.checkbox-group {
+  margin-bottom: 1rem;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  margin: 0;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}
+
+.sms-carrier {
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+}
+
+.btn-lg {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Import Section */
+/* ═══════════════════════════════════════════════════ */
+
+.host-import-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.import-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.import-box h1 {
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.import-box > p {
+  color: var(--text-light);
+  margin-bottom: 2rem;
+}
+
+.file-upload {
+  position: relative;
+  margin: 2rem 0;
+}
+
+.file-upload input {
+  display: none;
+}
+
+.upload-label {
+  display: block;
+  padding: 2rem;
+  border: 2px dashed var(--border);
+  border-radius: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.file-upload input:hover + .upload-label,
+.upload-label:hover {
+  border-color: var(--primary);
+  background: rgba(79, 70, 229, 0.05);
+}
+
+.import-example {
+  background: var(--light);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 2rem;
+}
+
+.import-example h4 {
+  margin-bottom: 0.75rem;
+  color: var(--dark);
+}
+
+.import-example pre {
+  background: white;
+  padding: 1rem;
+  border-radius: 0.4rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Mobile Responsive */
+/* ═══════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .col-actions {
+    margin-top: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .host-controls {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .host-form,
+  .import-box,
+  .hosts-table {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+
+  .host-management h1 {
+    color: #f9fafb;
+  }
+
+  .form-group label,
+  .notification-section h3,
+  .import-example h4 {
+    color: #f9fafb;
+  }
+
+  .table-header {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .table-row {
+    border-color: #374151;
+  }
+
+  .table-row:hover {
+    background: #111827;
+  }
+
+  .form-group input,
+  .form-group select {
+    background: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .notification-section,
+  .import-example {
+    background: #111827;
+    border-color: #374151;
+  }
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+    <msapplication>
+        <tile>
+            <square150x150logo src="/android-chrome-192x192.png"/>
+            <TileColor>#4f46e5</TileColor>
+        </tile>
+        <notification>
+            <polling-uri src="https://floinvite.com"/>
+            <polling-uri-frequency>30</polling-uri-frequency>
+            <cycle>1</cycle>
+        </notification>
+    </msapplication>
+</browserconfig>

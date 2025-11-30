@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+/.pnp
+.pnp.js
+
+# Build
+/dist
+/build
+/.vite
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.*.vault
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+.cache
+
+# Logs
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Testing
+/coverage
+
+# Generated files
+*.tsbuildinfo
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Sensitive files
+credentials.json
+secrets.json

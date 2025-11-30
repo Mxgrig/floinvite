@@ -1,0 +1,476 @@
+/**
+ * Settings Component Styles
+ */
+
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --danger: #ef4444;
+  --success: #10b981;
+  --dark: #1f2937;
+  --light: #f9fafb;
+  --border: #e5e7eb;
+  --text: #374151;
+  --text-light: #6b7280;
+}
+
+.settings-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.settings-container h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: var(--dark);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Tabs */
+/* ═══════════════════════════════════════════════════ */
+
+.settings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.tab:hover {
+  color: var(--primary);
+}
+
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Tab Content */
+/* ═══════════════════════════════════════════════════ */
+
+.settings-content {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-panel h2 {
+  margin-bottom: 1.5rem;
+  color: var(--dark);
+  font-size: 1.5rem;
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Forms */
+/* ═══════════════════════════════════════════════════ */
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group textarea,
+.form-group select {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.form-group label:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Color Picker */
+/* ═══════════════════════════════════════════════════ */
+
+.color-picker-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.color-picker-group input[type="color"] {
+  width: 60px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.color-picker-group span {
+  font-family: monospace;
+  color: var(--text);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Notification Settings */
+/* ═══════════════════════════════════════════════════ */
+
+.notification-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.setting-item {
+  padding: 1.5rem;
+  background: var(--light);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.setting-item h3 {
+  margin-bottom: 0.5rem;
+  color: var(--dark);
+}
+
+.setting-item p {
+  color: var(--text-light);
+  margin-bottom: 0.75rem;
+}
+
+.help-text {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.time-inputs input {
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  flex: 1;
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Data Section */
+/* ═══════════════════════════════════════════════════ */
+
+.data-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.storage-info {
+  padding: 1.5rem;
+  background: var(--light);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.storage-info h3 {
+  margin-bottom: 1rem;
+  color: var(--dark);
+}
+
+.storage-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.storage-used {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+  transition: width 0.3s;
+}
+
+.storage-info p {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.backup-actions {
+  padding: 1.5rem;
+  background: var(--light);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.backup-actions h3 {
+  margin-bottom: 1rem;
+  color: var(--dark);
+}
+
+.backup-actions button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.danger-zone {
+  padding: 1.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+}
+
+.danger-zone h3 {
+  margin-bottom: 1rem;
+  color: var(--danger);
+}
+
+.warning-text {
+  color: var(--danger);
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* About Section */
+/* ═══════════════════════════════════════════════════ */
+
+.about-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.about-box {
+  padding: 1.5rem;
+  background: var(--light);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.about-box h3 {
+  margin-bottom: 0.75rem;
+  color: var(--dark);
+}
+
+.about-box p,
+.about-box ul {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.about-box ul {
+  list-style: none;
+  padding: 0;
+}
+
+.about-box li {
+  margin-bottom: 0.5rem;
+}
+
+.about-box a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.about-box a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Buttons & Messages */
+/* ═══════════════════════════════════════════════════ */
+
+.btn {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: white;
+  border: 2px solid var(--border);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.success-message {
+  padding: 1rem;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 0.5rem;
+  border: 1px solid #bbf7d0;
+  font-weight: 500;
+}
+
+.info-box {
+  padding: 1rem;
+  background: #dbeafe;
+  color: #0284c7;
+  border-radius: 0.5rem;
+  border: 1px solid #bfdbfe;
+  margin-top: 1rem;
+}
+
+.warning-box {
+  padding: 1rem;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 0.5rem;
+  border: 1px solid #fcd34d;
+  margin-top: 0.75rem;
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Mobile Responsive */
+/* ═══════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 1rem;
+  }
+
+  .settings-content {
+    padding: 1.5rem;
+  }
+
+  .about-section {
+    grid-template-columns: 1fr;
+  }
+
+  .time-inputs {
+    flex-direction: column;
+  }
+
+  .time-inputs input {
+    width: 100%;
+  }
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Dark Mode */
+/* ═══════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: dark) {
+  .settings-content {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+
+  .settings-container h1,
+  .tab-panel h2,
+  .setting-item h3,
+  .about-box h3 {
+    color: #f9fafb;
+  }
+
+  .tab {
+    color: #d1d5db;
+  }
+
+  .tab:hover,
+  .tab.active {
+    color: var(--primary);
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select,
+  .time-inputs input {
+    background: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .setting-item,
+  .storage-info,
+  .backup-actions,
+  .about-box {
+    background: #111827;
+    border-color: #374151;
+    color: #e5e7eb;
+  }
+
+  .danger-zone {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+}
