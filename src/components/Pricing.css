@@ -1,48 +1,10 @@
-:root {
-  --primary: #4f46e5;
-  --primary-dark: #4338ca;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
-  --slate-900: #0f172a;
-  --spacing-unit: 1rem;
-  --notification-highlight: #fef3c7;
-  --notification-border: #fbbf24;
-}
+/**
+ * Pricing Component Styles
+ * Integrated with PageLayout and design system
+ */
 
-/* ═══════════════════════════════════════ */
-/* PRICING CONTAINER & LAYOUT            */
-/* ═══════════════════════════════════════ */
-
-.pricing-container {
+.pricing-content {
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: var(--spacing-unit);
-  background: linear-gradient(135deg, var(--slate-50) 0%, #f0f9ff 100%);
-  min-height: 100vh;
-}
-
-/* HEADER */
-.pricing-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  padding: 1rem 0;
-}
-
-.pricing-header h1 {
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
-  color: var(--slate-900);
-  margin: 0 0 0.5rem 0;
-  font-weight: 700;
-}
-
-.pricing-header p {
-  font-size: 1rem;
-  color: #64748b;
-  margin: 0;
 }
 
 /* BILLING TOGGLE */
@@ -56,14 +18,15 @@
 
 .billing-toggle button {
   padding: 0.75rem 1.5rem;
-  border: 2px solid var(--slate-200);
-  background: white;
-  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   font-size: 1rem;
   position: relative;
+  color: var(--text-primary);
 }
 
 .billing-toggle button.active {
@@ -77,12 +40,12 @@
   color: var(--primary);
 }
 
-.badge {
+.billing-toggle .badge {
   display: inline-block;
-  background: var(--warning);
-  color: #78350f;
+  background: var(--success);
+  color: white;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 700;
   margin-left: 0.5rem;
@@ -113,25 +76,25 @@
 
 /* PRICING CARD */
 .pricing-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
 }
 
 .pricing-card:hover {
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-4px);
 }
 
 .pricing-card.highlighted {
   border: 2px solid var(--primary);
   transform: scale(1.02);
-  box-shadow: 0 20px 25px rgba(79, 70, 229, 0.15);
 }
 
 /* RECOMMENDED BADGE */
@@ -142,35 +105,35 @@
   transform: translateX(-50%);
   background: var(--primary);
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 600;
 }
 
 /* CARD HEADER */
 .card-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
 }
 
 .card-header h2 {
-  font-size: 1.5rem;
-  color: var(--slate-900);
-  margin: 0 0 0.5rem 0;
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
   font-weight: 700;
 }
 
 .description {
-  color: #64748b;
+  color: var(--text-tertiary);
   margin: 0;
   font-size: 0.95rem;
 }
 
 /* PRICE SECTION */
 .price-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--slate-200);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .price {
@@ -180,8 +143,8 @@
 }
 
 .currency {
-  font-size: 1.25rem;
-  color: var(--slate-900);
+  font-size: var(--text-lg);
+  color: var(--text-primary);
   font-weight: 600;
 }
 

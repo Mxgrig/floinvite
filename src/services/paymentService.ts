@@ -17,8 +17,8 @@ export interface SubscriptionStatus {
 }
 
 export class PaymentService {
-  private static STRIPE_PUBLISHABLE_KEY = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
-  private static API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  private static STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+  private static API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
   /**
    * Create a Stripe Checkout Session

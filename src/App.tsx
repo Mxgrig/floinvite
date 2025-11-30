@@ -4,11 +4,14 @@
  */
 
 import { useState, useEffect } from 'react';
+import { ClipboardList, BookOpen, Users, Settings as SettingsIcon, Shield, Bell, Clock3, Mail, ArrowUpRight } from 'lucide-react';
 import { Pricing } from './components/Pricing';
 import { SmartTriage } from './components/SmartTriage';
 import { Logbook } from './components/Logbook';
 import { HostManagement } from './components/HostManagement';
 import { Settings } from './components/Settings';
+import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
 import { PaymentService } from './services/paymentService';
 import { usePersistedState } from './utils/hooks';
 import './App.css';
@@ -64,54 +67,13 @@ export function App() {
 
   return (
     <div className="floinvite-app">
-      {/* Header/Navigation */}
-      {currentPage !== 'landing' && currentPage !== 'pricing' && (
-        <header className="app-header">
-          <div className="header-content">
-            <button
-              className="logo-button"
-              onClick={() => setCurrentPage('landing')}
-              title="Back to home"
-            >
-              <span className="logo-icon">✉️</span>
-              <span className="logo-text">Floinvite</span>
-            </button>
-
-            <nav className="app-nav">
-              <button
-                className={`nav-button ${currentPage === 'check-in' ? 'active' : ''}`}
-                onClick={() => setCurrentPage('check-in')}
-              >
-                Check-In
-              </button>
-              <button
-                className={`nav-button ${currentPage === 'logbook' ? 'active' : ''}`}
-                onClick={() => setCurrentPage('logbook')}
-              >
-                Logbook
-              </button>
-              <button
-                className={`nav-button ${currentPage === 'hosts' ? 'active' : ''}`}
-                onClick={() => setCurrentPage('hosts')}
-              >
-                Hosts
-              </button>
-              <button
-                className={`nav-button ${currentPage === 'settings' ? 'active' : ''}`}
-                onClick={() => setCurrentPage('settings')}
-              >
-                Settings
-              </button>
-            </nav>
-
-            <div className="user-info">
-              <span className="tier-badge" title={`Subscription: ${userTier}`}>
-                {userTier === 'starter' ? '⭐' : userTier === 'professional' ? '💎' : '👑'} {userTier}
-              </span>
-            </div>
-          </div>
-        </header>
-      )}
+      {/* Navbar - Show on all pages */}
+      <Navbar
+        currentPage={currentPage}
+        onNavigate={setCurrentPage}
+        userTier={userTier}
+        showAppNav={currentPage !== 'pricing' && currentPage !== 'landing'}
+      />
 
       {/* Main Content */}
       <main className="app-main">
@@ -125,21 +87,8 @@ export function App() {
         )}
       </main>
 
-      {/* Footer */}
-      {currentPage === 'landing' && (
-        <footer className="app-footer">
-          <div className="footer-content">
-            <p>&copy; {new Date().getFullYear()} Floinvite. All rights reserved.</p>
-            <div className="footer-links">
-              <a href="#privacy">Privacy</a>
-              <span className="divider">•</span>
-              <a href="#terms">Terms</a>
-              <span className="divider">•</span>
-              <a href="#contact">Contact</a>
-            </div>
-          </div>
-        </footer>
-      )}
+      {/* Footer - Show on all pages */}
+      <Footer onNavigate={setCurrentPage} />
     </div>
   );
 }
@@ -155,96 +104,106 @@ interface LandingPageProps {
 function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
   return (
     <div className="landing-page">
-      {/* Hero Section */}
-      <section className="hero">
+      {/* Hero Section - CLEAR VALUE PROP */}
+      <section className="landing-hero">
         <div className="hero-content">
-          <h1 className="hero-title">
-            Visitor Management
+          {/* Brand Identity */}
+          <div className="brand-lockup">
+            <img src="/logo.png" alt="Floinvite" className="hero-logo" />
+            <h1 className="brand-title">
+              <span className="brand-flo">Flo</span>
+              <span className="brand-invite">invite</span>
+            </h1>
+          </div>
+
+          {/* Value Proposition */}
+          <h2 className="hero-headline">
+            Visitor management that just works
+          </h2>
+          <p className="hero-subheadline">
+            Check in guests, notify hosts, and track visitors in seconds.
             <br />
-            <span className="highlight">Made Simple</span>
-          </h1>
-          <p className="hero-subtitle">
-            Fast check-in. Instant notifications. Real-time guest tracking.
+            No hardware. No training. No hassle.
           </p>
 
-          <div className="hero-buttons">
+          {/* Primary CTAs */}
+          <div className="hero-actions">
             <button className="btn btn-primary btn-lg" onClick={onStartCheckIn}>
-              Start Check-In
+              Start First Check-In
             </button>
             <button className="btn btn-secondary btn-lg" onClick={() => onNavigate('pricing')}>
               View Pricing
             </button>
           </div>
 
-          <div className="hero-features">
-            <div className="feature">
-              <span className="feature-icon">✓</span>
-              <span className="feature-text">30-second check-in</span>
+          {/* Social Proof */}
+          <div className="hero-proof">
+            <div className="proof-item">
+              <div className="proof-value">&lt; 30 sec</div>
+              <div className="proof-label">Average check-in</div>
             </div>
-            <div className="feature">
-              <span className="feature-icon">✓</span>
-              <span className="feature-text">Email + SMS alerts</span>
+            <div className="proof-item">
+              <div className="proof-value">Offline-ready</div>
+              <div className="proof-label">Works without internet</div>
             </div>
-            <div className="feature">
-              <span className="feature-icon">✓</span>
-              <span className="feature-text">Works offline</span>
-            </div>
-            <div className="feature">
-              <span className="feature-icon">✓</span>
-              <span className="feature-text">Export reports</span>
+            <div className="proof-item">
+              <div className="proof-value">Multi-channel</div>
+              <div className="proof-label">Email + SMS alerts</div>
             </div>
           </div>
         </div>
+
+        {/* Hero Image */}
+        <div className="hero-image">
+          <img
+            src="/assets/heroimg.png"
+            alt="Visitor management dashboard"
+            className="hero-img"
+          />
+        </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features">
-        <h2>Why Floinvite?</h2>
+      {/* Features Section - KEEP SIMPLE */}
+      <section className="features-section">
+        <h3 className="features-title">Everything you need</h3>
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon-large">📱</div>
-            <h3>Mobile First</h3>
-            <p>Works perfectly on tablets, phones, and desktops. No special hardware needed.</p>
+            <div className="feature-icon">
+              <ClipboardList size={28} />
+            </div>
+            <h4>Smart Check-In</h4>
+            <p>Two-path flow for walk-ins and expected visitors</p>
           </div>
-
           <div className="feature-card">
-            <div className="feature-icon-large">⚡</div>
-            <h3>Lightning Fast</h3>
-            <p>Check in guests in under 30 seconds. Your team saves hours every day.</p>
+            <div className="feature-icon">
+              <Bell size={28} />
+            </div>
+            <h4>Instant Alerts</h4>
+            <p>Email and SMS notifications when guests arrive</p>
           </div>
-
           <div className="feature-card">
-            <div className="feature-icon-large">🔔</div>
-            <h3>Smart Notifications</h3>
-            <p>Email and SMS alerts. Professional, friendly, or casual tone. Your choice.</p>
+            <div className="feature-icon">
+              <BookOpen size={28} />
+            </div>
+            <h4>Complete Records</h4>
+            <p>Searchable logbook with CSV/JSON exports</p>
           </div>
-
           <div className="feature-card">
-            <div className="feature-icon-large">🏢</div>
-            <h3>Built for SMEs</h3>
-            <p>Perfect for 5-30 person offices. Simple pricing that scales with you.</p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon-large">📊</div>
-            <h3>Smart Reporting</h3>
-            <p>Export guest data instantly. CSV, JSON, HTML, PDF. All client-side, zero servers.</p>
-          </div>
-
-          <div className="feature-card">
-            <div className="feature-icon-large">🔒</div>
-            <h3>Privacy First</h3>
-            <p>All data stays on your device. Optional encrypted cloud backup when you upgrade.</p>
+            <div className="feature-icon">
+              <Users size={28} />
+            </div>
+            <h4>Host Management</h4>
+            <p>Easy directory with notification preferences</p>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Secondary CTA */}
       <section className="cta-section">
-        <h2>Ready to get started?</h2>
-        <p>Start with our free plan. No credit card required.</p>
+        <h3>Ready to get started?</h3>
+        <p>No credit card required. Works on any device.</p>
         <button className="btn btn-primary btn-lg" onClick={onStartCheckIn}>
-          Begin Check-In
+          Launch Check-In
         </button>
       </section>
     </div>

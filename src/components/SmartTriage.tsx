@@ -5,7 +5,7 @@
  * Path 2: Expected visitor lookup
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Guest, Host, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
 import { generateVisitorArrivalNotification } from '../services/notificationService';
@@ -19,6 +19,7 @@ type TriageStep = 'welcome' | 'walk-in' | 'expected' | 'success';
 export function SmartTriage() {
   const [step, setStep] = useState<TriageStep>('welcome');
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
+  const guests = StorageService.getGuests();
 
   // Walk-in state
   const [guestName, setGuestName] = useState('');
@@ -32,6 +33,10 @@ export function SmartTriage() {
 
   // Error state
   const [errors, setErrors] = useState<string[]>([]);
+
+  const today = new Date().toDateString();
+  const checkedInToday = guests.filter(g => new Date(g.checkInTime).toDateString() === today).length;
+  const expectedToday = guests.filter(g => g.status === GUEST_STATUS.EXPECTED).length;
 
   /**
    * Walk-In Path
@@ -168,15 +173,81 @@ export function SmartTriage() {
     }, 3000);
   };
 
+  const renderLayout = (content: ReactNode) => (
+    <div className="smart-triage">
+      <div className="triage-shell">
+        <div className="triage-main">
+          {content}
+        </div>
+        <aside className="triage-sidebar">
+          <div className="sidebar-card">
+            <p className="eyebrow">Front desk summary</p>
+            <div className="sidebar-stats">
+              <div className="stat-block">
+                <span>Hosts on duty</span>
+                <strong>{hosts.length || 0}</strong>
+              </div>
+              <div className="stat-block">
+                <span>Arrivals today</span>
+                <strong>{checkedInToday}</strong>
+              </div>
+              <div className="stat-block">
+                <span>Expected</span>
+                <strong>{expectedToday}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="sidebar-card">
+            <p className="eyebrow">Arrival steps</p>
+            <div className="timeline">
+              <div className="timeline-row">
+                <span className="dot" />
+                <div>
+                  <strong>Choose lane</strong>
+                  <p className="muted">Walk-in or expected visitor with lookup.</p>
+                </div>
+              </div>
+              <div className="timeline-row">
+                <span className="dot" />
+                <div>
+                  <strong>Capture essentials</strong>
+                  <p className="muted">Name, company, host, and contact details.</p>
+                </div>
+              </div>
+              <div className="timeline-row">
+                <span className="dot" />
+                <div>
+                  <strong>Notify + log</strong>
+                  <p className="muted">Instant notification preview, saved to logbook.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {lastGuest && (
+            <div className="sidebar-card">
+              <p className="eyebrow">Most recent</p>
+              <h4>{lastGuest.name}</h4>
+              {lastGuest.company && <p className="muted">From {lastGuest.company}</p>}
+              <p className="muted">Visiting {hosts.find(h => h.id === lastGuest.hostId)?.name || 'Host'}</p>
+              <small className="muted">Checked in just now</small>
+            </div>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+
   /**
    * Render by step
    */
   switch (step) {
     case 'welcome':
-      return <WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} />;
+      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} />);
 
     case 'walk-in':
-      return (
+      return renderLayout(
         <WalkInStep
           guestName={guestName}
           setGuestName={setGuestName}
@@ -192,7 +263,7 @@ export function SmartTriage() {
       );
 
     case 'expected':
-      return (
+      return renderLayout(
         <ExpectedStep
           searchQuery={searchQuery}
           onSearch={handleSearchExpected}
@@ -204,7 +275,7 @@ export function SmartTriage() {
       );
 
     case 'success':
-      return <SuccessStep guest={lastGuest!} host={hosts.find(h => h.id === lastGuest!.hostId)!} />;
+      return renderLayout(<SuccessStep guest={lastGuest!} host={hosts.find(h => h.id === lastGuest!.hostId)!} />);
   }
 }
 
@@ -219,26 +290,29 @@ function WelcomeStep({
   onExpected: () => void;
 }) {
   return (
-    <div className="smart-triage welcome-step">
-      <div className="triage-container">
-        <div className="welcome-header">
-          <h1>Welcome to Floinvite</h1>
-          <p>Are you an expected guest or walking in?</p>
-        </div>
+    <div className="triage-panel">
+      <div className="welcome-header">
+        <p className="eyebrow">Front desk mode</p>
+        <h1>Who are we welcoming?</h1>
+        <p className="muted">Choose the right lane. Both paths take under a minute.</p>
+      </div>
 
-        <div className="path-buttons">
-          <button className="path-button walk-in" onClick={onWalkIn}>
-            <div className="path-icon">🚶</div>
-            <h2>Walk-In Visit</h2>
-            <p>First time here or just dropping by</p>
-          </button>
+      <div className="path-buttons">
+        <button className="path-button walk-in" onClick={onWalkIn}>
+          <div className="path-icon">🚶</div>
+          <div className="path-text">
+            <h2>Walk-in</h2>
+            <p>New visitor without an appointment</p>
+          </div>
+        </button>
 
-          <button className="path-button expected" onClick={onExpected}>
-            <div className="path-icon">✓</div>
-            <h2>I'm Expected</h2>
-            <p>I have an appointment or meeting</p>
-          </button>
-        </div>
+        <button className="path-button expected" onClick={onExpected}>
+          <div className="path-icon">🗓️</div>
+          <div className="path-text">
+            <h2>Expected</h2>
+            <p>Pre-registered guest or repeat visit</p>
+          </div>
+        </button>
       </div>
     </div>
   );
@@ -271,69 +345,72 @@ function WalkInStep({
   onBack: () => void;
 }) {
   return (
-    <div className="smart-triage walk-in-step">
-      <div className="triage-container">
+    <div className="triage-panel">
+      <div className="panel-heading">
         <button className="back-button" onClick={onBack}>
           ← Back
         </button>
-
-        <h1>Check-In Information</h1>
-
-        {errors.length > 0 && (
-          <div className="error-message">
-            {errors.map((error, i) => (
-              <p key={i}>• {error}</p>
-            ))}
-          </div>
-        )}
-
-        <form onSubmit={(e) => { e.preventDefault(); onCheckIn(); }}>
-          <div className="form-group">
-            <label htmlFor="name">Your Name *</label>
-            <input
-              id="name"
-              type="text"
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="First and last name"
-              required
-              autoFocus
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="company">Company (Optional)</label>
-            <input
-              id="company"
-              type="text"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              placeholder="Company name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="host">Who are you visiting? *</label>
-            <select
-              id="host"
-              value={selectedHost}
-              onChange={(e) => setSelectedHost(e.target.value)}
-              required
-            >
-              <option value="">-- Select a person --</option>
-              {hosts.map(host => (
-                <option key={host.id} value={host.id}>
-                  {host.name} {host.department ? `(${host.department})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>
-            Check In
-          </button>
-        </form>
+        <div>
+          <p className="eyebrow">Walk-in lane</p>
+          <h2>Capture guest details</h2>
+          <p className="muted">Name, company, and host — the fastest way to log a new arrival.</p>
+        </div>
       </div>
+
+      {errors.length > 0 && (
+        <div className="error-message">
+          {errors.map((error, i) => (
+            <p key={i}>• {error}</p>
+          ))}
+        </div>
+      )}
+
+      <form className="triage-form" onSubmit={(e) => { e.preventDefault(); onCheckIn(); }}>
+        <div className="form-group">
+          <label htmlFor="name">Guest name *</label>
+          <input
+            id="name"
+            type="text"
+            value={guestName}
+            onChange={(e) => setGuestName(e.target.value)}
+            placeholder="First and last name"
+            required
+            autoFocus
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="company">Company (optional)</label>
+          <input
+            id="company"
+            type="text"
+            value={company}
+            onChange={(e) => setCompany(e.target.value)}
+            placeholder="Company name"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="host">Who are you visiting? *</label>
+          <select
+            id="host"
+            value={selectedHost}
+            onChange={(e) => setSelectedHost(e.target.value)}
+            required
+          >
+            <option value="">Select a host</option>
+            {hosts.map(host => (
+              <option key={host.id} value={host.id}>
+                {host.name} {host.department ? `(${host.department})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>
+          Check in and notify
+        </button>
+      </form>
     </div>
   );
 }
@@ -357,57 +434,59 @@ function ExpectedStep({
   onBack: () => void;
 }) {
   return (
-    <div className="smart-triage expected-step">
-      <div className="triage-container">
+    <div className="triage-panel">
+      <div className="panel-heading">
         <button className="back-button" onClick={onBack}>
           ← Back
         </button>
-
-        <h1>Find Your Check-In</h1>
-        <p>Search by name, email, or phone number</p>
-
-        <div className="search-box">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search for your name..."
-            autoFocus
-          />
+        <div>
+          <p className="eyebrow">Expected lane</p>
+          <h2>Find your appointment</h2>
+          <p className="muted">Look up your name, email, or phone. We’ll check you in instantly.</p>
         </div>
-
-        {searchResults.length > 0 ? (
-          <div className="search-results">
-            {searchResults.map(guest => (
-              <div key={guest.id} className="result-item">
-                <div className="result-info">
-                  <h3>{guest.name}</h3>
-                  {guest.email && <p>📧 {guest.email}</p>}
-                  {guest.phone && <p>📱 {guest.phone}</p>}
-                  <p className="host-name">
-                    Meeting: {hosts.find(h => h.id === guest.hostId)?.name}
-                  </p>
-                </div>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => onCheckIn(guest.id)}
-                >
-                  Check In
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : searchQuery.trim() ? (
-          <div className="no-results">
-            <p>No matching guests found</p>
-            <small>Please double-check the spelling or ask at reception</small>
-          </div>
-        ) : (
-          <div className="search-placeholder">
-            <p>Start typing to find your appointment...</p>
-          </div>
-        )}
       </div>
+
+      <div className="search-box">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => onSearch(e.target.value)}
+          placeholder="Search for your name..."
+          autoFocus
+        />
+      </div>
+
+      {searchResults.length > 0 ? (
+        <div className="search-results">
+          {searchResults.map(guest => (
+            <div key={guest.id} className="result-item">
+              <div className="result-info">
+                <h3>{guest.name}</h3>
+                {guest.email && <p>📧 {guest.email}</p>}
+                {guest.phone && <p>📱 {guest.phone}</p>}
+                <p className="host-name">
+                  Meeting: {hosts.find(h => h.id === guest.hostId)?.name}
+                </p>
+              </div>
+              <button
+                className="btn btn-primary"
+                onClick={() => onCheckIn(guest.id)}
+              >
+                Check in now
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : searchQuery.trim() ? (
+        <div className="no-results">
+          <p>No matching guests found</p>
+          <small>Please double-check the spelling or ask at reception</small>
+        </div>
+      ) : (
+        <div className="search-placeholder">
+          <p>Start typing to find your appointment...</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -417,10 +496,10 @@ function ExpectedStep({
  */
 function SuccessStep({ guest, host }: { guest: Guest; host: Host }) {
   return (
-    <div className="smart-triage success-step">
+    <div className="triage-panel success-step">
       <div className="success-container">
         <div className="success-icon">✓</div>
-        <h1>Check-In Successful!</h1>
+        <h1>Check-in successful</h1>
         <p>Welcome, <strong>{guest.name}</strong></p>
         {guest.company && <p className="company">from {guest.company}</p>}
         <p className="host-greeting">
