@@ -151,6 +151,37 @@ export function Settings() {
                 </label>
               </div>
 
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.kioskMode ?? false}
+                    onChange={(e) => setFormData({ ...formData, kioskMode: e.target.checked })}
+                  />
+                  <span>Enable Kiosk Mode</span>
+                </label>
+                <small>Fullscreen mode with hidden navbar, optimized for tablet/kiosk displays</small>
+              </div>
+
+              {formData.kioskMode && (
+                <div className="info-box">
+                  <strong>💡 Kiosk Mode Active:</strong> Press F11 or use the fullscreen button below to enter fullscreen. Press ESC to exit.
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(err =>
+                      alert(`Error attempting to enable fullscreen: ${err.message}`)
+                    );
+                  }
+                }}
+                className="btn btn-secondary"
+              >
+                Enter Fullscreen
+              </button>
+
               {saved && <div className="success-message">✓ Settings saved</div>}
 
               <button onClick={handleSave} className="btn btn-primary">

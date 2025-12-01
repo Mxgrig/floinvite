@@ -1,0 +1,448 @@
+/**
+ * Legal Pages Styles
+ * Shared styling for Contact, Privacy Policy, and Terms of Service pages
+ */
+
+.legal-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.legal-hero {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  border-bottom: 2px solid var(--border-color);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.legal-hero-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.legal-brand-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.legal-brand-button:hover {
+  transform: scale(1.05);
+}
+
+.legal-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.legal-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+}
+
+.legal-brand-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary) 0%, #00a8e8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.legal-hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+}
+
+.legal-hero-description {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.legal-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  flex: 1;
+}
+
+.legal-content {
+  color: var(--text-primary);
+}
+
+.legal-content h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+}
+
+.legal-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-3);
+  color: var(--text-primary);
+}
+
+.legal-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+}
+
+.legal-content p {
+  line-height: 1.8;
+  margin-bottom: var(--space-3);
+  color: var(--text-secondary);
+}
+
+.legal-content ul {
+  list-style: disc;
+  margin-left: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.legal-content li {
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.legal-content a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: all var(--transition-base);
+}
+
+.legal-content a:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+.last-updated {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-4);
+  font-style: italic;
+}
+
+.legal-section {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.legal-section:last-child {
+  border-bottom: none;
+}
+
+.legal-section strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Contact Page Specific */
+.contact-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.contact-content {
+  color: var(--text-primary);
+}
+
+.contact-hero {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.contact-hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+}
+
+.contact-hero p {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.contact-methods {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.contact-method {
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.contact-method:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.contact-icon {
+  color: var(--primary);
+  margin-bottom: var(--space-2);
+}
+
+.contact-method h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+}
+
+.contact-method p {
+  margin-bottom: var(--space-1);
+  color: var(--text-secondary);
+}
+
+.contact-method a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-base);
+}
+
+.contact-method a:hover {
+  text-decoration: underline;
+}
+
+.contact-note {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  margin-top: var(--space-2) !important;
+}
+
+.contact-form-section {
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.contact-form-section h2 {
+  margin-top: 0;
+  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  transition: all var(--transition-base);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.xtenalyze-section {
+  margin-top: var(--space-8);
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.xtenalyze-section h2 {
+  margin-top: 0;
+  color: var(--text-primary);
+}
+
+.xtenalyze-section p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.xtenalyze-section strong {
+  color: var(--text-primary);
+}
+
+.xtenalyze-section a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.xtenalyze-section a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .legal-hero {
+    padding: var(--space-6) var(--space-3);
+  }
+
+  .legal-hero h1 {
+    font-size: 2rem;
+  }
+
+  .legal-hero-description {
+    font-size: 1rem;
+  }
+
+  .legal-container,
+  .contact-container {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .legal-content h1,
+  .contact-hero h1 {
+    font-size: 2rem;
+  }
+
+  .legal-content h2 {
+    font-size: 1.25rem;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .contact-methods {
+    order: 2;
+  }
+
+  .contact-form-section {
+    order: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .legal-hero {
+    padding: var(--space-4) var(--space-2);
+  }
+
+  .legal-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .legal-brand-text {
+    font-size: 1rem;
+  }
+
+  .legal-hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .legal-hero-description {
+    font-size: 0.95rem;
+  }
+
+  .legal-container,
+  .contact-container {
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .legal-content h1,
+  .contact-hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .legal-content h2 {
+    font-size: 1.1rem;
+  }
+
+  .contact-hero p {
+    font-size: 1rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .legal-content,
+  .contact-content {
+    color: var(--text-primary);
+  }
+
+  .contact-method,
+  .contact-form-section,
+  .xtenalyze-section {
+    background: var(--bg-secondary);
+  }
+
+  .contact-method:hover {
+    border-color: var(--primary);
+  }
+
+  .form-group input,
+  .form-group textarea {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+  }
+}

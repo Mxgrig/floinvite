@@ -876,3 +876,107 @@ body {
     background: #1f2937;
   }
 }
+
+/* ═══════════════════════════════════════════════════ */
+/* Kiosk Mode - Fullscreen Optimization */
+/* ═══════════════════════════════════════════════════ */
+
+/* Fullscreen mode */
+:fullscreen {
+  background: #000;
+}
+
+:fullscreen .floinvite-app {
+  height: 100vh;
+}
+
+:fullscreen .app-main {
+  height: 100vh;
+  overflow: auto;
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Tablet & Landscape Optimization */
+/* ═══════════════════════════════════════════════════ */
+
+/* Tablets in landscape (768px+) */
+@media (min-width: 768px) and (orientation: landscape) {
+  .floinvite-app {
+    height: 100vh;
+  }
+
+  .app-main {
+    max-height: calc(100vh - 64px);
+    overflow: auto;
+  }
+
+  /* Optimize sidebar for landscape */
+  .triage-shell {
+    grid-template-columns: minmax(0, 3fr) minmax(280px, 1fr);
+    gap: 1rem;
+    max-height: calc(100vh - 150px);
+  }
+
+  .triage-main {
+    max-height: 100%;
+    overflow: auto;
+  }
+
+  .triage-sidebar {
+    max-height: 100%;
+    overflow: auto;
+  }
+}
+
+/* Large tablets & desktops */
+@media (min-width: 1024px) {
+  .triage-shell {
+    grid-template-columns: minmax(0, 2.5fr) minmax(320px, 1fr);
+  }
+}
+
+/* ═══════════════════════════════════════════════════ */
+/* Mobile Warning */
+/* ═══════════════════════════════════════════════════ */
+
+/* Hide warning on larger screens */
+@media (min-width: 768px) {
+  .mobile-warning {
+    display: none !important;
+  }
+}
+
+.mobile-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 2rem;
+}
+
+.mobile-warning-content {
+  text-align: center;
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-warning-content h1 {
+  color: #dc2626;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.mobile-warning-content p {
+  color: #666;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}

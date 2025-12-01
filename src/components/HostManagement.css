@@ -174,9 +174,9 @@
   color: #0284c7;
 }
 
-.badge.sms {
-  background: #dcfce7;
-  color: #16a34a;
+.badge.whatsapp {
+  background: #dbeafe;
+  color: #0284c7;
 }
 
 .empty-state {
@@ -320,9 +320,41 @@
   cursor: pointer;
 }
 
-.sms-carrier {
-  margin-top: 0.5rem;
-  margin-left: 1.5rem;
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.radio-group label:hover {
+  background: #f0f4f8;
+  border-color: #4f46e5;
+}
+
+.radio-group input[type="radio"] {
+  width: auto;
+  cursor: pointer;
+  accent-color: #4f46e5;
+}
+
+.radio-group input[type="radio"]:checked + span {
+  color: #4f46e5;
+  font-weight: 600;
 }
 
 .btn-lg {
