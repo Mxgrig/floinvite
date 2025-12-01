@@ -19,26 +19,6 @@ export const APP_CONFIG = {
 };
 
 /**
- * SMS Gateway Email Addresses
- * Maps phone carriers to their email-to-SMS gateways
- * Example: 07700123456 + vodafone → 07700123456@vodafone.net
- */
-export const SMS_GATEWAYS = {
-  vodafone: '@vodafone.net',
-  ee: '@mms.ee.co.uk',
-  o2: '@o2.co.uk',
-  three: '@three.co.uk',
-  tmobile: '@tmomail.net',
-  att: '@txt.att.net',
-  verizon: '@vtext.com',
-  sprint: '@messaging.sprintpcs.com',
-  boost: '@sms.myboostmobile.com',
-  virgin: '@vmobl.com'
-} as const;
-
-export type SMSCarrier = keyof typeof SMS_GATEWAYS;
-
-/**
  * Storage Keys
  * Prefix: 'floinvite_' for namespace isolation
  */
@@ -198,7 +178,7 @@ export const FEATURE_ACCESS = {
     'returning_visitors',
     'search_export',
     'email_templates',
-    'sms_templates',
+    'whatsapp_templates',
     'notification_tones'
   ],
   professional: [

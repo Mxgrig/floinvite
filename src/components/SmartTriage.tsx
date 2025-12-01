@@ -6,9 +6,17 @@
  */
 
 import { useState, type ReactNode } from 'react';
+import { UserCheck, Calendar, Mail, Phone, CheckCircle } from 'lucide-react';
 import { Guest, Host, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
-import { generateVisitorArrivalNotification } from '../services/notificationService';
+import {
+  generateVisitorArrivalNotification,
+  generateWhatsAppVisitorMessage,
+  generateReturningVisitorNotification,
+  generateWhatsAppReturningMessage,
+  openWhatsAppChat,
+  sendNotificationEmail
+} from '../services/notificationService';
 import { validateGuestName } from '../utils/validators';
 import { usePersistedState } from '../utils/hooks';
 import { GUEST_STATUS, STORAGE_KEYS } from '../utils/constants';
@@ -89,14 +97,23 @@ export function SmartTriage() {
     // Save to storage
     StorageService.addGuest(guest);
 
-    // Generate notification (Phase 1: display only, Phase 2: send via email)
-    const notification = generateVisitorArrivalNotification(guest, host, {
-      includeCompany: true,
-      tone: 'professional'
-    });
+    // Send notifications based on host's preference
+    if (host.notificationMethod === 'email' || host.notificationMethod === 'both') {
+      const emailNotification = generateVisitorArrivalNotification(guest, host, {
+        includeCompany: true,
+        tone: 'professional'
+      });
+      console.log('📧 Email notification ready:', emailNotification);
+      // Phase 2: sendNotificationEmail(emailNotification);
+    }
 
-    // For Phase 1, just log and display
-    console.log('Notification would be sent:', notification);
+    if (host.notificationMethod === 'whatsapp' || host.notificationMethod === 'both') {
+      if (host.whatsappNumber) {
+        const whatsappMessage = generateWhatsAppVisitorMessage(guest, host);
+        console.log('💬 WhatsApp notification ready:', whatsappMessage);
+        // Uncomment for automatic sending: openWhatsAppChat(host.whatsappNumber, whatsappMessage);
+      }
+    }
 
     setLastGuest(guest);
     setStep('success');
@@ -157,10 +174,22 @@ export function SmartTriage() {
 
     const host = hosts.find(h => h.id === guest.hostId);
     if (host) {
-      const notification = generateVisitorArrivalNotification(updatedGuest, host, {
-        tone: 'friendly'
-      });
-      console.log('Notification would be sent:', notification);
+      // Send notifications based on host's preference
+      if (host.notificationMethod === 'email' || host.notificationMethod === 'both') {
+        const emailNotification = generateVisitorArrivalNotification(updatedGuest, host, {
+          tone: 'friendly'
+        });
+        console.log('📧 Email notification ready:', emailNotification);
+        // Phase 2: sendNotificationEmail(emailNotification);
+      }
+
+      if (host.notificationMethod === 'whatsapp' || host.notificationMethod === 'both') {
+        if (host.whatsappNumber) {
+          const whatsappMessage = generateWhatsAppVisitorMessage(updatedGuest, host);
+          console.log('💬 WhatsApp notification ready:', whatsappMessage);
+          // Uncomment for automatic sending: openWhatsAppChat(host.whatsappNumber, whatsappMessage);
+        }
+      }
     }
 
     setLastGuest(updatedGuest);
@@ -181,12 +210,8 @@ export function SmartTriage() {
         </div>
         <aside className="triage-sidebar">
           <div className="sidebar-card">
-            <p className="eyebrow">Front desk summary</p>
+            <p className="eyebrow">Quick stats</p>
             <div className="sidebar-stats">
-              <div className="stat-block">
-                <span>Hosts on duty</span>
-                <strong>{hosts.length || 0}</strong>
-              </div>
               <div className="stat-block">
                 <span>Arrivals today</span>
                 <strong>{checkedInToday}</strong>
@@ -299,7 +324,9 @@ function WelcomeStep({
 
       <div className="path-buttons">
         <button className="path-button walk-in" onClick={onWalkIn}>
-          <div className="path-icon">🚶</div>
+          <div className="path-icon">
+            <UserCheck size={48} strokeWidth={1.5} />
+          </div>
           <div className="path-text">
             <h2>Walk-in</h2>
             <p>New visitor without an appointment</p>
@@ -307,7 +334,9 @@ function WelcomeStep({
         </button>
 
         <button className="path-button expected" onClick={onExpected}>
-          <div className="path-icon">🗓️</div>
+          <div className="path-icon">
+            <Calendar size={48} strokeWidth={1.5} />
+          </div>
           <div className="path-text">
             <h2>Expected</h2>
             <p>Pre-registered guest or repeat visit</p>
@@ -462,8 +491,8 @@ function ExpectedStep({
             <div key={guest.id} className="result-item">
               <div className="result-info">
                 <h3>{guest.name}</h3>
-                {guest.email && <p>📧 {guest.email}</p>}
-                {guest.phone && <p>📱 {guest.phone}</p>}
+                {guest.email && <p className="contact-item"><Mail size={16} /> {guest.email}</p>}
+                {guest.phone && <p className="contact-item"><Phone size={16} /> {guest.phone}</p>}
                 <p className="host-name">
                   Meeting: {hosts.find(h => h.id === guest.hostId)?.name}
                 </p>
@@ -498,7 +527,9 @@ function SuccessStep({ guest, host }: { guest: Guest; host: Host }) {
   return (
     <div className="triage-panel success-step">
       <div className="success-container">
-        <div className="success-icon">✓</div>
+        <div className="success-icon">
+          <CheckCircle size={64} strokeWidth={1.5} />
+        </div>
         <h1>Check-in successful</h1>
         <p>Welcome, <strong>{guest.name}</strong></p>
         {guest.company && <p className="company">from {guest.company}</p>}

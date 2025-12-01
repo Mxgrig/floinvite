@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { ClipboardList, BookOpen, Users, Settings as SettingsIcon, Shield, Bell, Clock3, Mail, ArrowUpRight } from 'lucide-react';
+import { AppSettings } from './types';
 import { Pricing } from './components/Pricing';
 import { SmartTriage } from './components/SmartTriage';
 import { Logbook } from './components/Logbook';
@@ -12,16 +13,31 @@ import { HostManagement } from './components/HostManagement';
 import { Settings } from './components/Settings';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { Contact } from './components/Contact';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { TermsOfService } from './components/TermsOfService';
 import { PaymentService } from './services/paymentService';
 import { usePersistedState } from './utils/hooks';
+import { STORAGE_KEYS } from './utils/constants';
 import './App.css';
 
-type AppPage = 'landing' | 'pricing' | 'check-in' | 'logbook' | 'hosts' | 'settings';
+type AppPage = 'landing' | 'pricing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'contact' | 'privacy' | 'terms';
 
 export function App() {
   const [currentPage, setCurrentPage] = useState<AppPage>('landing');
   const [userTier, setUserTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [settings] = usePersistedState<AppSettings>(
+    STORAGE_KEYS.settings,
+    {
+      businessName: 'My Company',
+      notificationEmail: 'admin@floinvite.com',
+      kioskMode: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  );
 
   // Check subscription status on mount
   useEffect(() => {
@@ -36,6 +52,16 @@ export function App() {
 
     checkSubscription();
   }, [setUserTier]);
+
+  // Check screen size for mobile warning
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Route to check-in if user is on starter or paid tier
   const handleStartCheckIn = () => {
@@ -59,6 +85,12 @@ export function App() {
         return <HostManagement />;
       case 'settings':
         return <Settings />;
+      case 'contact':
+        return <Contact onNavigate={setCurrentPage} />;
+      case 'privacy':
+        return <PrivacyPolicy onNavigate={setCurrentPage} />;
+      case 'terms':
+        return <TermsOfService onNavigate={setCurrentPage} />;
       case 'landing':
       default:
         return <LandingPage onNavigate={setCurrentPage} onStartCheckIn={handleStartCheckIn} />;
@@ -67,13 +99,33 @@ export function App() {
 
   return (
     <div className="floinvite-app">
-      {/* Navbar - Show on all pages */}
-      <Navbar
-        currentPage={currentPage}
-        onNavigate={setCurrentPage}
-        userTier={userTier}
-        showAppNav={currentPage !== 'pricing' && currentPage !== 'landing'}
-      />
+      {/* Navbar - Hide in kiosk mode on check-in page */}
+      {!(settings.kioskMode && currentPage === 'check-in') && (
+        <Navbar
+          currentPage={currentPage}
+          onNavigate={setCurrentPage}
+          userTier={userTier}
+          showAppNav={currentPage !== 'pricing' && currentPage !== 'landing'}
+        />
+      )}
+
+      {/* Mobile Warning - Show on screens < 768px */}
+      {isMobile && (
+        <div className="mobile-warning">
+          <div className="mobile-warning-content">
+            <h1>⚠️ Small Screen Detected</h1>
+            <p>
+              This app is optimized for <strong>tablets and desktops</strong> in landscape mode.
+            </p>
+            <p>
+              For the best experience, please use a device with a minimum width of <strong>768px</strong> (iPad, tablet, or desktop).
+            </p>
+            <p style={{ fontSize: '0.9rem', marginBottom: 0 }}>
+              You can dismiss this message by rotating your device or using a larger screen.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="app-main">
@@ -148,7 +200,7 @@ function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
             </div>
             <div className="proof-item">
               <div className="proof-value">Multi-channel</div>
-              <div className="proof-label">Email + SMS alerts</div>
+              <div className="proof-label">Email + WhatsApp alerts</div>
             </div>
           </div>
         </div>
@@ -156,7 +208,7 @@ function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
         {/* Hero Image */}
         <div className="hero-image">
           <img
-            src="/assets/heroimg.png"
+            src="/heroimg.png"
             alt="Visitor management dashboard"
             className="hero-img"
           />
@@ -179,7 +231,7 @@ function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
               <Bell size={28} />
             </div>
             <h4>Instant Alerts</h4>
-            <p>Email and SMS notifications when guests arrive</p>
+            <p>Email and WhatsApp notifications when guests arrive</p>
           </div>
           <div className="feature-card">
             <div className="feature-icon">

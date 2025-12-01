@@ -1,0 +1,3 @@
+cd public_html
+put -r dist/*
+quit

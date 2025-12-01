@@ -49,9 +49,8 @@ export class ExportService {
       'Email',
       'Phone',
       'Department',
-      'Email Notifications',
-      'SMS Notifications',
-      'SMS Carrier'
+      'Notification Method',
+      'WhatsApp Number'
     ];
 
     const rows = hosts.map(h => [
@@ -59,9 +58,8 @@ export class ExportService {
       this.escapeCSV(h.email),
       this.escapeCSV(h.phone || ''),
       this.escapeCSV(h.department || ''),
-      h.notifyByEmail ? 'Yes' : 'No',
-      h.notifyBySMS ? 'Yes' : 'No',
-      this.escapeCSV(h.smsCarrier || '')
+      this.escapeCSV(h.notificationMethod || 'email'),
+      this.escapeCSV(h.whatsappNumber || '')
     ]);
 
     this.downloadCSV([headers, ...rows], filename);

@@ -1,6 +1,6 @@
 /**
  * Pricing Service - REVISED
- * Starter now includes SMS notifications!
+ * Starter now includes WhatsApp notifications!
  */
 
 export interface PricingTier {
@@ -68,7 +68,7 @@ export const PRICING_TIERS: PricingTier[] = [
         category: 'notifications'
       },
       {
-        text: 'Automatic SMS notifications ⭐',
+        text: 'Automatic WhatsApp notifications ⭐',
         included: true,
         category: 'notifications'
       },
@@ -216,7 +216,7 @@ export const PRICING_TIERS: PricingTier[] = [
         category: 'notifications'
       },
       {
-        text: 'SMS notifications',
+        text: 'WhatsApp notifications',
         included: true,
         category: 'notifications'
       },
@@ -374,7 +374,7 @@ export const PRICING_TIERS: PricingTier[] = [
         category: 'notifications'
       },
       {
-        text: 'SMS notifications',
+        text: 'WhatsApp notifications',
         included: true,
         category: 'notifications'
       },
@@ -526,7 +526,7 @@ export const FEATURE_CATEGORIES = [
 export const COMPARISON_TABLE = [
   { feature: 'Guest Check-in', starter: true, professional: true, enterprise: true },
   { feature: 'Email Notifications', starter: true, professional: true, enterprise: true },
-  { feature: 'SMS Notifications', starter: true, professional: true, enterprise: true },
+  { feature: 'WhatsApp Notifications', starter: true, professional: true, enterprise: true },
   { feature: 'Slack/Teams Integration', starter: false, professional: true, enterprise: true },
   { feature: 'Custom Webhooks', starter: false, professional: false, enterprise: true },
   { feature: 'Cloud Backup', starter: false, professional: true, enterprise: true },

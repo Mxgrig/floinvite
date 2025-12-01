@@ -4,9 +4,9 @@ import { Guest, Host, GuestStatus } from '../types';
  * Notification Service
  * Generates and manages visitor notification messages
  *
- * Phase 1 (MVP): Template-based message generation
- * Phase 2: Email service integration
- * Phase 3: Multi-channel (SMS, Teams, Slack)
+ * Phase 1 (MVP): Template-based message generation + WhatsApp Web links
+ * Phase 2: WhatsApp Business API integration + Email service integration
+ * Phase 3: Multi-channel (Teams, Slack)
  */
 
 interface NotificationMessage {
@@ -332,17 +332,44 @@ export const copyNotificationToClipboard = async (
 
 /**
  * ═══════════════════════════════════════════════════
- * SMS NOTIFICATIONS (Phase 2/3)
+ * WHATSAPP NOTIFICATIONS
  * ═══════════════════════════════════════════════════
- * SMS has strict 160 character limit, so messages are concise
+ * Phase 1: WhatsApp Web links (manual sending)
+ * Phase 2: WhatsApp Business API (automatic sending)
  */
 
 /**
- * Generate SMS for walk-in visitor arrival
- * Must fit in single SMS (160 chars)
+ * Generate WhatsApp Web link for message
+ * Phase 1: Opens WhatsApp Web/App with pre-filled message
  */
-export const generateVisitorArrivalSMS = (
-  guest: Guest
+export const generateWhatsAppLink = (
+  phoneNumber: string,
+  message: string
+): string => {
+  const encodedMessage = encodeURIComponent(message);
+  // Remove any non-numeric characters except + from phone number
+  const cleanPhone = phoneNumber.replace(/\s|-|\(|\)/g, '');
+  return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+};
+
+/**
+ * Open WhatsApp with pre-filled message
+ * Phase 1 (MVP): User manually sends message from WhatsApp
+ */
+export const openWhatsAppChat = (
+  phoneNumber: string,
+  message: string
+): void => {
+  const link = generateWhatsAppLink(phoneNumber, message);
+  window.open(link, '_blank');
+};
+
+/**
+ * Generate WhatsApp message for visitor arrival
+ */
+export const generateWhatsAppVisitorMessage = (
+  guest: Guest,
+  host: Host
 ): string => {
   const company = guest.company ? ` from ${guest.company}` : '';
   const time = new Date(guest.checkInTime).toLocaleTimeString('en-GB', {
@@ -350,22 +377,21 @@ export const generateVisitorArrivalSMS = (
     minute: '2-digit'
   });
 
-  // Format: "John Smith from Client Corp has arrived (14:30)"
-  // Prioritize name and company, drop time if needed to stay under 160 chars
-  let message = `${guest.name}${company} has arrived (${time})`;
+  return `👋 *Visitor Arrival*
 
-  if (message.length > 160) {
-    message = `${guest.name}${company} has arrived`;
-  }
+${guest.name}${company} has arrived.
 
-  return message;
+⏰ Time: ${time}
+
+Please come down to greet your visitor.`;
 };
 
 /**
- * Generate SMS for returning visitor
+ * Generate WhatsApp message for returning visitor
  */
-export const generateReturningVisitorSMS = (
+export const generateWhatsAppReturningMessage = (
   guest: Guest,
+  host: Host,
   previousVisitDate: Date
 ): string => {
   const company = guest.company ? ` from ${guest.company}` : '';
@@ -373,96 +399,77 @@ export const generateReturningVisitorSMS = (
     (Date.now() - previousVisitDate.getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  // Format: "John Smith from Client Corp has arrived (visited 5d ago)"
-  return `${guest.name}${company} has arrived (visited ${daysAgo}d ago)`.substring(0, 160);
+  return `👋 *Welcome Back!*
+
+${guest.name}${company} has arrived.
+
+📅 Last visit: ${daysAgo} day${daysAgo !== 1 ? 's' : ''} ago
+
+Please come down to greet your visitor.`;
 };
 
 /**
- * Generate SMS for expected guest arrival
+ * Generate WhatsApp message for expected guest arrival
  */
-export const generateExpectedGuestSMS = (
+export const generateWhatsAppExpectedMessage = (
   guest: Guest,
+  host: Host,
   expectedTime?: string
 ): string => {
   const company = guest.company ? ` from ${guest.company}` : '';
+  const actualTime = new Date(guest.checkInTime).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  let message = `✅ *Expected Guest Arrived*
+
+${guest.name}${company} has arrived.
+
+⏰ Time: ${actualTime}`;
 
   if (expectedTime) {
-    return `${guest.name}${company} has arrived (expected ${expectedTime})`.substring(0, 160);
+    message += `\n📅 Expected: ${expectedTime}`;
   }
 
-  return `${guest.name}${company} has arrived`.substring(0, 160);
+  message += `\n\nPlease come down to greet your visitor.`;
+
+  return message;
 };
 
 /**
- * Generate SMS for no-show reminder
+ * Send WhatsApp notification via Web link or API
+ * Phase 1: Opens WhatsApp Web (manual sending by user)
+ * Phase 2: Sends via WhatsApp Business API (automatic)
  */
-export const generateNoShowSMS = (
-  guest: Guest,
-  expectedTime: string
-): string => {
-  return `${guest.name} was expected at ${expectedTime}, still waiting?`.substring(0, 160);
-};
-
-/**
- * Send SMS via email-to-SMS gateway
- * Uses carrier email gateways (no API keys needed)
- * Example: 07700900000 + vodafone = 07700900000@vodafone.net
- */
-export const sendNotificationSMS = async (
+export const sendWhatsAppNotification = async (
   host: Host,
-  smsMessage: string,
-  emailService?: {
-    send: (msg: NotificationMessage) => Promise<void>;
+  message: string,
+  whatsappService?: {
+    send: (phoneNumber: string, message: string) => Promise<void>;
   }
 ): Promise<void> => {
-  if (!host.notifyBySMS || !host.phone || !host.smsCarrier) {
-    console.log('⚠️ SMS not configured for host:', host.name);
+  if (!host.whatsappNumber) {
+    console.log('⚠️ WhatsApp not configured for host:', host.name);
     return;
   }
 
-  // SMS Gateway mapping - converts phone number to email
-  const SMS_GATEWAYS: Record<string, string> = {
-    vodafone: '@vodafone.net',
-    ee: '@mms.ee.co.uk',
-    o2: '@o2.co.uk',
-    three: '@three.co.uk',
-    tmobile: '@tmomail.net',
-    att: '@txt.att.net',
-    verizon: '@vtext.com'
-  };
-
-  const gateway = SMS_GATEWAYS[host.smsCarrier];
-  if (!gateway) {
-    console.error('❌ Unknown SMS carrier:', host.smsCarrier);
-    return;
-  }
-
-  // Clean phone number (remove spaces, dashes, etc.)
-  const cleanPhone = host.phone.replace(/\s|-|\(|\)/g, '');
-  const smsEmailAddress = `${cleanPhone}${gateway}`;
-
-  const smsNotification: NotificationMessage = {
-    to: smsEmailAddress,
-    subject: 'Visitor Arrival (SMS)',
-    body: smsMessage,
-    timestamp: new Date().toISOString()
-  };
-
-  if (!emailService) {
-    console.log('📱 Phase 2: SMS service not configured');
-    console.log('SMS ready to send:', {
-      to: smsEmailAddress,
-      carrier: host.smsCarrier,
-      message: smsMessage
+  if (whatsappService) {
+    // Phase 2: Use API service
+    try {
+      await whatsappService.send(host.whatsappNumber, message);
+      console.log(`✅ WhatsApp sent to ${host.name}`);
+    } catch (error) {
+      console.error(`❌ Failed to send WhatsApp to ${host.name}:`, error);
+      throw new Error(`Failed to send WhatsApp: ${error}`);
+    }
+  } else {
+    // Phase 1: Open WhatsApp Web for manual sending
+    console.log('📱 Phase 1: Opening WhatsApp Web');
+    console.log('WhatsApp message ready:', {
+      to: host.whatsappNumber,
+      message
     });
-    return;
-  }
-
-  try {
-    await emailService.send(smsNotification);
-    console.log(`✅ SMS sent to ${host.name} via ${host.smsCarrier}`);
-  } catch (error) {
-    console.error(`❌ Failed to send SMS to ${host.name}:`, error);
-    throw new Error(`Failed to send SMS: ${error}`);
+    openWhatsAppChat(host.whatsappNumber, message);
   }
 };

@@ -13,9 +13,8 @@ export interface Host {
   email: string;
   phone?: string;
   department?: string;
-  notifyByEmail: boolean;
-  notifyBySMS: boolean;
-  smsCarrier?: 'vodafone' | 'ee' | 'o2' | 'three' | 'tmobile' | 'att' | 'verizon';
+  notificationMethod: 'whatsapp' | 'email' | 'both';
+  whatsappNumber?: string; // Phone number for WhatsApp notifications
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
 }
@@ -75,6 +74,7 @@ export interface AppSettings {
   notificationEmail: string; // admin@floinvite.com
   timezone?: string; // IANA timezone string
   locale?: string; // Language/locale code
+  kioskMode: boolean; // Enable fullscreen kiosk mode
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
 }
@@ -88,6 +88,7 @@ export interface CSVHostRow {
   Email: string;
   Phone?: string;
   Department?: string;
+  NotificationMethod?: 'whatsapp' | 'email' | 'both';
 }
 
 export interface CSVExpectedGuestRow {
@@ -238,22 +239,6 @@ export interface GuestAnalytics {
     visits: number;
   }>;
 }
-
-// ═══════════════════════════════════════════════════
-// SMS Gateway Configuration
-// ═══════════════════════════════════════════════════
-
-export const SMS_GATEWAYS = {
-  vodafone: '@vodafone.net',
-  ee: '@mms.ee.co.uk',
-  o2: '@o2.co.uk',
-  three: '@three.co.uk',
-  tmobile: '@tmomail.net',
-  att: '@txt.att.net',
-  verizon: '@vtext.com'
-} as const;
-
-export type SMSCarrier = keyof typeof SMS_GATEWAYS;
 
 // ═══════════════════════════════════════════════════
 // Constants

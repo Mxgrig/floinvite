@@ -335,7 +335,7 @@ export const hasFeature = (
       'returning_visitors',
       'search_export',
       'email_templates',
-      'sms_templates',
+      'whatsapp_templates',
       'notification_tones',
       'local_database',
       'csv_export',
