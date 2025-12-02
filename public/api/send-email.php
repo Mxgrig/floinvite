@@ -31,6 +31,12 @@ header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Access-Control-Max-Age: 3600');
 
+// Chrome's Private Network Access - Allow preflight requests from public sites
+// This header tells Chrome we explicitly allow access from the internet
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS' && isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK'])) {
+    header('Access-Control-Allow-Private-Network: true');
+}
+
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
