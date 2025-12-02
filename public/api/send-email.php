@@ -2,12 +2,17 @@
 /**
  * Floinvite Email API Endpoint
  * Handles visitor notification emails via Hostinger email
- * 
+ *
  * Deployment: Upload to public_html/api/send-email.php on Hostinger
- * 
+ *
  * This endpoint accepts POST requests with visitor notification data
  * and sends emails via Hostinger's mail system.
  */
+
+// Suppress all warnings/notices to prevent corrupting JSON response
+error_reporting(0);
+ini_set('display_errors', 0);
+@ob_clean(); // Clear any buffered output
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CORS & Security Headers
