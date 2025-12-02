@@ -10,6 +10,7 @@ interface EmailMessage {
   to: string;
   subject: string;
   body: string;
+  emailType?: 'notification' | 'admin';
 }
 
 interface EmailResponse {
@@ -86,7 +87,8 @@ class EmailService {
         body: JSON.stringify({
           to: message.to,
           subject: message.subject,
-          body: message.body
+          body: message.body,
+          emailType: message.emailType || 'notification'
         })
       });
 
