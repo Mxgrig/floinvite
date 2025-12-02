@@ -102,24 +102,18 @@ export function Logbook() {
               const host = hosts.find(h => h.id === guest.hostId);
               const checkInDate = new Date(guest.checkInTime);
 
-              console.log('DEBUG: Rendering guest row:', {
-                guestName: guest.name,
-                hostId: guest.hostId,
-                hostFound: !!host
-              });
-
               return (
-                <div key={guest.id} className="table-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr 1.5fr 1fr', gap: '1rem', padding: '1rem', backgroundColor: '#fff3cd', border: '2px solid red' }}>
-                  <div className="col-name" data-label="Name" style={{ backgroundColor: '#ffe5e5', border: '1px solid blue' }}>
+                <div key={guest.id} className="table-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr 1.5fr 1fr', gap: '1rem', padding: '1rem' }}>
+                  <div className="col-name" data-label="Name">
                     <strong>{guest.name}</strong>
                     {guest.email && <small>{guest.email}</small>}
                   </div>
-                  <div className="col-company" data-label="Company" style={{ backgroundColor: '#e5f5ff', border: '1px solid blue' }}>{guest.company || '—'}</div>
-                  <div className="col-host" data-label="Host" style={{ backgroundColor: '#e5ffe5', border: '1px solid blue' }}>{host?.name || 'Unknown'}</div>
-                  <div className="col-time" data-label="Check-In" style={{ backgroundColor: '#ffe5ff', border: '1px solid blue' }}>
+                  <div className="col-company" data-label="Company">{guest.company || '—'}</div>
+                  <div className="col-host" data-label="Host">{host?.name || 'Unknown'}</div>
+                  <div className="col-time" data-label="Check-In">
                     {checkInDate.toLocaleDateString()} {checkInDate.toLocaleTimeString()}
                   </div>
-                  <div className="col-status" data-label="Status" style={{ backgroundColor: '#fffae5', border: '1px solid blue' }}>
+                  <div className="col-status" data-label="Status">
                     <span className={`status-badge status-${guest.status.toLowerCase()}`}>
                       {guest.status}
                     </span>
