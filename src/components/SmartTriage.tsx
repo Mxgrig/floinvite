@@ -85,9 +85,12 @@ export function SmartTriage() {
     body: string;
   }): Promise<void> => {
     console.log('📧 Sending email notification to:', emailNotification.to);
-    
+
     try {
-      const result = await emailService.send(emailNotification);
+      const result = await emailService.send({
+        ...emailNotification,
+        emailType: 'notification'
+      });
       if (result.success) {
         setNotificationStatus({
           type: 'success',

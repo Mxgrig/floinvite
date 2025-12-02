@@ -38,9 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Configuration
 // ═══════════════════════════════════════════════════════════════════════════
 
-// IMPORTANT: Update these with your Hostinger email settings
-define('FROM_EMAIL', 'admin@floinvite.com');
-define('FROM_NAME', 'Floinvite Reception');
+// Email addresses for different purposes
+define('NOTIFICATION_EMAIL', 'notification@floinvite.com');
+define('ADMIN_EMAIL', 'admin@floinvite.com');
+define('NOTIFICATION_FROM_NAME', 'Floinvite Reception');
+define('ADMIN_FROM_NAME', 'Floinvite Admin');
 
 // Rate limiting: 10 emails per minute per IP
 define('RATE_LIMIT_EMAILS', 10);
@@ -130,6 +132,19 @@ if (count($errors) > 0) {
 // Email Sending
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Determine email type (default: 'notification')
+$email_type = isset($input['emailType']) ? strtolower($input['emailType']) : 'notification';
+
+// Select appropriate email and name based on type
+if ($email_type === 'admin') {
+    $from_email = ADMIN_EMAIL;
+    $from_name = ADMIN_FROM_NAME;
+} else {
+    // Default to notification email for all other types
+    $from_email = NOTIFICATION_EMAIL;
+    $from_name = NOTIFICATION_FROM_NAME;
+}
+
 $to = filter_var($input['to'], FILTER_VALIDATE_EMAIL);
 $subject = substr(htmlspecialchars($input['subject'], ENT_QUOTES, 'UTF-8'), 0, 200);
 $body = htmlspecialchars($input['body'], ENT_QUOTES, 'UTF-8');
@@ -137,8 +152,8 @@ $body = htmlspecialchars($input['body'], ENT_QUOTES, 'UTF-8');
 // Email headers
 $headers = "MIME-Version: 1.0\r\n";
 $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-$headers .= "From: " . FROM_NAME . " <" . FROM_EMAIL . ">\r\n";
-$headers .= "Reply-To: " . FROM_EMAIL . "\r\n";
+$headers .= "From: " . $from_name . " <" . $from_email . ">\r\n";
+$headers .= "Reply-To: " . $from_email . "\r\n";
 $headers .= "X-Mailer: Floinvite/1.0\r\n";
 
 // Additional headers for better deliverability
