@@ -96,14 +96,18 @@ class EmailService {
 
       if (!response.ok) {
         const errorMsg = (data as any).error || (data as any).errors || 'Unknown error';
+        const details = (data as any).details || '';
         console.error('❌ Email send failed:', errorMsg);
+        console.error('📋 Details:', details);
+        console.error('📊 Response:', data);
         return {
           success: false,
-          error: Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg
+          error: Array.isArray(errorMsg) ? errorMsg.join(', ') : `${errorMsg}${details ? ' - ' + details : ''}`
         };
       }
 
       console.log(`✅ Email sent to ${message.to}`);
+      console.log('📧 Response:', data);
       return {
         success: true,
         messageId: `${Date.now()}`

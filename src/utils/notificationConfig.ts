@@ -57,10 +57,14 @@ export const isChannelEnabled = (channel: keyof NotificationChannels): boolean =
 
 /**
  * Check if email notifications are fully configured and ready to send
+ * Phase 1: Uses Hostinger PHP backend (no external API key needed)
+ * Phase 2+: Will use external API (Resend, SendGrid, etc.)
  */
 export const isEmailReady = (): boolean => {
   const config = getNotificationConfig();
-  return config.channels.email && config.emailService.isConfigured;
+  // Phase 1: Only check if email channel is enabled (uses Hostinger backend)
+  // No external API key required
+  return config.channels.email;
 };
 
 /**

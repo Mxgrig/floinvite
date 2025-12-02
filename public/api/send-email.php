@@ -14,9 +14,22 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: https://floinvite.com');
+
+// CORS - Allow requests from floinvite.com and subdomains
+$allowed_origins = [
+    'https://floinvite.com',
+    'http://localhost:5173',
+    'http://localhost:3000'
+];
+
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+if (in_array($origin, $allowed_origins) || strpos($origin, 'floinvite.com') !== false) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+}
+
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Max-Age: 3600');
 
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -176,19 +189,18 @@ if ($success) {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Failed to send email. Please contact support.',
-        'details' => 'Mail function returned false. Check Hostinger email configuration.'
+        'error' => 'Failed to send email',
+        'details' => 'Mail function returned false. Check Hostinger email configuration and /tmp/floinvite_email.log for details.'
     ]);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Logging (Optional)
+// Logging
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Uncomment to enable logging:
-/*
-$log_file = __DIR__ . '/../../logs/email.log';
-$log_entry = date('Y-m-d H:i:s') . " | " . ($success ? 'SUCCESS' : 'FAILED') . " | To: " . $to . " | Subject: " . $subject . "\n";
+// Log all email requests for debugging
+$log_file = '/tmp/floinvite_email.log';
+$log_entry = date('Y-m-d H:i:s') . " | " . ($success ? 'SUCCESS' : 'FAILED') . " | Type: " . $email_type . " | Name: " . $from_name . " | Sender: " . $from_email . " | ReplyTo: " . $reply_to . " | To: " . $to . " | Subject: " . $subject . "\n";
 @file_put_contents($log_file, $log_entry, FILE_APPEND);
-*/
 ?>
+
