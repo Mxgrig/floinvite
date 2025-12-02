@@ -103,13 +103,18 @@
 }
 
 .table-row {
-  display: grid;
-  grid-template-columns: 1.5fr 2fr 1.2fr 1.5fr 1fr;
-  gap: 1rem;
+  display: grid !important;
+  grid-template-columns: 1.5fr 2fr 1.2fr 1.5fr 1fr !important;
+  gap: 1rem !important;
   padding: 1rem;
   border-bottom: 1px solid var(--border);
   align-items: center;
   transition: background-color 0.2s;
+}
+
+.table-row > div {
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .table-row:hover {
