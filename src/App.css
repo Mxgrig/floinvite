@@ -887,12 +887,12 @@ body {
 }
 
 :fullscreen .floinvite-app {
-  height: 100vh;
+  min-height: 100vh;
 }
 
 :fullscreen .app-main {
-  height: 100vh;
-  overflow: auto;
+  flex: 1;
+  overflow: visible;
 }
 
 /* ═══════════════════════════════════════════════════ */
@@ -902,29 +902,26 @@ body {
 /* Tablets in landscape (768px+) */
 @media (min-width: 768px) and (orientation: landscape) {
   .floinvite-app {
-    height: 100vh;
+    min-height: 100vh;
   }
 
   .app-main {
-    max-height: calc(100vh - 64px);
-    overflow: auto;
+    flex: 1;
+    overflow: visible;
   }
 
   /* Optimize sidebar for landscape */
   .triage-shell {
     grid-template-columns: minmax(0, 3fr) minmax(280px, 1fr);
     gap: 1rem;
-    max-height: calc(100vh - 150px);
   }
 
   .triage-main {
-    max-height: 100%;
-    overflow: auto;
+    overflow: visible;
   }
 
   .triage-sidebar {
-    max-height: 100%;
-    overflow: auto;
+    overflow: visible;
   }
 }
 
