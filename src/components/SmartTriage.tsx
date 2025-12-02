@@ -52,16 +52,29 @@ export function SmartTriage() {
   // Initialize notification config on mount
   useEffect(() => {
     const emailReady = isEmailReady();
-    if (emailReady) {
-      console.log('✅ Email service configured and ready');
-    } else {
-      console.log('📧 Email service: notifications logged to console (Phase 1)');
+    console.log('🔧 SmartTriage initialized');
+    console.log('📊 Hosts loaded:', hosts.length);
+    console.log('📧 Email service status:', emailReady ? 'READY' : 'DISABLED (Phase 1)');
+    
+    if (hosts.length > 0) {
+      console.log('📋 Hosts:', hosts.map(h => ({
+        name: h.name,
+        email: h.email,
+        notificationMethod: h.notificationMethod || 'default'
+      })));
     }
-  }, []);
+  }, [hosts]);
 
   const today = new Date().toDateString();
   const checkedInToday = guests.filter(g => new Date(g.checkInTime).toDateString() === today).length;
   const expectedToday = guests.filter(g => g.status === GUEST_STATUS.EXPECTED).length;
+
+  /**
+   * Determine notification method with fallback defaults
+   */
+  const getNotificationMethod = (host: Host): string => {
+    return host.notificationMethod || 'email'; // Default to email if not set
+  };
 
   /**
    * Send email notification
@@ -71,6 +84,8 @@ export function SmartTriage() {
     subject: string;
     body: string;
   }): Promise<void> => {
+    console.log('📧 Sending email notification to:', emailNotification.to);
+    
     try {
       const result = await emailService.send(emailNotification);
       if (result.success) {
@@ -78,13 +93,13 @@ export function SmartTriage() {
           type: 'success',
           message: `✅ Email notification sent to ${emailNotification.to}`
         });
-        console.log('📧 Email sent successfully:', result.messageId);
+        console.log('✅ Email sent successfully:', result.messageId);
       } else {
         setNotificationStatus({
           type: 'error',
           message: `Email notification: ${result.error || 'Unknown error'}`
         });
-        console.error('📧 Email send failed:', result.error);
+        console.error('❌ Email send failed:', result.error);
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -92,8 +107,31 @@ export function SmartTriage() {
         type: 'error',
         message: `Notification error: ${errorMsg}`
       });
-      console.error('📧 Email service error:', error);
+      console.error('❌ Email service error:', error);
     }
+  };
+
+  /**
+   * Send WhatsApp notification
+   */
+  const sendWhatsAppNotification = (host: Host, message: string): void => {
+    if (!host.whatsappNumber) {
+      console.warn('⚠️ WhatsApp number not configured for host:', host.name);
+      setNotificationStatus({
+        type: 'error',
+        message: `WhatsApp not configured for ${host.name}`
+      });
+      return;
+    }
+
+    console.log('📱 Opening WhatsApp for:', host.whatsappNumber);
+    setNotificationStatus({
+      type: 'success',
+      message: `📱 WhatsApp link opened for ${host.name}`
+    });
+    
+    // Open WhatsApp with pre-filled message
+    openWhatsAppChat(host.whatsappNumber, message);
   };
 
   /**
@@ -131,6 +169,9 @@ export function SmartTriage() {
       return;
     }
 
+    console.log('✅ Host found:', host.name);
+    console.log('📋 Host notification method:', getNotificationMethod(host));
+
     // Create guest record
     const now = new Date().toISOString();
     const guest: Guest = {
@@ -147,24 +188,30 @@ export function SmartTriage() {
 
     // Save to storage
     StorageService.addGuest(guest);
+    console.log('💾 Guest saved:', guest.name);
+
+    // Determine notification method (default to email)
+    const notificationMethod = getNotificationMethod(host);
 
     // Send notifications based on host's preference
-    if (host.notificationMethod === 'email' || host.notificationMethod === 'both') {
+    if (notificationMethod === 'email' || notificationMethod === 'both') {
+      console.log('📧 Triggering email notification...');
       const emailNotification = generateVisitorArrivalNotification(guest, host, {
         includeCompany: true,
         tone: 'professional'
       });
+      console.log('📧 Email notification object:', emailNotification);
       await sendEmailNotification(emailNotification);
     }
 
-    if (host.notificationMethod === 'whatsapp' || host.notificationMethod === 'both') {
-      if (host.whatsappNumber) {
-        const whatsappMessage = generateWhatsAppVisitorMessage(guest, host);
-        console.log('💬 WhatsApp notification ready:', whatsappMessage);
-        // Uncomment for automatic sending: openWhatsAppChat(host.whatsappNumber, whatsappMessage);
-      }
+    if (notificationMethod === 'whatsapp' || notificationMethod === 'both') {
+      console.log('📱 Triggering WhatsApp notification...');
+      const whatsappMessage = generateWhatsAppVisitorMessage(guest, host);
+      console.log('📱 WhatsApp message:', whatsappMessage);
+      sendWhatsAppNotification(host, whatsappMessage);
     }
 
+    console.log('✨ Check-in complete for:', guest.name);
     setLastGuest(guest);
     setStep('success');
 
@@ -226,20 +273,19 @@ export function SmartTriage() {
 
     const host = hosts.find(h => h.id === guest.hostId);
     if (host) {
+      const notificationMethod = getNotificationMethod(host);
+
       // Send notifications based on host's preference
-      if (host.notificationMethod === 'email' || host.notificationMethod === 'both') {
+      if (notificationMethod === 'email' || notificationMethod === 'both') {
         const emailNotification = generateVisitorArrivalNotification(updatedGuest, host, {
           tone: 'friendly'
         });
         await sendEmailNotification(emailNotification);
       }
 
-      if (host.notificationMethod === 'whatsapp' || host.notificationMethod === 'both') {
-        if (host.whatsappNumber) {
-          const whatsappMessage = generateWhatsAppVisitorMessage(updatedGuest, host);
-          console.log('💬 WhatsApp notification ready:', whatsappMessage);
-          // Uncomment for automatic sending: openWhatsAppChat(host.whatsappNumber, whatsappMessage);
-        }
+      if (notificationMethod === 'whatsapp' || notificationMethod === 'both') {
+        const whatsappMessage = generateWhatsAppVisitorMessage(updatedGuest, host);
+        sendWhatsAppNotification(host, whatsappMessage);
       }
     }
 
@@ -271,6 +317,10 @@ export function SmartTriage() {
               <div className="stat-block">
                 <span>Expected</span>
                 <strong>{expectedToday}</strong>
+              </div>
+              <div className="stat-block">
+                <span>Hosts</span>
+                <strong>{hosts.length}</strong>
               </div>
             </div>
           </div>
@@ -322,6 +372,15 @@ export function SmartTriage() {
                 )}
               </div>
               <p className="notification-message">{notificationStatus.message}</p>
+            </div>
+          )}
+
+          {hosts.length === 0 && (
+            <div className="sidebar-card" style={{ backgroundColor: '#fef3c7', borderColor: '#f59e0b' }}>
+              <p className="eyebrow">⚠️ No hosts</p>
+              <p className="muted">
+                You need to create hosts first! Go to Settings and add hosts via CSV or manually.
+              </p>
             </div>
           )}
         </aside>
@@ -459,6 +518,22 @@ function WalkInStep({
         </div>
       )}
 
+      {hosts.length === 0 && (
+        <div style={{ 
+          backgroundColor: '#fee2e2', 
+          border: '1px solid #fca5a5', 
+          borderRadius: '4px', 
+          padding: '12px', 
+          marginBottom: '16px',
+          color: '#991b1b'
+        }}>
+          <strong>❌ No hosts configured</strong>
+          <p style={{ fontSize: '0.9rem', marginTop: '4px' }}>
+            You need to add hosts first. Go to Settings and import a CSV or add hosts manually.
+          </p>
+        </div>
+      )}
+
       <form className="triage-form" onSubmit={(e) => { e.preventDefault(); onCheckIn(); }}>
         <div className="form-group">
           <label htmlFor="name">Guest name *</label>
@@ -491,8 +566,11 @@ function WalkInStep({
             value={selectedHost}
             onChange={(e) => setSelectedHost(e.target.value)}
             required
+            disabled={hosts.length === 0}
           >
-            <option value="">Select a host</option>
+            <option value="">
+              {hosts.length === 0 ? 'No hosts available - add hosts first' : 'Select a host'}
+            </option>
             {hosts.map(host => (
               <option key={host.id} value={host.id}>
                 {host.name} {host.department ? `(${host.department})` : ''}
@@ -501,7 +579,7 @@ function WalkInStep({
           </select>
         </div>
 
-        <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>
+        <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={hosts.length === 0}>
           Check in and notify
         </button>
       </form>

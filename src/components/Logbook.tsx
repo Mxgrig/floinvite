@@ -104,16 +104,16 @@ export function Logbook() {
 
               return (
                 <div key={guest.id} className="table-row">
-                  <div className="col-name">
+                  <div className="col-name" data-label="Name">
                     <strong>{guest.name}</strong>
                     {guest.email && <small>{guest.email}</small>}
                   </div>
-                  <div className="col-company">{guest.company || '—'}</div>
-                  <div className="col-host">{host?.name || 'Unknown'}</div>
-                  <div className="col-time">
+                  <div className="col-company" data-label="Company">{guest.company || '—'}</div>
+                  <div className="col-host" data-label="Host">{host?.name || 'Unknown'}</div>
+                  <div className="col-time" data-label="Check-In">
                     {checkInDate.toLocaleDateString()} {checkInDate.toLocaleTimeString()}
                   </div>
-                  <div className="col-status">
+                  <div className="col-status" data-label="Status">
                     <span className={`status-badge status-${guest.status.toLowerCase()}`}>
                       {guest.status}
                     </span>

@@ -188,17 +188,17 @@ export function HostManagement() {
 
             {hosts.map(host => (
               <div key={host.id} className="table-row">
-                <div className="col-name">
+                <div className="col-name" data-label="Name">
                   <strong>{host.name}</strong>
                   {host.department && <small>{host.department}</small>}
                 </div>
-                <div className="col-email">{host.email}</div>
-                <div className="col-phone">{host.phone || '—'}</div>
-                <div className="col-notifications">
+                <div className="col-email" data-label="Email">{host.email}</div>
+                <div className="col-phone" data-label="Phone">{host.phone || '—'}</div>
+                <div className="col-notifications" data-label="Notifications">
                   {(host.notificationMethod === 'email' || host.notificationMethod === 'both') && <span className="badge email">✉️ Email</span>}
                   {(host.notificationMethod === 'whatsapp' || host.notificationMethod === 'both') && <span className="badge whatsapp">💬 WhatsApp</span>}
                 </div>
-                <div className="col-actions">
+                <div className="col-actions" data-label="Actions">
                   <button onClick={() => handleEdit(host)} className="btn-action edit">Edit</button>
                   <button onClick={() => handleDelete(host.id)} className="btn-action delete">Delete</button>
                 </div>
