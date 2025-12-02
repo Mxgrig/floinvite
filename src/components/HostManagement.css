@@ -449,7 +449,7 @@
 /* Mobile Responsive */
 /* ═══════════════════════════════════════════════════ */
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .table-header,
   .table-row {
     grid-template-columns: 1fr;
