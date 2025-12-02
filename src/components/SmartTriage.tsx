@@ -5,29 +5,36 @@
  * Path 2: Expected visitor lookup
  */
 
-import { useState, type ReactNode } from 'react';
-import { UserCheck, Calendar, Mail, Phone, CheckCircle } from 'lucide-react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { UserCheck, Calendar, Mail, Phone, CheckCircle, AlertCircle } from 'lucide-react';
 import { Guest, Host, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
+import { emailService } from '../services/emailService';
 import {
   generateVisitorArrivalNotification,
   generateWhatsAppVisitorMessage,
   generateReturningVisitorNotification,
   generateWhatsAppReturningMessage,
-  openWhatsAppChat,
-  sendNotificationEmail
+  openWhatsAppChat
 } from '../services/notificationService';
 import { validateGuestName } from '../utils/validators';
 import { usePersistedState } from '../utils/hooks';
+import { isEmailReady, getActiveChannels } from '../utils/notificationConfig';
 import { GUEST_STATUS, STORAGE_KEYS } from '../utils/constants';
 import './SmartTriage.css';
 
 type TriageStep = 'welcome' | 'walk-in' | 'expected' | 'success';
 
+interface NotificationStatus {
+  type: 'pending' | 'success' | 'error';
+  message: string;
+}
+
 export function SmartTriage() {
   const [step, setStep] = useState<TriageStep>('welcome');
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
   const guests = StorageService.getGuests();
+  const [notificationStatus, setNotificationStatus] = useState<NotificationStatus | null>(null);
 
   // Walk-in state
   const [guestName, setGuestName] = useState('');
@@ -42,9 +49,52 @@ export function SmartTriage() {
   // Error state
   const [errors, setErrors] = useState<string[]>([]);
 
+  // Initialize notification config on mount
+  useEffect(() => {
+    const emailReady = isEmailReady();
+    if (emailReady) {
+      console.log('✅ Email service configured and ready');
+    } else {
+      console.log('📧 Email service: notifications logged to console (Phase 1)');
+    }
+  }, []);
+
   const today = new Date().toDateString();
   const checkedInToday = guests.filter(g => new Date(g.checkInTime).toDateString() === today).length;
   const expectedToday = guests.filter(g => g.status === GUEST_STATUS.EXPECTED).length;
+
+  /**
+   * Send email notification
+   */
+  const sendEmailNotification = async (emailNotification: {
+    to: string;
+    subject: string;
+    body: string;
+  }): Promise<void> => {
+    try {
+      const result = await emailService.send(emailNotification);
+      if (result.success) {
+        setNotificationStatus({
+          type: 'success',
+          message: `✅ Email notification sent to ${emailNotification.to}`
+        });
+        console.log('📧 Email sent successfully:', result.messageId);
+      } else {
+        setNotificationStatus({
+          type: 'error',
+          message: `Email notification: ${result.error || 'Unknown error'}`
+        });
+        console.error('📧 Email send failed:', result.error);
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setNotificationStatus({
+        type: 'error',
+        message: `Notification error: ${errorMsg}`
+      });
+      console.error('📧 Email service error:', error);
+    }
+  };
 
   /**
    * Walk-In Path
@@ -52,9 +102,10 @@ export function SmartTriage() {
   const handleWalkIn = () => {
     setStep('walk-in');
     setErrors([]);
+    setNotificationStatus(null);
   };
 
-  const handleCheckInWalkIn = () => {
+  const handleCheckInWalkIn = async () => {
     const newErrors: string[] = [];
 
     // Validate name
@@ -103,8 +154,7 @@ export function SmartTriage() {
         includeCompany: true,
         tone: 'professional'
       });
-      console.log('📧 Email notification ready:', emailNotification);
-      // Phase 2: sendNotificationEmail(emailNotification);
+      await sendEmailNotification(emailNotification);
     }
 
     if (host.notificationMethod === 'whatsapp' || host.notificationMethod === 'both') {
@@ -123,6 +173,7 @@ export function SmartTriage() {
       setGuestName('');
       setCompany('');
       setSelectedHost('');
+      setNotificationStatus(null);
       setStep('welcome');
     }, 3000);
   };
@@ -135,6 +186,7 @@ export function SmartTriage() {
     setErrors([]);
     setSearchQuery('');
     setSearchResults([]);
+    setNotificationStatus(null);
   };
 
   const handleSearchExpected = (query: string) => {
@@ -158,7 +210,7 @@ export function SmartTriage() {
     setSearchResults(results);
   };
 
-  const handleCheckInExpected = (guestId: string) => {
+  const handleCheckInExpected = async (guestId: string) => {
     const guest = StorageService.getGuest(guestId);
     if (!guest) return;
 
@@ -179,8 +231,7 @@ export function SmartTriage() {
         const emailNotification = generateVisitorArrivalNotification(updatedGuest, host, {
           tone: 'friendly'
         });
-        console.log('📧 Email notification ready:', emailNotification);
-        // Phase 2: sendNotificationEmail(emailNotification);
+        await sendEmailNotification(emailNotification);
       }
 
       if (host.notificationMethod === 'whatsapp' || host.notificationMethod === 'both') {
@@ -198,6 +249,7 @@ export function SmartTriage() {
     setTimeout(() => {
       setSearchQuery('');
       setSearchResults([]);
+      setNotificationStatus(null);
       setStep('welcome');
     }, 3000);
   };
@@ -257,6 +309,19 @@ export function SmartTriage() {
               {lastGuest.company && <p className="muted">From {lastGuest.company}</p>}
               <p className="muted">Visiting {hosts.find(h => h.id === lastGuest.hostId)?.name || 'Host'}</p>
               <small className="muted">Checked in just now</small>
+            </div>
+          )}
+
+          {notificationStatus && (
+            <div className={`sidebar-card notification-status ${notificationStatus.type}`}>
+              <div className="notification-icon">
+                {notificationStatus.type === 'success' ? (
+                  <CheckCircle size={20} />
+                ) : (
+                  <AlertCircle size={20} />
+                )}
+              </div>
+              <p className="notification-message">{notificationStatus.message}</p>
             </div>
           )}
         </aside>
@@ -471,7 +536,7 @@ function ExpectedStep({
         <div>
           <p className="eyebrow">Expected lane</p>
           <h2>Find your appointment</h2>
-          <p className="muted">Look up your name, email, or phone. We’ll check you in instantly.</p>
+          <p className="muted">Look up your name, email, or phone. We'll check you in instantly.</p>
         </div>
       </div>
 
