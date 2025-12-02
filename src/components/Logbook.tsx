@@ -90,7 +90,7 @@ export function Logbook() {
       <div className="logbook-content">
         {filteredGuests.length > 0 ? (
           <div className="guests-table">
-            <div className="table-header">
+            <div className="table-header" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr 1.5fr 1fr', gap: '1rem', padding: '1rem' }}>
               <div className="col-name">Name</div>
               <div className="col-company">Company</div>
               <div className="col-host">Host</div>
@@ -103,7 +103,7 @@ export function Logbook() {
               const checkInDate = new Date(guest.checkInTime);
 
               return (
-                <div key={guest.id} className="table-row">
+                <div key={guest.id} className="table-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr 1.5fr 1fr', gap: '1rem', padding: '1rem' }}>
                   <div className="col-name" data-label="Name">
                     <strong>{guest.name}</strong>
                     {guest.email && <small>{guest.email}</small>}

@@ -178,7 +178,7 @@ export function HostManagement() {
 
         {hosts.length > 0 ? (
           <div className="hosts-table">
-            <div className="table-header">
+            <div className="table-header" style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 1.2fr 1.5fr 1fr', gap: '1rem', padding: '1rem' }}>
               <div className="col-name">Name</div>
               <div className="col-email">Email</div>
               <div className="col-phone">Phone</div>
@@ -187,7 +187,7 @@ export function HostManagement() {
             </div>
 
             {hosts.map(host => (
-              <div key={host.id} className="table-row">
+              <div key={host.id} className="table-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 1.2fr 1.5fr 1fr', gap: '1rem', padding: '1rem' }}>
                 <div className="col-name" data-label="Name">
                   <strong>{host.name}</strong>
                   {host.department && <small>{host.department}</small>}
