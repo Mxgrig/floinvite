@@ -377,12 +377,12 @@ export function SmartTriage() {
           )}
 
           {notificationStatus && (
-            <div className={`sidebar-card notification-status ${notificationStatus.type}`}>
+            <div className={`notification-status ${notificationStatus.type}`}>
               <div className="notification-icon">
                 {notificationStatus.type === 'success' ? (
-                  <CheckCircle size={20} />
+                  <CheckCircle size={14} />
                 ) : (
-                  <AlertCircle size={20} />
+                  <AlertCircle size={14} />
                 )}
               </div>
               <p className="notification-message">{notificationStatus.message}</p>
