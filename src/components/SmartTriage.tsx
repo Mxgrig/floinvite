@@ -218,12 +218,13 @@ export function SmartTriage() {
       await sendEmailNotification(emailNotification);
     }
 
-    if (notificationMethod === 'whatsapp' || notificationMethod === 'both') {
-      console.log('📱 Triggering WhatsApp notification...');
-      const whatsappMessage = generateWhatsAppVisitorMessage(guest, host);
-      console.log('📱 WhatsApp message:', whatsappMessage);
-      sendWhatsAppNotification(host, whatsappMessage);
-    }
+    // Temporarily disabled for testing email
+    // if (notificationMethod === 'whatsapp' || notificationMethod === 'both') {
+    //   console.log('📱 Triggering WhatsApp notification...');
+    //   const whatsappMessage = generateWhatsAppVisitorMessage(guest, host);
+    //   console.log('📱 WhatsApp message:', whatsappMessage);
+    //   sendWhatsAppNotification(host, whatsappMessage);
+    // }
 
     console.log('✨ Check-in complete for:', guest.name);
     setLastGuest(guest);
@@ -297,10 +298,11 @@ export function SmartTriage() {
         await sendEmailNotification(emailNotification);
       }
 
-      if (notificationMethod === 'whatsapp' || notificationMethod === 'both') {
-        const whatsappMessage = generateWhatsAppVisitorMessage(updatedGuest, host);
-        sendWhatsAppNotification(host, whatsappMessage);
-      }
+      // Temporarily disabled for testing email
+      // if (notificationMethod === 'whatsapp' || notificationMethod === 'both') {
+      //   const whatsappMessage = generateWhatsAppVisitorMessage(updatedGuest, host);
+      //   sendWhatsAppNotification(host, whatsappMessage);
+      // }
     }
 
     setLastGuest(updatedGuest);
