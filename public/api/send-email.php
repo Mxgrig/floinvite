@@ -68,8 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Email addresses for different purposes
-// Note: Use admin@floinvite.com for all sends (notification account cannot send)
-define('NOTIFICATION_EMAIL', 'admin@floinvite.com');
+define('NOTIFICATION_EMAIL', 'notification@floinvite.com');
 define('ADMIN_EMAIL', 'admin@floinvite.com');
 define('NOTIFICATION_FROM_NAME', 'Floinvite Reception');
 define('ADMIN_FROM_NAME', 'Floinvite Admin');
