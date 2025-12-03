@@ -68,7 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Email addresses for different purposes
-define('NOTIFICATION_EMAIL', 'notification@floinvite.com');
+// Use admin@floinvite.com (verified working) while notification@floinvite.com propagates on Hostinger
+define('NOTIFICATION_EMAIL', 'admin@floinvite.com');
 define('ADMIN_EMAIL', 'admin@floinvite.com');
 define('NOTIFICATION_FROM_NAME', 'Floinvite Reception');
 define('ADMIN_FROM_NAME', 'Floinvite Admin');
