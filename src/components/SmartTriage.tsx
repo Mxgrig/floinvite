@@ -78,6 +78,7 @@ export function SmartTriage() {
 
   /**
    * Send email notification
+   * Note: Never blocks check-in - guest is saved regardless of notification status
    */
   const sendEmailNotification = async (emailNotification: {
     to: string;
@@ -97,20 +98,30 @@ export function SmartTriage() {
           message: `✅ Email notification sent to ${emailNotification.to}`
         });
         console.log('✅ Email sent successfully:', result.messageId);
+
+        // Auto-clear success message after 3 seconds
+        setTimeout(() => setNotificationStatus(null), 3000);
       } else {
+        // Show error but don't block check-in flow
         setNotificationStatus({
           type: 'error',
-          message: `Email notification: ${result.error || 'Unknown error'}`
+          message: `⚠️ Notification warning: ${result.error || 'Email not sent'}`
         });
-        console.error('❌ Email send failed:', result.error);
+        console.warn('⚠️ Email notification failed:', result.error);
+
+        // Auto-clear error message after 5 seconds so user can see it
+        setTimeout(() => setNotificationStatus(null), 5000);
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setNotificationStatus({
         type: 'error',
-        message: `Notification error: ${errorMsg}`
+        message: `⚠️ Notification failed: ${errorMsg}`
       });
-      console.error('❌ Email service error:', error);
+      console.warn('⚠️ Email service error:', error);
+
+      // Auto-clear error message after 5 seconds
+      setTimeout(() => setNotificationStatus(null), 5000);
     }
   };
 
