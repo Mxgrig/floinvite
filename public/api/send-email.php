@@ -10,9 +10,14 @@
  */
 
 // Suppress all warnings/notices to prevent corrupting JSON response
+// These MUST be set BEFORE any output
 error_reporting(0);
 ini_set('display_errors', 0);
-@ob_clean(); // Clear any buffered output
+
+// Clear any buffered output from auto_prepend_file or other sources
+if (ob_get_level()) {
+    ob_clean();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CORS & Security Headers
@@ -188,21 +193,33 @@ $headers .= "Importance: Normal\r\n";
 // Note: For better reliability, consider upgrading to PHPMailer + SMTP
 $success = mail($to, $subject, $body, $headers);
 
+// Build response - always return valid JSON
+$response = [];
 if ($success) {
     http_response_code(200);
-    echo json_encode([
+    $response = [
         'success' => true,
         'message' => 'Email sent successfully',
         'to' => $to,
         'timestamp' => date('c')
-    ]);
+    ];
 } else {
     http_response_code(500);
-    echo json_encode([
+    $response = [
         'success' => false,
         'error' => 'Failed to send email',
         'details' => 'Mail function returned false. Check Hostinger email configuration and /tmp/floinvite_email.log for details.'
-    ]);
+    ];
+}
+
+// Encode and output JSON (always safe)
+$json = json_encode($response, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+if ($json === false) {
+    // Fallback if JSON encoding fails
+    http_response_code(500);
+    echo '{"success":false,"error":"Server error"}';
+} else {
+    echo $json;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -211,7 +228,7 @@ if ($success) {
 
 // Log all email requests for debugging
 $log_file = '/tmp/floinvite_email.log';
-$log_entry = date('Y-m-d H:i:s') . " | " . ($success ? 'SUCCESS' : 'FAILED') . " | Type: " . $email_type . " | Name: " . $from_name . " | Sender: " . $from_email . " | ReplyTo: " . $reply_to . " | To: " . $to . " | Subject: " . $subject . "\n";
+$log_entry = date('Y-m-d H:i:s') . " | " . ($success ? 'SUCCESS' : 'FAILED') . " | Type: " . $email_type . " | Name: " . $from_name . " | Sender: " . $from_email . " | ReplyTo: " . $from_email . " | To: " . $to . " | Subject: " . $subject . "\n";
 @file_put_contents($log_file, $log_entry, FILE_APPEND);
 ?>
 

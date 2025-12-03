@@ -79,45 +79,79 @@ class EmailService {
 
     // Phase 2+: Send via Hostinger backend
     try {
-      const response = await fetch(this.config.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          to: message.to,
-          subject: message.subject,
-          body: message.body,
-          emailType: message.emailType || 'notification'
-        })
-      });
+      // Create abort controller for timeout (30 second limit)
+      const abortController = new AbortController();
+      const timeoutId = setTimeout(() => abortController.abort(), 30000);
 
-      const data = await response.json();
+      try {
+        const response = await fetch(this.config.apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            to: message.to,
+            subject: message.subject,
+            body: message.body,
+            emailType: message.emailType || 'notification'
+          }),
+          signal: abortController.signal
+        });
 
-      if (!response.ok) {
-        const errorMsg = (data as any).error || (data as any).errors || 'Unknown error';
-        const details = (data as any).details || '';
-        console.error('❌ Email send failed:', errorMsg);
-        console.error('📋 Details:', details);
-        console.error('📊 Response:', data);
+        clearTimeout(timeoutId);
+
+        // Validate response is valid JSON before parsing
+        const contentType = response.headers.get('content-type');
+        if (!contentType?.includes('application/json')) {
+          console.error('❌ Invalid response type:', contentType);
+          return {
+            success: false,
+            error: 'Invalid server response - expected JSON'
+          };
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const errorMsg = (data as any).error || (data as any).errors || 'Unknown error';
+          const details = (data as any).details || '';
+          console.error('❌ Email send failed:', errorMsg);
+          console.error('📋 Details:', details);
+          console.error('📊 Response:', data);
+          return {
+            success: false,
+            error: Array.isArray(errorMsg) ? errorMsg.join(', ') : `${errorMsg}${details ? ' - ' + details : ''}`
+          };
+        }
+
+        console.log(`✅ Email sent to ${message.to}`);
+        console.log('📧 Response:', data);
+        return {
+          success: true,
+          messageId: `${Date.now()}`
+        };
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.error('❌ Email service timeout (30s) - request took too long');
+          return {
+            success: false,
+            error: 'Request timeout - email service is slow. Guest checked in but notification may not be sent.'
+          };
+        }
+        console.error('❌ Email service error:', error.message);
         return {
           success: false,
-          error: Array.isArray(errorMsg) ? errorMsg.join(', ') : `${errorMsg}${details ? ' - ' + details : ''}`
+          error: error.message
         };
       }
-
-      console.log(`✅ Email sent to ${message.to}`);
-      console.log('📧 Response:', data);
-      return {
-        success: true,
-        messageId: `${Date.now()}`
-      };
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Network error';
-      console.error('❌ Email service error:', errorMsg);
+      console.error('❌ Email service error:', error);
       return {
         success: false,
-        error: errorMsg
+        error: 'Network error or service unavailable'
       };
     }
   }
