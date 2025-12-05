@@ -89,24 +89,24 @@ export function Login({ onLoginSuccess, onNavigate }: LoginProps) {
       <div className="login-container">
         {/* Navigation Bar */}
         <nav className="login-navbar">
-          <div className="navbar-content">
+          <div className="login-navbar-content">
             {/* Logo & Brand */}
-            <button className="navbar-brand" onClick={() => handleNavClick('landing')}>
-              <div className="navbar-logo-icon">
+            <button className="login-navbar-brand" onClick={() => handleNavClick('landing')}>
+              <div className="login-navbar-logo">
                 <img src="/logo.png" alt="floinvite" />
               </div>
               <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>floinvite</span>
             </button>
 
             {/* Navigation Links */}
-            <div className="navbar-links">
-              <button className="navbar-link" onClick={() => handleNavClick('pricing')}>
+            <div className="login-navbar-links">
+              <button className="login-navbar-link" onClick={() => handleNavClick('pricing')}>
                 Pricing
               </button>
-              <button className="navbar-link" onClick={() => handleNavClick('features')}>
+              <button className="login-navbar-link" onClick={() => handleNavClick('features')}>
                 Features
               </button>
-              <button className="navbar-link" onClick={() => handleNavClick('contact')}>
+              <button className="login-navbar-link" onClick={() => handleNavClick('contact')}>
                 Contact
               </button>
             </div>
