@@ -110,7 +110,7 @@ export function App() {
 
   // Show login screen if not authenticated
   if (!isAuthenticated) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} />;
   }
 
   return (
