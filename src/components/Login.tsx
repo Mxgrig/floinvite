@@ -7,7 +7,12 @@
 import { useState } from 'react';
 import './Login.css';
 
-export function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
+interface LoginProps {
+  onLoginSuccess: () => void;
+  onNavigate?: (page: string) => void;
+}
+
+export function Login({ onLoginSuccess, onNavigate }: LoginProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -20,8 +25,9 @@ export function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const [userFlow, setUserFlow] = useState<'new' | 'returning' | null>(isSetup ? 'returning' : null);
 
   const handleNavClick = (link: string) => {
-    console.log('Navigation:', link);
-    // In a real app, this would navigate to the page or open a modal
+    if (onNavigate) {
+      onNavigate(link);
+    }
   };
 
   const hashPassword = (pwd: string): string => {
