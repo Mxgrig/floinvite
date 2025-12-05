@@ -121,7 +121,7 @@ export function App() {
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           userTier={userTier}
-          showAppNav={currentPage !== 'pricing' && currentPage !== 'landing'}
+          showAppNav={currentPage !== 'pricing' && currentPage !== 'landing' && currentPage !== 'features'}
           onLogout={handleLogout}
         />
       )}
