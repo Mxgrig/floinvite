@@ -10,9 +10,10 @@ import './Login.css';
 interface LoginProps {
   onLoginSuccess: () => void;
   onNavigate?: (page: string) => void;
+  currentPage?: string;
 }
 
-export function Login({ onLoginSuccess, onNavigate }: LoginProps) {
+export function Login({ onLoginSuccess, onNavigate, currentPage = 'landing' }: LoginProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -100,13 +101,13 @@ export function Login({ onLoginSuccess, onNavigate }: LoginProps) {
 
             {/* Navigation Links */}
             <div className="login-navbar-links">
-              <button className="login-navbar-link" onClick={() => handleNavClick('pricing')}>
+              <button className={`login-navbar-link ${currentPage === 'pricing' ? 'active' : ''}`} onClick={() => handleNavClick('pricing')}>
                 Pricing
               </button>
-              <button className="login-navbar-link" onClick={() => handleNavClick('features')}>
+              <button className={`login-navbar-link ${currentPage === 'features' ? 'active' : ''}`} onClick={() => handleNavClick('features')}>
                 Features
               </button>
-              <button className="login-navbar-link" onClick={() => handleNavClick('contact')}>
+              <button className={`login-navbar-link ${currentPage === 'contact' ? 'active' : ''}`} onClick={() => handleNavClick('contact')}>
                 Contact
               </button>
             </div>
