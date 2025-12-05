@@ -17,12 +17,13 @@ import { Footer } from './components/Footer';
 import { Contact } from './components/Contact';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
+import { Features } from './components/Features';
 import { PaymentService } from './services/paymentService';
 import { usePersistedState } from './utils/hooks';
 import { STORAGE_KEYS } from './utils/constants';
 import './App.css';
 
-type AppPage = 'landing' | 'pricing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'contact' | 'privacy' | 'terms';
+type AppPage = 'landing' | 'pricing' | 'features' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'contact' | 'privacy' | 'terms';
 
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
@@ -85,6 +86,8 @@ export function App() {
     switch (currentPage) {
       case 'pricing':
         return <Pricing />;
+      case 'features':
+        return <Features onNavigate={setCurrentPage} />;
       case 'check-in':
         return <SmartTriage />;
       case 'logbook':
