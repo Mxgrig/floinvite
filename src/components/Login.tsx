@@ -91,11 +91,11 @@ export function Login({ onLoginSuccess, onNavigate }: LoginProps) {
         <nav className="login-navbar">
           <div className="navbar-content">
             {/* Logo & Brand */}
-            <button className="navbar-brand">
+            <button className="navbar-brand" onClick={() => handleNavClick('landing')}>
               <div className="navbar-logo-icon">
                 <img src="/logo.png" alt="floinvite" />
               </div>
-              <span style={{ fontWeight: 700, fontSize: '1.25rem', color: '#1f2937' }}>floinvite</span>
+              <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>floinvite</span>
             </button>
 
             {/* Navigation Links */}

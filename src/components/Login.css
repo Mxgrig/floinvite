@@ -3,8 +3,6 @@
  * Full-screen background with centered card
  */
 
-@import url('../styles/design-tokens.css');
-
 /* Top Navigation Bar */
 .login-navbar {
   position: fixed;
