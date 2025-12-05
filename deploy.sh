@@ -3,14 +3,14 @@ set -e
 
 echo "🚀 Deploying Floinvite to Hostinger..."
 echo "📦 Source: dist/"
-echo "🎯 Destination: u958180753@45.87.81.67:~/public_html/"
+echo "🎯 Destination: u958180753@45.87.81.67:~/domains/floinvite.com/public_html/"
 echo ""
 
 # Using rsync for reliable deployment with progress
 rsync -avz --delete \
   -e "ssh -p 65002" \
   dist/ \
-  u958180753@45.87.81.67:~/public_html/
+  u958180753@45.87.81.67:~/domains/floinvite.com/public_html/
 
 echo ""
 echo "✅ Files uploaded successfully!"
@@ -25,7 +25,7 @@ echo ""
 
 # Create .htaccess for SPA routing
 ssh -p 65002 u958180753@45.87.81.67 << 'SSHCMD'
-cat > ~/public_html/.htaccess << 'HTACCESS'
+cat > ~/domains/floinvite.com/public_html/.htaccess << 'HTACCESS'
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -37,11 +37,11 @@ cat > ~/public_html/.htaccess << 'HTACCESS'
 HTACCESS
 
 # Set permissions
-chmod 755 ~/public_html
-chmod 644 ~/public_html/.htaccess
-chmod 644 ~/public_html/index.html
-chmod 644 ~/public_html/*.xml
-chmod 644 ~/public_html/*.html
+chmod 755 ~/domains/floinvite.com/public_html
+chmod 644 ~/domains/floinvite.com/public_html/.htaccess
+chmod 644 ~/domains/floinvite.com/public_html/index.html
+chmod 644 ~/domains/floinvite.com/public_html/*.xml
+chmod 644 ~/domains/floinvite.com/public_html/*.html
 
 echo "✅ .htaccess created and permissions set"
 SSHCMD
@@ -50,8 +50,8 @@ echo ""
 echo "🎉 Deployment complete!"
 echo ""
 echo "📊 Verify deployment:"
-echo "   - Visit: https://45.87.81.67"
-echo "   - Or: https://floinvite.com (if DNS configured)"
+echo "   - Visit: https://floinvite.com"
+echo "   - Or: https://45.87.81.67 (if domain not set up)"
 echo ""
 echo "🔒 Security reminder:"
 echo "   - Change SSH password: ssh -p 65002 u958180753@45.87.81.67 'passwd'"

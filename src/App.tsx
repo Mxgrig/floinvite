@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { ClipboardList, BookOpen, Users, Settings as SettingsIcon, Shield, Bell, Clock3, Mail, ArrowUpRight } from 'lucide-react';
 import { AppSettings } from './types';
+import { Login } from './components/Login';
 import { Pricing } from './components/Pricing';
 import { SmartTriage } from './components/SmartTriage';
 import { Logbook } from './components/Logbook';
@@ -24,6 +25,7 @@ import './App.css';
 type AppPage = 'landing' | 'pricing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'contact' | 'privacy' | 'terms';
 
 export function App() {
+  const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
   const [currentPage, setCurrentPage] = useState<AppPage>('landing');
   const [userTier, setUserTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +40,12 @@ export function App() {
       updatedAt: new Date().toISOString()
     }
   );
+
+  // Handle logout
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentPage('landing');
+  };
 
   // Check subscription status on mount
   useEffect(() => {
@@ -97,6 +105,11 @@ export function App() {
     }
   };
 
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="floinvite-app">
       {/* Navbar - Hide in kiosk mode on check-in page */}
@@ -106,6 +119,7 @@ export function App() {
           onNavigate={setCurrentPage}
           userTier={userTier}
           showAppNav={currentPage !== 'pricing' && currentPage !== 'landing'}
+          onLogout={handleLogout}
         />
       )}
 

@@ -18,7 +18,8 @@ export interface SubscriptionStatus {
 
 export class PaymentService {
   private static STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-  private static API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+  // Payment integration is Phase 3 - no local API needed for MVP
+  private static API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
   /**
    * Create a Stripe Checkout Session
@@ -335,7 +336,7 @@ export const hasFeature = (
       'returning_visitors',
       'search_export',
       'email_templates',
-      'whatsapp_templates',
+      'email_notifications',
       'notification_tones',
       'local_database',
       'csv_export',
@@ -343,6 +344,7 @@ export const hasFeature = (
     ],
     professional: [
       ...['starter'], // All starter features
+      'sms_notifications',
       'slack_integration',
       'teams_integration',
       'quiet_hours',
@@ -355,6 +357,7 @@ export const hasFeature = (
     ],
     enterprise: [
       // All professional features plus:
+      'sms_notifications_discount',
       'webhooks',
       'custom_templates',
       'advanced_routing',

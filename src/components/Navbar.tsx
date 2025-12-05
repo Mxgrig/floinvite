@@ -3,7 +3,7 @@
  * Consistent navigation header with branding across all pages
  */
 
-import { Home } from 'lucide-react';
+import { Home, LogOut } from 'lucide-react';
 import './Navbar.css';
 
 export interface NavbarProps {
@@ -11,9 +11,10 @@ export interface NavbarProps {
   onNavigate?: (page: string) => void;
   userTier?: 'starter' | 'professional' | 'enterprise';
   showAppNav?: boolean;
+  onLogout?: () => void;
 }
 
-export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppNav = true }: NavbarProps) {
+export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppNav = true, onLogout }: NavbarProps) {
   const handleLogoClick = () => {
     if (onNavigate) {
       onNavigate('landing');
@@ -23,6 +24,12 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
   const handleNavClick = (page: string) => {
     if (onNavigate) {
       onNavigate(page);
+    }
+  };
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
     }
   };
 
@@ -70,12 +77,22 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
           </div>
         )}
 
-        {/* Right side: Tier badge + Home button */}
+        {/* Right side: Tier badge + Logout button + Home button */}
         <div className="navbar-right">
           {showAppNav && userTier && (
             <span className="navbar-tier-badge" title={`Subscription: ${userTier}`}>
               {userTier === 'starter' ? 'Starter' : userTier === 'professional' ? 'Professional' : 'Enterprise'}
             </span>
+          )}
+
+          {showAppNav && onLogout && (
+            <button
+              className="navbar-logout-button"
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
           )}
 
           {!showAppNav && (

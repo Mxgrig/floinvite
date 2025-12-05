@@ -23,6 +23,36 @@ interface NotificationOptions {
 }
 
 /**
+ * Generate HTML email template with proper branding
+ */
+const generateEmailTemplate = (title: string, content: string): string => {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floinvite</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; color: #333;">
+<div style="max-width: 600px; margin: 0 auto;">
+<div style="margin-bottom: 30px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+<tr>
+<td style="vertical-align: top;"><h1 style="margin: 0; font-size: 18px; font-weight: 600;">${title}</h1></td>
+<td style="text-align: right; vertical-align: top;"><img src="https://floinvite.com/logo.png" alt="Floinvite" style="height: 35px; width: auto;"></td>
+</tr>
+</table>
+</div>
+<div>
+${content}
+</div>
+</div>
+</body>
+</html>`;
+};
+
+/**
  * Generate a visitor arrival notification message
  * Used when a guest checks in
  */
@@ -33,39 +63,33 @@ export const generateVisitorArrivalNotification = (
 ): NotificationMessage => {
   const {
     includeCompany = true,
-    includeTime = true,
-    tone = 'professional'
+    includeTime = true
   } = options;
 
   const time = new Date(guest.checkInTime).toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit'
   });
-  const company = includeCompany && guest.company ? ` from ${guest.company}` : '';
+  const date = new Date(guest.checkInTime).toLocaleDateString('en-GB');
 
-  let body = '';
+  let guestInfo = `<p style="margin: 8px 0;"><strong>Guest:</strong> ${guest.name}</p>`;
 
-  if (tone === 'professional') {
-    body = `
-${guest.name}${company} has arrived.
-
-${includeTime ? `Check-in time: ${time}` : ''}
-    `.trim();
-  } else if (tone === 'friendly') {
-    body = `
-${guest.name}${company} has arrived.
-
-${includeTime ? `Time: ${time}` : ''}
-    `.trim();
-  } else {
-    body = `
-${guest.name}${company} has arrived${includeTime ? ` (${time})` : ''}.
-    `.trim();
+  if (includeCompany && guest.company) {
+    guestInfo += `<p style="margin: 8px 0;"><strong>Company:</strong> ${guest.company}</p>`;
   }
+
+  if (includeTime) {
+    guestInfo += `<p style="margin: 8px 0;"><strong>Arrival:</strong> ${date} at ${time}</p>`;
+  }
+
+  const content = `<p style="margin: 0 0 20px 0; line-height: 1.6;">A new visitor has checked in and is waiting.</p>
+${guestInfo}`;
+
+  const body = generateEmailTemplate('Visitor Arrival Notification', content);
 
   return {
     to: host.email,
-    subject: `Visitor Arrival: ${guest.name}`,
+    subject: `Guest Arrival: ${guest.name}`,
     body,
     timestamp: new Date().toISOString()
   };
@@ -365,6 +389,55 @@ export const openWhatsAppChat = (
 };
 
 /**
+ * Open WhatsApp and wait for user to confirm send
+ * Detects when user returns focus to the page after sending message
+ * Works on both mobile (app switching) and desktop (tab switching)
+ */
+export const openWhatsAppChatAndWait = (
+  phoneNumber: string,
+  message: string,
+  onConfirm: () => void,
+  onTimeout?: () => void
+): void => {
+  const link = generateWhatsAppLink(phoneNumber, message);
+
+  // Track if page lost focus
+  let pageLostFocus = false;
+
+  // Listen for page losing focus (user switched to WhatsApp)
+  const handleBlur = () => {
+    pageLostFocus = true;
+    console.log('📱 User switched to WhatsApp...');
+  };
+
+  // Listen for page regaining focus (user returned from WhatsApp)
+  const handleFocus = () => {
+    if (pageLostFocus) {
+      console.log('✅ User returned - message sent!');
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+      clearTimeout(timeoutId);
+      onConfirm();
+    }
+  };
+
+  // Fallback timeout: if user doesn't return after 3 minutes, auto-confirm
+  const timeoutId = setTimeout(() => {
+    console.log('⏱️ Timeout reached - auto-confirming message');
+    window.removeEventListener('blur', handleBlur);
+    window.removeEventListener('focus', handleFocus);
+    onTimeout?.();
+    onConfirm();
+  }, 180000); // 3 minutes
+
+  window.addEventListener('blur', handleBlur);
+  window.addEventListener('focus', handleFocus);
+
+  // Open WhatsApp
+  window.open(link, '_blank');
+};
+
+/**
  * Generate WhatsApp message for visitor arrival
  */
 export const generateWhatsAppVisitorMessage = (
@@ -377,13 +450,7 @@ export const generateWhatsAppVisitorMessage = (
     minute: '2-digit'
   });
 
-  return `👋 *Visitor Arrival*
-
-${guest.name}${company} has arrived.
-
-⏰ Time: ${time}
-
-Please come down to greet your visitor.`;
+  return `${guest.name}${company} is here. Arrived at ${time}.`;
 };
 
 /**
@@ -399,13 +466,7 @@ export const generateWhatsAppReturningMessage = (
     (Date.now() - previousVisitDate.getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  return `👋 *Welcome Back!*
-
-${guest.name}${company} has arrived.
-
-📅 Last visit: ${daysAgo} day${daysAgo !== 1 ? 's' : ''} ago
-
-Please come down to greet your visitor.`;
+  return `${guest.name}${company} is here. Last visit ${daysAgo} day${daysAgo !== 1 ? 's' : ''} ago.`;
 };
 
 /**
@@ -422,29 +483,18 @@ export const generateWhatsAppExpectedMessage = (
     minute: '2-digit'
   });
 
-  let message = `✅ *Expected Guest Arrived*
-
-${guest.name}${company} has arrived.
-
-⏰ Time: ${actualTime}`;
-
-  if (expectedTime) {
-    message += `\n📅 Expected: ${expectedTime}`;
-  }
-
-  message += `\n\nPlease come down to greet your visitor.`;
-
-  return message;
+  return `${guest.name}${company} is here. Arrived at ${actualTime}.`;
 };
 
 /**
  * Send WhatsApp notification via Web link or API
- * Phase 1: Opens WhatsApp Web (manual sending by user)
+ * Phase 1: Opens WhatsApp Web and waits for user to return (send confirmation)
  * Phase 2: Sends via WhatsApp Business API (automatic)
  */
 export const sendWhatsAppNotification = async (
   host: Host,
   message: string,
+  onConfirm?: () => void,
   whatsappService?: {
     send: (phoneNumber: string, message: string) => Promise<void>;
   }
@@ -459,17 +509,23 @@ export const sendWhatsAppNotification = async (
     try {
       await whatsappService.send(host.whatsappNumber, message);
       console.log(`✅ WhatsApp sent to ${host.name}`);
+      onConfirm?.();
     } catch (error) {
       console.error(`❌ Failed to send WhatsApp to ${host.name}:`, error);
       throw new Error(`Failed to send WhatsApp: ${error}`);
     }
   } else {
-    // Phase 1: Open WhatsApp Web for manual sending
-    console.log('📱 Phase 1: Opening WhatsApp Web');
+    // Phase 1: Open WhatsApp Web and wait for user to return
+    console.log('📱 Phase 1: Opening WhatsApp Web with confirmation');
     console.log('WhatsApp message ready:', {
       to: host.whatsappNumber,
       message
     });
-    openWhatsAppChat(host.whatsappNumber, message);
+    openWhatsAppChatAndWait(
+      host.whatsappNumber,
+      message,
+      onConfirm || (() => {}),
+      () => console.log('⏱️ WhatsApp timeout - auto-confirming')
+    );
   }
 };
