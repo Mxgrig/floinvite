@@ -5,7 +5,6 @@
  */
 
 import { useState } from 'react';
-import { usePersistedState } from '../utils/hooks';
 import './Login.css';
 
 export function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
@@ -13,7 +12,10 @@ export function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isSetup, setIsSetup] = usePersistedState('app_password_set', false);
+  // Check if password hash exists in localStorage to determine setup status
+  const [isSetup, setIsSetup] = useState(() => {
+    return !!localStorage.getItem('app_password_hash');
+  });
 
   const hashPassword = (pwd: string): string => {
     // Simple hash for Phase 1 (not production-grade)
