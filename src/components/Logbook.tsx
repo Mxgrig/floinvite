@@ -3,7 +3,7 @@
  * Visitor history, search, filter, and export
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Guest, Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
@@ -13,7 +13,7 @@ import PageLayout from './PageLayout';
 import './Logbook.css';
 
 export function Logbook() {
-  const [guests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
+  const [guests, setGuests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -46,6 +46,51 @@ export function Logbook() {
     { value: String(stats.todayCheckIns), label: 'Today' },
     { value: String(stats.checkedInToday), label: 'Checked in' }
   ];
+
+  const handleEarlyCheckout = (guest: Guest) => {
+    const confirmed = window.confirm(`Check out ${guest.name} now?`);
+    if (confirmed) {
+      const updatedGuest: Guest = {
+        ...guest,
+        checkOutTime: new Date().toISOString(),
+        status: 'Checked Out' as any,
+        updatedAt: new Date().toISOString()
+      };
+      StorageService.updateGuest(guest.id, updatedGuest);
+      // Update local state to trigger re-render
+      const updatedGuests = guests.map(g => g.id === guest.id ? updatedGuest : g);
+      setGuests(updatedGuests);
+    }
+  };
+
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  // Auto-checkout remaining guests at end of day (6 PM / 18:00)
+  useEffect(() => {
+    const now = new Date();
+    const endOfDayHour = 18; // 6 PM
+
+    if (now.getHours() >= endOfDayHour) {
+      const updatedGuests = guests.map(guest => {
+        if (guest.status === 'Checked In') {
+          const checkedOutGuest = {
+            ...guest,
+            checkOutTime: new Date().toISOString(),
+            status: 'Checked Out' as any,
+            updatedAt: new Date().toISOString()
+          };
+          StorageService.updateGuest(guest.id, checkedOutGuest);
+          return checkedOutGuest;
+        }
+        return guest;
+      });
+
+      if (updatedGuests.some(g => g.status === 'Checked Out' && guests.find(og => og.id === g.id)?.status === 'Checked In')) {
+        setGuests(updatedGuests);
+      }
+    }
+  }, [guests, setGuests]);
 
   return (
     <PageLayout
@@ -89,34 +134,69 @@ export function Logbook() {
 
       <div className="logbook-content">
         {filteredGuests.length > 0 ? (
-          <div className="guests-table">
-            <div className="table-header" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr 1.5fr 1fr', gap: '1rem', padding: '1rem' }}>
-              <div className="col-name">Name</div>
-              <div className="col-company">Company</div>
-              <div className="col-host">Host</div>
-              <div className="col-time">Check-In</div>
-              <div className="col-status">Status</div>
+          <div className="guests-compact">
+            <div className="compact-header">
+              <div className="header-name">Name</div>
+              <div className="header-company">Company</div>
+              <div className="header-host">Visiting</div>
+              <div className="header-time">Check-in</div>
+              <div className="header-departure">Departure</div>
+              <div className="header-status">Status</div>
             </div>
-
             {filteredGuests.map(guest => {
               const host = hosts.find(h => h.id === guest.hostId);
               const checkInDate = new Date(guest.checkInTime);
+              const estimatedDeparture = guest.estimatedDepartureTime ? new Date(guest.estimatedDepartureTime) : null;
+              const isCheckedIn = guest.status === 'Checked In';
+              const statusClass = guest.status.replace(/\s+/g, '-').toLowerCase();
 
               return (
-                <div key={guest.id} className="table-row" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1fr 1.5fr 1fr', gap: '1rem', padding: '1rem' }}>
-                  <div className="col-name" data-label="Name">
-                    <strong>{guest.name}</strong>
-                    {guest.email && <small>{guest.email}</small>}
-                  </div>
-                  <div className="col-company" data-label="Company">{guest.company || '—'}</div>
-                  <div className="col-host" data-label="Host">{host?.name || 'Unknown'}</div>
-                  <div className="col-time" data-label="Check-In">
-                    {checkInDate.toLocaleDateString()} {checkInDate.toLocaleTimeString()}
-                  </div>
-                  <div className="col-status" data-label="Status">
-                    <span className={`status-badge status-${guest.status.toLowerCase()}`}>
-                      {guest.status}
-                    </span>
+                <div key={guest.id} className="compact-row">
+                  <div className="row-main">
+                    <div className="guest-info">
+                      <div className="guest-name">{guest.name}</div>
+                      {guest.email && <div className="guest-email">{guest.email}</div>}
+                    </div>
+                    <div className="guest-company">{guest.company || '—'}</div>
+                    <div className="guest-host">{host?.name || 'Unknown'}</div>
+                    <div className="guest-times">
+                      <div className="time-label">Check-in</div>
+                      <div className="time-value">{formatTime(checkInDate)}</div>
+                    </div>
+                    <div className="guest-departure">
+                      {estimatedDeparture ? (
+                        <>
+                          <div className="time-label">Depart</div>
+                          <div className="time-value">
+                            {formatTime(estimatedDeparture)}
+                            {isCheckedIn && (
+                              <div className="time-remaining">
+                                ⏰ {estimatedDeparture > new Date()
+                                  ? `${Math.round((estimatedDeparture.getTime() - Date.now()) / 60000)}m`
+                                  : 'exp'}
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="time-label" style={{ marginTop: '0.5rem' }}>—</div>
+                      )}
+                    </div>
+                    <div className="row-status">
+                      {isCheckedIn ? (
+                        <button
+                          onClick={() => handleEarlyCheckout(guest)}
+                          className={`status-badge status-${statusClass} status-clickable`}
+                          title="Click to checkout"
+                        >
+                          {guest.status}
+                        </button>
+                      ) : (
+                        <span className={`status-badge status-${statusClass}`}>
+                          {guest.status}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

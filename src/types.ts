@@ -13,8 +13,8 @@ export interface Host {
   email: string;
   phone?: string;
   department?: string;
-  notificationMethod: 'whatsapp' | 'email' | 'both';
-  whatsappNumber?: string; // Phone number for WhatsApp notifications
+  notificationMethod: 'email' | 'sms' | 'both';
+  smsNumber?: string; // Phone number for SMS notifications
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
 }
@@ -42,7 +42,8 @@ export interface Guest {
   company?: string;
   hostId: string;
   checkInTime: string; // ISO timestamp
-  checkOutTime?: string; // ISO timestamp
+  estimatedDepartureTime?: string; // ISO timestamp - when guest plans to leave
+  checkOutTime?: string; // ISO timestamp - actual departure time
   status: GuestStatus;
   lastVisit?: string; // ISO timestamp
   visitCount?: number;

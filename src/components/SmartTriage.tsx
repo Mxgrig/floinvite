@@ -12,10 +12,7 @@ import { StorageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
 import {
   generateVisitorArrivalNotification,
-  generateWhatsAppVisitorMessage,
-  generateReturningVisitorNotification,
-  generateWhatsAppReturningMessage,
-  openWhatsAppChat
+  generateReturningVisitorNotification
 } from '../services/notificationService';
 import { validateGuestName } from '../utils/validators';
 import { usePersistedState } from '../utils/hooks';
@@ -40,6 +37,7 @@ export function SmartTriage() {
   const [guestName, setGuestName] = useState('');
   const [company, setCompany] = useState('');
   const [selectedHost, setSelectedHost] = useState<string>('');
+  const [estimatedDuration, setEstimatedDuration] = useState<string>('60'); // minutes
   const [lastGuest, setLastGuest] = useState<Guest | null>(null);
 
   // Expected visitor state
@@ -126,29 +124,6 @@ export function SmartTriage() {
   };
 
   /**
-   * Send WhatsApp notification
-   */
-  const sendWhatsAppNotification = (host: Host, message: string): void => {
-    if (!host.whatsappNumber) {
-      console.warn('⚠️ WhatsApp number not configured for host:', host.name);
-      setNotificationStatus({
-        type: 'error',
-        message: `WhatsApp not configured for ${host.name}`
-      });
-      return;
-    }
-
-    console.log('📱 Opening WhatsApp for:', host.whatsappNumber);
-    setNotificationStatus({
-      type: 'success',
-      message: `📱 WhatsApp link opened for ${host.name}`
-    });
-    
-    // Open WhatsApp with pre-filled message
-    openWhatsAppChat(host.whatsappNumber, message);
-  };
-
-  /**
    * Walk-In Path
    */
   const handleWalkIn = () => {
@@ -186,19 +161,25 @@ export function SmartTriage() {
     console.log('✅ Host found:', host.name);
     console.log('📋 Host notification method:', getNotificationMethod(host));
 
-    // Create guest record
+    // Create guest record with estimated departure time
     const now = new Date().toISOString();
+    const estimatedDeparture = new Date(Date.now() + parseInt(estimatedDuration) * 60 * 1000).toISOString();
+
     const guest: Guest = {
       id: crypto.randomUUID(),
       name: guestName.trim(),
       company: company.trim() || undefined,
       hostId: selectedHost,
       checkInTime: now,
+      estimatedDepartureTime: estimatedDeparture,
       status: GUEST_STATUS.CHECKED_IN as GuestStatus,
       visitCount: 1,
       createdAt: now,
       updatedAt: now
     };
+
+    // Log estimated departure
+    console.log('⏰ Estimated departure:', new Date(estimatedDeparture).toLocaleTimeString());
 
     // Save to storage
     StorageService.addGuest(guest);
@@ -218,23 +199,37 @@ export function SmartTriage() {
       await sendEmailNotification(emailNotification);
     }
 
-    // Temporarily disabled for testing email
-    // if (notificationMethod === 'whatsapp' || notificationMethod === 'both') {
-    //   console.log('📱 Triggering WhatsApp notification...');
-    //   const whatsappMessage = generateWhatsAppVisitorMessage(guest, host);
-    //   console.log('📱 WhatsApp message:', whatsappMessage);
-    //   sendWhatsAppNotification(host, whatsappMessage);
-    // }
-
     console.log('✨ Check-in complete for:', guest.name);
     setLastGuest(guest);
     setStep('success');
 
-    // Reset form
+    // Set up auto-checkout timer based on estimated departure
+    const estimatedDepartureTime = new Date(estimatedDeparture).getTime();
+    const timeUntilDeparture = estimatedDepartureTime - Date.now();
+
+    if (timeUntilDeparture > 0) {
+      const autoCheckoutTimer = setTimeout(() => {
+        console.log(`✅ Auto-checking out ${guest.name} after ${estimatedDuration} minutes`);
+        const updatedGuest: Guest = {
+          ...guest,
+          checkOutTime: new Date().toISOString(),
+          status: GUEST_STATUS.CHECKED_OUT as GuestStatus,
+          updatedAt: new Date().toISOString()
+        };
+        StorageService.updateGuest(guest.id, updatedGuest);
+        console.log('📋 Guest auto-checked out:', guest.name);
+      }, timeUntilDeparture);
+
+      // Store timer ID for cleanup if needed
+      console.log('⏱️ Auto-checkout scheduled for:', new Date(estimatedDepartureTime).toLocaleTimeString());
+    }
+
+    // Reset form (only for non-WhatsApp notifications)
     setTimeout(() => {
       setGuestName('');
       setCompany('');
       setSelectedHost('');
+      setEstimatedDuration('60');
       setNotificationStatus(null);
       setStep('welcome');
     }, 3000);
@@ -298,16 +293,12 @@ export function SmartTriage() {
         await sendEmailNotification(emailNotification);
       }
 
-      // Temporarily disabled for testing email
-      // if (notificationMethod === 'whatsapp' || notificationMethod === 'both') {
-      //   const whatsappMessage = generateWhatsAppVisitorMessage(updatedGuest, host);
-      //   sendWhatsAppNotification(host, whatsappMessage);
-      // }
     }
 
     setLastGuest(updatedGuest);
     setStep('success');
 
+    // Reset form
     setTimeout(() => {
       setSearchQuery('');
       setSearchResults([]);
@@ -420,6 +411,8 @@ export function SmartTriage() {
           setCompany={setCompany}
           selectedHost={selectedHost}
           setSelectedHost={setSelectedHost}
+          estimatedDuration={estimatedDuration}
+          setEstimatedDuration={setEstimatedDuration}
           hosts={hosts}
           errors={errors}
           onCheckIn={handleCheckInWalkIn}
@@ -497,6 +490,8 @@ function WalkInStep({
   setCompany,
   selectedHost,
   setSelectedHost,
+  estimatedDuration,
+  setEstimatedDuration,
   hosts,
   errors,
   onCheckIn,
@@ -508,6 +503,8 @@ function WalkInStep({
   setCompany: (val: string) => void;
   selectedHost: string;
   setSelectedHost: (val: string) => void;
+  estimatedDuration: string;
+  setEstimatedDuration: (val: string) => void;
   hosts: Host[];
   errors: string[];
   onCheckIn: () => void;
@@ -592,6 +589,23 @@ function WalkInStep({
                 {host.name} {host.department ? `(${host.department})` : ''}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="duration">How long will you stay? *</label>
+          <select
+            id="duration"
+            value={estimatedDuration}
+            onChange={(e) => setEstimatedDuration(e.target.value)}
+            required
+          >
+            <option value="15">15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+            <option value="120">2 hours</option>
+            <option value="240">4 hours</option>
+            <option value="480">All day (8 hours)</option>
           </select>
         </div>
 

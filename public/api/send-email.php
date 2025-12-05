@@ -68,10 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Email addresses for different purposes
-// Use admin@floinvite.com (verified working) while notification@floinvite.com propagates on Hostinger
-define('NOTIFICATION_EMAIL', 'admin@floinvite.com');
+define('NOTIFICATION_EMAIL', 'notification@floinvite.com');
 define('ADMIN_EMAIL', 'admin@floinvite.com');
-define('NOTIFICATION_FROM_NAME', 'Floinvite Reception');
+define('NOTIFICATION_FROM_NAME', 'Floinvite Guest Management');
 define('ADMIN_FROM_NAME', 'Floinvite Admin');
 
 // Rate limiting: 10 emails per minute per IP
@@ -177,11 +176,14 @@ if ($email_type === 'admin') {
 
 $to = filter_var($input['to'], FILTER_VALIDATE_EMAIL);
 $subject = substr(htmlspecialchars($input['subject'], ENT_QUOTES, 'UTF-8'), 0, 200);
-$body = htmlspecialchars($input['body'], ENT_QUOTES, 'UTF-8');
+$body = $input['body']; // Don't escape HTML - let it pass through
 
-// Email headers
+// Email headers - check if body is HTML
+$isHtml = strpos($body, '<!DOCTYPE html>') !== false || strpos($body, '<html>') !== false;
+$contentType = $isHtml ? 'text/html' : 'text/plain';
+
 $headers = "MIME-Version: 1.0\r\n";
-$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+$headers .= "Content-Type: " . $contentType . "; charset=UTF-8\r\n";
 $headers .= "From: " . $from_name . " <" . $from_email . ">\r\n";
 $headers .= "Reply-To: " . $from_email . "\r\n";
 $headers .= "X-Mailer: Floinvite/1.0\r\n";

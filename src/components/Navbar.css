@@ -129,6 +129,26 @@
   white-space: nowrap;
 }
 
+.navbar-logout-button {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.navbar-logout-button:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
 .navbar-home-button {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
