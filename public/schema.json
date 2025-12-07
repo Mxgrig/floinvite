@@ -1,0 +1,75 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Floinvite",
+  "description": "Modern visitor management system for small and medium-sized offices. Streamline guest check-in, send instant notifications, and maintain professional records.",
+  "url": "https://floinvite.com",
+  "image": "https://floinvite.com/logo.png",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "author": {
+    "@type": "Organization",
+    "name": "Floinvite",
+    "url": "https://floinvite.com",
+    "logo": "https://floinvite.com/logo.png",
+    "sameAs": [
+      "https://twitter.com/floinvite",
+      "https://linkedin.com/company/floinvite"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Support",
+      "email": "admin@floinvite.com"
+    }
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "USD",
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Starter Plan",
+        "description": "Up to 20 hosts/visitors with email notification",
+        "price": "5",
+        "priceCurrency": "USD",
+        "priceValidFrom": "2024-12-01",
+        "pricingModel": "Subscription"
+      },
+      {
+        "@type": "Offer",
+        "name": "Professional Plan",
+        "description": "Unlimited guests, email & SMS notifications, and data backup",
+        "price": "10",
+        "priceCurrency": "USD",
+        "priceValidFrom": "2024-12-01",
+        "pricingModel": "Subscription"
+      },
+      {
+        "@type": "Offer",
+        "name": "Enterprise Plan",
+        "description": "Custom integrations and advanced features for enterprises",
+        "price": "Custom",
+        "priceCurrency": "USD",
+        "pricingModel": "Subscription"
+      }
+    ]
+  },
+  "features": [
+    "Guest check-in",
+    "Email notifications",
+    "SMS notifications",
+    "Visitor logbook",
+    "Data export (CSV/JSON)",
+    "Cloud backup",
+    "Host management",
+    "Returning visitor tracking"
+  ],
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "150"
+  },
+  "inLanguage": "en-US",
+  "datePublished": "2024-01-15",
+  "dateModified": "2024-12-07"
+}
