@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import { CheckCircle } from 'lucide-react';
 import { PRICING_TIERS } from '../services/pricingService';
 import { PaymentService } from '../services/paymentService';
 import PageLayout from './PageLayout';
 import './Pricing.css';
 
-export const Pricing = () => {
+interface PricingProps {
+  onNavigate?: (page: string) => void;
+}
+
+export const Pricing = ({ onNavigate }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,8 +31,34 @@ export const Pricing = () => {
     }
   };
 
-
   return (
+    <div className="pricing-page-wrapper">
+      {/* Navbar for unauthenticated users */}
+      <nav className="legal-navbar">
+        <div className="legal-navbar-content">
+          {/* Logo & Brand */}
+          <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
+            <div className="legal-navbar-logo">
+              <img src="/logo.png" alt="floinvite" />
+            </div>
+            <span>floinvite</span>
+          </button>
+
+          {/* Navigation Links */}
+          <div className="legal-navbar-links">
+            <button className="legal-navbar-link legal-navbar-link-active" onClick={() => onNavigate?.('pricing')}>
+              Pricing
+            </button>
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('features')}>
+              Features
+            </button>
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('contact')}>
+              Contact
+            </button>
+          </div>
+        </div>
+      </nav>
+
     <PageLayout
       eyebrow="Plans & pricing"
       title="Simple, Transparent Pricing"
@@ -65,7 +96,10 @@ export const Pricing = () => {
               className={`pricing-card ${tier.highlighted ? 'highlighted' : ''}`}
             >
               {tier.highlighted && (
-                <div className="recommended-badge">⭐ Recommended</div>
+                <div className="recommended-badge">
+                  <CheckCircle size={16} style={{ display: 'inline-block', marginRight: '0.5rem' }} />
+                  Recommended
+                </div>
               )}
 
               {/* Card Header */}
@@ -75,18 +109,27 @@ export const Pricing = () => {
               </div>
 
               {/* Price */}
-              <div className="price-section">
-                <div className="price">
-                  <span className="currency">$</span>
-                  <span className="amount">{tier.price}</span>
-                  <span className="period">/month</span>
-                </div>
-                {billingCycle === 'year' && (
-                  <div className="annual-price">
-                    ${(tier.price * 12 * 0.8).toFixed(0)}/year
+              {tier.id !== 'enterprise' && (
+                <div className="price-section">
+                  <div className="price">
+                    <span className="currency">$</span>
+                    <span className="amount">{tier.price}</span>
+                    <span className="period">/month</span>
                   </div>
-                )}
-              </div>
+                  {billingCycle === 'year' && (
+                    <div className="annual-price">
+                      ${(tier.price * 12 * 0.8).toFixed(0)}/year
+                    </div>
+                  )}
+                </div>
+              )}
+              {tier.id === 'enterprise' && (
+                <div className="price-section">
+                  <div className="price">
+                    <span className="amount">Custom pricing</span>
+                  </div>
+                </div>
+              )}
 
               {/* CTA Button */}
               <button
@@ -102,87 +145,62 @@ export const Pricing = () => {
               {/* Features List - Organized by Category */}
               <div className="features-list">
                 {/* Core Features */}
-                <div className="feature-category">
-                  <h4 className="category-title">✓ Core Features</h4>
-                  <div className="feature-items">
-                    {tier.features
-                      .filter((f) => f.category === 'core')
-                      .slice(0, 3)
-                      .map((feature, idx) => (
-                        <div key={idx} className="feature-item">
-                          <span className="feature-icon">✓</span>
-                          <span className="feature-text">{feature.text}</span>
-                        </div>
-                      ))}
+                {tier.features.filter((f) => f.category === 'core' && f.included).length > 0 && (
+                  <div className="feature-section">
+                    <h4 className="section-heading">Core Features</h4>
+                    <ul className="feature-text-list">
+                      {tier.features
+                        .filter((f) => f.category === 'core' && f.included)
+                        .map((feature, idx) => (
+                          <li key={idx}>✓ {feature.text}</li>
+                        ))}
+                    </ul>
                   </div>
-                </div>
+                )}
 
-                {/* NOTIFICATIONS - HIGHLIGHTED */}
-                <div className="feature-category notifications-highlight">
-                  <h4 className="category-title">🔔 Visitor Notifications</h4>
-                  <div className="feature-items">
-                    {notificationFeatures.map((feature, idx) => (
-                      <div
-                        key={idx}
-                        className={`feature-item ${
-                          feature.included ? 'included' : 'excluded'
-                        }`}
-                      >
-                        <span className="feature-icon">
-                          {feature.included ? '✓' : '✗'}
-                        </span>
-                        <span className="feature-text">
-                          {feature.text}
-                          {feature.text.includes('⭐') && (
-                            <span className="highlight-badge">KEY</span>
-                          )}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Data & Backup */}
-                <div className="feature-category">
-                  <h4 className="category-title">💾 Data & Backup</h4>
-                  <div className="feature-items">
-                    {tier.features
-                      .filter((f) => f.category === 'data')
-                      .slice(0, 2)
-                      .map((feature, idx) => (
-                        <div
-                          key={idx}
-                          className={`feature-item ${
-                            feature.included ? 'included' : 'excluded'
-                          }`}
-                        >
-                          <span className="feature-icon">
-                            {feature.included ? '✓' : '✗'}
-                          </span>
-                          <span className="feature-text">{feature.text}</span>
-                        </div>
+                {/* Notifications */}
+                {notificationFeatures.length > 0 && (
+                  <div className="feature-section">
+                    <h4 className="section-heading">Notifications</h4>
+                    <ul className="feature-text-list">
+                      {notificationFeatures.map((feature, idx) => (
+                        <li key={idx} className={feature.included ? 'included' : 'excluded'}>
+                          {feature.included ? '✓' : '✗'} {feature.text}
+                        </li>
                       ))}
+                    </ul>
                   </div>
-                </div>
+                )}
+
+                {/* Data & Storage */}
+                {tier.features.filter((f) => f.category === 'data').length > 0 && (
+                  <div className="feature-section">
+                    <h4 className="section-heading">Data & Storage</h4>
+                    <ul className="feature-text-list">
+                      {tier.features
+                        .filter((f) => f.category === 'data')
+                        .map((feature, idx) => (
+                          <li key={idx} className={feature.included ? 'included' : 'excluded'}>
+                            {feature.included ? '✓' : '✗'} {feature.text}
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Support */}
-                <div className="feature-category">
-                  <h4 className="category-title">💬 Support</h4>
-                  <div className="feature-items">
-                    {tier.features
-                      .filter(
-                        (f) =>
-                          f.category === 'support' &&
-                          f.included === true
-                      )
-                      .map((feature, idx) => (
-                        <div key={idx} className="feature-item">
-                          <span className="feature-icon">✓</span>
-                          <span className="feature-text">{feature.text}</span>
-                        </div>
-                      ))}
+                {tier.features.filter((f) => f.category === 'support' && f.included).length > 0 && (
+                  <div className="feature-section">
+                    <h4 className="section-heading">Support</h4>
+                    <ul className="feature-text-list">
+                      {tier.features
+                        .filter((f) => f.category === 'support' && f.included)
+                        .map((feature, idx) => (
+                          <li key={idx}>✓ {feature.text}</li>
+                        ))}
+                    </ul>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           );
@@ -190,5 +208,6 @@ export const Pricing = () => {
       </div>
       </div>
     </PageLayout>
+    </div>
   );
 };
