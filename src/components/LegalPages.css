@@ -3,6 +3,87 @@
  * Shared styling for Contact, Privacy Policy, and Terms of Service pages
  */
 
+/* Navbar for legal/public pages */
+.legal-navbar {
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  backdrop-filter: blur(10px);
+  z-index: 50;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.legal-navbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.legal-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.legal-navbar-brand:hover {
+  background: var(--bg-secondary);
+}
+
+.legal-navbar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.legal-navbar-logo img {
+  height: 32px;
+  width: auto;
+}
+
+.legal-navbar-links {
+  display: flex;
+  gap: 2rem;
+  margin-left: auto;
+}
+
+.legal-navbar-link {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  transition: all var(--transition-base);
+  border-radius: var(--radius-md);
+  position: relative;
+}
+
+.legal-navbar-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.legal-navbar-link-active {
+  color: white;
+  background: var(--primary);
+}
+
 .legal-page {
   display: flex;
   flex-direction: column;

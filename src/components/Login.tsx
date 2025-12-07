@@ -2,10 +2,12 @@
  * Login Component
  * Simple password-based authentication
  * Protects all tiers
+ * Features: Password setup/verification, video background with looping
  */
 
 import { useState } from 'react';
 import './Login.css';
+import { LoopingVideo } from './LoopingVideo';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -114,7 +116,8 @@ export function Login({ onLoginSuccess, onNavigate, currentPage = 'landing' }: L
           </div>
         </nav>
 
-        {/* Background Image with Overlay */}
+        {/* Background Video with Overlay */}
+        <LoopingVideo source="/login.mp4" />
         <div className="login-background" />
 
         {/* Two Column Layout */}
@@ -152,9 +155,25 @@ export function Login({ onLoginSuccess, onNavigate, currentPage = 'landing' }: L
           <div className="login-right">
             <div className="login-card">
               {/* Logo */}
-              <div className="login-logo">
-                <img src="/logo.png" alt="floinvite" />
-              </div>
+              <button
+                className="login-logo-button"
+                onClick={() => setUserFlow(null)}
+                type="button"
+                title="Back to choices"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.5rem',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginBottom: '0.5rem'
+                }}
+              >
+                <div className="login-logo">
+                  <img src="/logo.png" alt="floinvite" />
+                </div>
+              </button>
 
               {/* Title */}
               <h1 className="login-title">floinvite</h1>
@@ -194,15 +213,62 @@ export function Login({ onLoginSuccess, onNavigate, currentPage = 'landing' }: L
   // Show login form for selected flow
   return (
     <div className="login-container">
-      {/* Background Image with Overlay */}
+      {/* Navigation Bar */}
+      <nav className="login-navbar">
+        <div className="login-navbar-content">
+          {/* Logo & Brand */}
+          <button className="login-navbar-brand" onClick={() => handleNavClick('landing')}>
+            <div className="login-navbar-logo">
+              <img src="/logo.png" alt="floinvite" />
+            </div>
+            <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>floinvite</span>
+          </button>
+
+          {/* Navigation Links */}
+          <div className="login-navbar-links">
+            <button className={`login-navbar-link ${currentPage === 'pricing' ? 'active' : ''}`} onClick={() => handleNavClick('pricing')}>
+              Pricing
+            </button>
+            <button className={`login-navbar-link ${currentPage === 'features' ? 'active' : ''}`} onClick={() => handleNavClick('features')}>
+              Features
+            </button>
+            <button className={`login-navbar-link ${currentPage === 'contact' ? 'active' : ''}`} onClick={() => handleNavClick('contact')}>
+              Contact
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Background Video with Overlay */}
+      <LoopingVideo source="/login.mp4" />
       <div className="login-background" />
 
       {/* Login Card */}
       <div className="login-card">
         {/* Logo */}
-        <div className="login-logo">
-          <img src="/logo.png" alt="floinvite" />
-        </div>
+        <button
+          className="login-logo-button"
+          onClick={() => {
+            setUserFlow(null);
+            setPassword('');
+            setError('');
+          }}
+          type="button"
+          title="Back to choices"
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '0.5rem',
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: '0.5rem'
+          }}
+        >
+          <div className="login-logo">
+            <img src="/logo.png" alt="floinvite" />
+          </div>
+        </button>
 
         {/* Title */}
         <h1 className="login-title">floinvite</h1>

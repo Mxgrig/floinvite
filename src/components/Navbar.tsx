@@ -47,35 +47,60 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
           </div>
         </button>
 
-        {/* App Navigation (shown when user is in app pages) */}
-        {showAppNav && (
-          <div className="navbar-menu">
-            <button
-              className={`navbar-link ${currentPage === 'check-in' ? 'active' : ''}`}
-              onClick={() => handleNavClick('check-in')}
-            >
-              Check-In
-            </button>
-            <button
-              className={`navbar-link ${currentPage === 'logbook' ? 'active' : ''}`}
-              onClick={() => handleNavClick('logbook')}
-            >
-              Logbook
-            </button>
-            <button
-              className={`navbar-link ${currentPage === 'hosts' ? 'active' : ''}`}
-              onClick={() => handleNavClick('hosts')}
-            >
-              Hosts
-            </button>
-            <button
-              className={`navbar-link ${currentPage === 'settings' ? 'active' : ''}`}
-              onClick={() => handleNavClick('settings')}
-            >
-              Settings
-            </button>
-          </div>
-        )}
+        {/* Navigation Menu */}
+        <div className="navbar-menu">
+          {showAppNav ? (
+            <>
+              {/* App Navigation (shown when user is in app pages) */}
+              <button
+                className={`navbar-link ${currentPage === 'check-in' ? 'active' : ''}`}
+                onClick={() => handleNavClick('check-in')}
+              >
+                Check-In
+              </button>
+              <button
+                className={`navbar-link ${currentPage === 'logbook' ? 'active' : ''}`}
+                onClick={() => handleNavClick('logbook')}
+              >
+                Logbook
+              </button>
+              <button
+                className={`navbar-link ${currentPage === 'hosts' ? 'active' : ''}`}
+                onClick={() => handleNavClick('hosts')}
+              >
+                Hosts
+              </button>
+              <button
+                className={`navbar-link ${currentPage === 'settings' ? 'active' : ''}`}
+                onClick={() => handleNavClick('settings')}
+              >
+                Settings
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Landing Page Navigation */}
+              <button
+                className={`navbar-link ${currentPage === 'pricing' ? 'active' : ''}`}
+                onClick={() => handleNavClick('pricing')}
+              >
+                Pricing
+              </button>
+              <button
+                className={`navbar-link ${currentPage === 'features' ? 'active' : ''}`}
+                onClick={() => handleNavClick('features')}
+              >
+                Features
+              </button>
+              <button
+                className={`navbar-link ${currentPage === 'contact' ? 'active' : ''}`}
+                onClick={() => handleNavClick('contact')}
+              >
+                Contact
+              </button>
+            </>
+          )}
+        </div>
 
         {/* Right side: Tier badge + Logout button + Home button */}
         <div className="navbar-right">

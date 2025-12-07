@@ -12,6 +12,32 @@ export interface TermsOfServiceProps {
 export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
   return (
     <div className="legal-page">
+      {/* Navbar for unauthenticated users */}
+      <nav className="legal-navbar">
+        <div className="legal-navbar-content">
+          {/* Logo & Brand */}
+          <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
+            <div className="legal-navbar-logo">
+              <img src="/logo.png" alt="floinvite" />
+            </div>
+            <span>floinvite</span>
+          </button>
+
+          {/* Navigation Links */}
+          <div className="legal-navbar-links">
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('pricing')}>
+              Pricing
+            </button>
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('features')}>
+              Features
+            </button>
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('contact')}>
+              Contact
+            </button>
+          </div>
+        </div>
+      </nav>
+
       <div className="legal-hero">
         <div className="legal-hero-content">
           <button
@@ -114,7 +140,7 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
         <section className="legal-section">
           <h2>9. Limitation of Liability</h2>
           <p>
-            To the fullest extent permitted by law, Floinvite and Xtenalyze shall not be liable for any indirect,
+            To the fullest extent permitted by law, Floinvite and xtenalyze shall not be liable for any indirect,
             incidental, special, consequential, or punitive damages resulting from your use of or inability to use
             the service, including but not limited to loss of data, revenue, or business.
           </p>
@@ -148,7 +174,7 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
         <section className="legal-section">
           <h2>13. Intellectual Property</h2>
           <p>
-            Floinvite and all associated content are the exclusive property of Xtenalyze and protected by copyright and
+            Floinvite and all associated content are the exclusive property of xtenalyze and protected by copyright and
             intellectual property laws. You may not copy, modify, reproduce, or distribute any part of the application
             without permission.
           </p>

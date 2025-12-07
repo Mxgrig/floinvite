@@ -12,6 +12,32 @@ export interface PrivacyPolicyProps {
 export function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
   return (
     <div className="legal-page">
+      {/* Navbar for unauthenticated users */}
+      <nav className="legal-navbar">
+        <div className="legal-navbar-content">
+          {/* Logo & Brand */}
+          <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
+            <div className="legal-navbar-logo">
+              <img src="/logo.png" alt="floinvite" />
+            </div>
+            <span>floinvite</span>
+          </button>
+
+          {/* Navigation Links */}
+          <div className="legal-navbar-links">
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('pricing')}>
+              Pricing
+            </button>
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('features')}>
+              Features
+            </button>
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('contact')}>
+              Contact
+            </button>
+          </div>
+        </div>
+      </nav>
+
       <div className="legal-hero">
         <div className="legal-hero-content">
           <button

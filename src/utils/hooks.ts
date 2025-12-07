@@ -329,3 +329,81 @@ export function useFormState<T extends Record<string, any>>(
     reset
   };
 }
+
+/**
+ * useInactivityLogout Hook
+ * Automatically logs out user after specified inactivity period
+ * Tracks: mouse movement, keyboard, clicks, scrolling, touch
+ *
+ * @param onLogout - Callback function to execute on logout
+ * @param timeoutMinutes - Inactivity timeout in minutes (default: 15)
+ *
+ * @example
+ * const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
+ * useInactivityLogout(() => setIsAuthenticated(false), 15);
+ */
+export function useInactivityLogout(
+  onLogout: () => void,
+  timeoutMinutes: number = 15
+): void {
+  const timeoutMs = timeoutMinutes * 60 * 1000;
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+
+  // Reset the inactivity timer
+  const resetTimer = useCallback(() => {
+    lastActivityRef.current = Date.now();
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      console.log(`User inactive for ${timeoutMinutes} minutes. Logging out...`);
+      onLogout();
+    }, timeoutMs);
+  }, [timeoutMs, onLogout, timeoutMinutes]);
+
+  // Track user activity
+  useEffect(() => {
+    // List of activity events to track
+    const activityEvents = [
+      'mousedown',
+      'mousemove',
+      'keydown',
+      'scroll',
+      'touchstart',
+      'click',
+      'wheel'
+    ];
+
+    const handleActivity = () => {
+      const now = Date.now();
+      const timeSinceLastActivity = now - lastActivityRef.current;
+
+      // Only reset timer if at least 1 second has passed since last activity
+      // This prevents excessive timer resets from rapid events
+      if (timeSinceLastActivity > 1000) {
+        resetTimer();
+      }
+    };
+
+    // Add event listeners
+    activityEvents.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    // Initial timer setup
+    resetTimer();
+
+    // Cleanup
+    return () => {
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [resetTimer]);
+}
