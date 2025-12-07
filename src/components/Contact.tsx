@@ -1,6 +1,6 @@
 /**
  * Contact Page
- * Get in touch with Floinvite by Xtenalyze
+ * Get in touch with Floinvite by xtenalyze
  */
 
 import { Mail, MapPin, Phone } from 'lucide-react';
@@ -13,6 +13,32 @@ export interface ContactProps {
 export function Contact({ onNavigate }: ContactProps) {
   return (
     <div className="legal-page">
+      {/* Navbar for unauthenticated users */}
+      <nav className="legal-navbar">
+        <div className="legal-navbar-content">
+          {/* Logo & Brand */}
+          <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
+            <div className="legal-navbar-logo">
+              <img src="/logo.png" alt="floinvite" />
+            </div>
+            <span>floinvite</span>
+          </button>
+
+          {/* Navigation Links */}
+          <div className="legal-navbar-links">
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('pricing')}>
+              Pricing
+            </button>
+            <button className="legal-navbar-link" onClick={() => onNavigate?.('features')}>
+              Features
+            </button>
+            <button className="legal-navbar-link legal-navbar-link-active" onClick={() => onNavigate?.('contact')}>
+              Contact
+            </button>
+          </div>
+        </div>
+      </nav>
+
       <div className="legal-hero">
         <div className="legal-hero-content">
           <button
@@ -61,7 +87,7 @@ export function Contact({ onNavigate }: ContactProps) {
                   London, E16 6UN<br />
                   United Kingdom
                 </p>
-                <p className="contact-note">Xtenalyze HQ</p>
+                <p className="contact-note">xtenalyze HQ</p>
               </div>
             </div>
 
@@ -123,9 +149,9 @@ export function Contact({ onNavigate }: ContactProps) {
             </div>
           </div>
 
-          {/* About Xtenalyze */}
+          {/* About xtenalyze */}
           <div className="xtenalyze-section">
-            <h2>About Xtenalyze</h2>
+            <h2>About xtenalyze</h2>
             <p>
               Floinvite is a product by <strong>xtenalyze</strong>, a professional technology services firm based in London, UK.
               We specialize in data analytics, custom application development, and IT solutions for businesses worldwide.
@@ -135,7 +161,7 @@ export function Contact({ onNavigate }: ContactProps) {
               by bridging complex technical solutions with practical business applications.
             </p>
             <a href="https://www.xtenalyze.co.uk" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
-              Visit Xtenalyze →
+              Visit xtenalyze →
             </a>
           </div>
         </div>

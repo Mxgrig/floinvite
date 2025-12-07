@@ -13,6 +13,32 @@ interface FeaturesPageProps {
 export function Features({ onNavigate }: FeaturesPageProps) {
   return (
     <div className="features-page">
+      {/* Navbar for unauthenticated users */}
+      <nav className="legal-navbar">
+        <div className="legal-navbar-content">
+          {/* Logo & Brand */}
+          <button className="legal-navbar-brand" onClick={() => onNavigate('landing')}>
+            <div className="legal-navbar-logo">
+              <img src="/logo.png" alt="floinvite" />
+            </div>
+            <span>floinvite</span>
+          </button>
+
+          {/* Navigation Links */}
+          <div className="legal-navbar-links">
+            <button className="legal-navbar-link" onClick={() => onNavigate('pricing')}>
+              Pricing
+            </button>
+            <button className="legal-navbar-link legal-navbar-link-active" onClick={() => onNavigate('features')}>
+              Features
+            </button>
+            <button className="legal-navbar-link" onClick={() => onNavigate('contact')}>
+              Contact
+            </button>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="features-hero">
         <div className="hero-content">
@@ -23,92 +49,62 @@ export function Features({ onNavigate }: FeaturesPageProps) {
         </div>
       </section>
 
-      {/* Core Features Grid */}
+      {/* Core Features */}
       <section className="features-grid-section">
         <div className="section-container">
           <h2 className="section-title">Core Features</h2>
-          <div className="features-grid">
-            {/* Feature 1: Smart Check-In */}
-            <div className="feature-item">
-              <div className="feature-icon">
-                <ClipboardList size={32} />
-              </div>
+          <div className="features-list-container">
+            <div className="feature-category">
               <h3>Smart Check-In</h3>
-              <p>Two-path visitor check-in flow optimized for speed. Handle walk-ins and expected visitors in seconds with our intuitive interface.</p>
               <ul className="feature-list">
-                <li>30-second average check-in time</li>
-                <li>Two-path flow for walk-ins and expected guests</li>
-                <li>Works offline out of the box</li>
+                <li>✓ 30-second average check-in time</li>
+                <li>✓ Two-path flow for walk-ins and expected guests</li>
+                <li>✓ Works offline out of the box</li>
               </ul>
             </div>
 
-            {/* Feature 2: Instant Notifications */}
-            <div className="feature-item">
-              <div className="feature-icon">
-                <Bell size={32} />
-              </div>
+            <div className="feature-category">
               <h3>Instant Notifications</h3>
-              <p>Hosts are notified the moment a visitor arrives. Email and SMS alerts keep everyone in the loop.</p>
               <ul className="feature-list">
-                <li>Email notifications sent automatically</li>
-                <li>SMS support via carrier gateways</li>
-                <li>Customizable notification templates</li>
+                <li>✓ Email notifications sent automatically</li>
+                <li>✓ SMS support via carrier gateways</li>
+                <li>✓ Customizable notification templates</li>
               </ul>
             </div>
 
-            {/* Feature 3: Complete Logbook */}
-            <div className="feature-item">
-              <div className="feature-icon">
-                <BookOpen size={32} />
-              </div>
+            <div className="feature-category">
               <h3>Complete Logbook</h3>
-              <p>Comprehensive visitor records with advanced search and export capabilities. Keep a permanent audit trail.</p>
               <ul className="feature-list">
-                <li>Searchable visitor history</li>
-                <li>CSV/JSON export formats</li>
-                <li>Filtering by date, host, or visitor</li>
+                <li>✓ Searchable visitor history</li>
+                <li>✓ CSV/JSON export formats</li>
+                <li>✓ Filtering by date, host, or visitor</li>
               </ul>
             </div>
 
-            {/* Feature 4: Host Management */}
-            <div className="feature-item">
-              <div className="feature-icon">
-                <Users size={32} />
-              </div>
+            <div className="feature-category">
               <h3>Host Management</h3>
-              <p>Easily manage your employee directory with custom notification preferences and bulk imports.</p>
               <ul className="feature-list">
-                <li>CSV bulk import for 100+ hosts</li>
-                <li>Per-host notification preferences</li>
-                <li>Department and role tracking</li>
+                <li>✓ CSV bulk import for 100+ hosts</li>
+                <li>✓ Per-host notification preferences</li>
+                <li>✓ Department and role tracking</li>
               </ul>
             </div>
 
-            {/* Feature 5: Speed & Performance */}
-            <div className="feature-item">
-              <div className="feature-icon">
-                <Zap size={32} />
-              </div>
+            <div className="feature-category">
               <h3>Lightning Fast</h3>
-              <p>Optimized for performance on any device. Instant search, filtering, and navigation with zero lag.</p>
               <ul className="feature-list">
-                <li>Real-time search and filtering</li>
-                <li>Optimized for mobile and tablet</li>
-                <li>Sub-second response times</li>
+                <li>✓ Real-time search and filtering</li>
+                <li>✓ Optimized for mobile and tablet</li>
+                <li>✓ Sub-second response times</li>
               </ul>
             </div>
 
-            {/* Feature 6: Security & Privacy */}
-            <div className="feature-item">
-              <div className="feature-icon">
-                <Lock size={32} />
-              </div>
+            <div className="feature-category">
               <h3>Secure by Default</h3>
-              <p>Your visitor data is protected with password authentication and secure local storage.</p>
               <ul className="feature-list">
-                <li>Password-protected access</li>
-                <li>No cloud data required</li>
-                <li>GDPR-ready architecture</li>
+                <li>✓ Password-protected access</li>
+                <li>✓ No cloud data required</li>
+                <li>✓ GDPR-ready architecture</li>
               </ul>
             </div>
           </div>
@@ -119,52 +115,59 @@ export function Features({ onNavigate }: FeaturesPageProps) {
       <section className="advanced-features-section">
         <div className="section-container">
           <h2 className="section-title">Advanced Features</h2>
-          <div className="advanced-features">
-            <div className="advanced-feature-row">
-              <div className="advanced-feature">
-                <div className="advanced-icon">
-                  <Clock size={24} />
-                </div>
-                <h4>Expected Guest Tracking</h4>
-                <p>Pre-register expected visitors and automatically identify them during check-in for faster processing.</p>
-              </div>
-              <div className="advanced-feature">
-                <div className="advanced-icon">
-                  <BarChart3 size={24} />
-                </div>
-                <h4>Visitor Analytics</h4>
-                <p>Get insights into visitor patterns, busiest times, and host activity with detailed reports.</p>
-              </div>
-              <div className="advanced-feature">
-                <div className="advanced-icon">
-                  <Download size={24} />
-                </div>
-                <h4>Data Export</h4>
-                <p>Export all visitor records in CSV or JSON format for use in external systems or compliance reports.</p>
-              </div>
+          <div className="features-list-container">
+            <div className="feature-category">
+              <h3>Expected Guest Tracking</h3>
+              <ul className="feature-list">
+                <li>✓ Pre-register expected visitors</li>
+                <li>✓ Automatic identification during check-in</li>
+                <li>✓ Faster processing for returning guests</li>
+              </ul>
             </div>
-            <div className="advanced-feature-row">
-              <div className="advanced-feature">
-                <div className="advanced-icon">
-                  <Mail size={24} />
-                </div>
-                <h4>Email Integration</h4>
-                <p>Seamless email notifications with customizable templates for a professional visitor experience.</p>
-              </div>
-              <div className="advanced-feature">
-                <div className="advanced-icon">
-                  <Smartphone size={24} />
-                </div>
-                <h4>Mobile Responsive</h4>
-                <p>Works perfectly on tablets, phones, and desktops with a responsive design that adapts to any screen.</p>
-              </div>
-              <div className="advanced-feature">
-                <div className="advanced-icon">
-                  <Settings size={24} />
-                </div>
-                <h4>Customization</h4>
-                <p>Customize business details, notification preferences, and check-in flow to match your needs.</p>
-              </div>
+
+            <div className="feature-category">
+              <h3>Visitor Analytics</h3>
+              <ul className="feature-list">
+                <li>✓ Insights into visitor patterns</li>
+                <li>✓ Identify busiest times</li>
+                <li>✓ Host activity reports</li>
+              </ul>
+            </div>
+
+            <div className="feature-category">
+              <h3>Data Export</h3>
+              <ul className="feature-list">
+                <li>✓ CSV format export</li>
+                <li>✓ JSON format export</li>
+                <li>✓ Compliance report generation</li>
+              </ul>
+            </div>
+
+            <div className="feature-category">
+              <h3>Email Integration</h3>
+              <ul className="feature-list">
+                <li>✓ Seamless email notifications</li>
+                <li>✓ Customizable email templates</li>
+                <li>✓ Professional visitor experience</li>
+              </ul>
+            </div>
+
+            <div className="feature-category">
+              <h3>Mobile Responsive</h3>
+              <ul className="feature-list">
+                <li>✓ Works on tablets and phones</li>
+                <li>✓ Works on desktop browsers</li>
+                <li>✓ Responsive design for all screens</li>
+              </ul>
+            </div>
+
+            <div className="feature-category">
+              <h3>Customization</h3>
+              <ul className="feature-list">
+                <li>✓ Custom business details</li>
+                <li>✓ Notification preferences</li>
+                <li>✓ Configurable check-in flow</li>
+              </ul>
             </div>
           </div>
         </div>

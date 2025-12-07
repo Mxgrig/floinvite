@@ -18,8 +18,9 @@ import { Contact } from './components/Contact';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import { Features } from './components/Features';
+import { SessionVideoBackground } from './components/SessionVideoBackground';
 import { PaymentService } from './services/paymentService';
-import { usePersistedState } from './utils/hooks';
+import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { STORAGE_KEYS } from './utils/constants';
 import './App.css';
 
@@ -47,6 +48,13 @@ export function App() {
     setIsAuthenticated(false);
     setCurrentPage('landing');
   };
+
+  // Setup inactivity logout (15 minutes default)
+  // Only active when authenticated and not on login page
+  useInactivityLogout(() => {
+    handleLogout();
+    console.log('Session logged out due to inactivity');
+  }, 15);
 
   // Check subscription status on mount
   useEffect(() => {
@@ -85,7 +93,7 @@ export function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'pricing':
-        return <Pricing />;
+        return <Pricing onNavigate={setCurrentPage} />;
       case 'features':
         return <Features onNavigate={setCurrentPage} />;
       case 'check-in':
@@ -108,20 +116,26 @@ export function App() {
     }
   };
 
-  // Show login screen if not authenticated
-  if (!isAuthenticated) {
+  // Show login screen if not authenticated (but allow public pages: pricing, features, contact, privacy, terms)
+  const publicPages = ['pricing', 'features', 'contact', 'privacy', 'terms'];
+  if (!isAuthenticated && !publicPages.includes(currentPage)) {
     return <Login onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} currentPage={currentPage} />;
   }
 
   return (
     <div className="floinvite-app">
-      {/* Navbar - Hide in kiosk mode on check-in page */}
-      {!(settings.kioskMode && currentPage === 'check-in') && (
+      {/* Session Video Background - Only on app pages, not on landing/pricing/features */}
+      {currentPage !== 'pricing' && currentPage !== 'landing' && currentPage !== 'features' && (
+        <SessionVideoBackground />
+      )}
+
+      {/* Navbar - Hide in kiosk mode on check-in page, hide for unauthenticated users on public pages */}
+      {!(settings.kioskMode && currentPage === 'check-in') && !(publicPages.includes(currentPage) && !isAuthenticated) && (
         <Navbar
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           userTier={userTier}
-          showAppNav={currentPage !== 'pricing' && currentPage !== 'landing' && currentPage !== 'features'}
+          showAppNav={isAuthenticated && currentPage !== 'pricing' && currentPage !== 'landing' && currentPage !== 'features'}
           onLogout={handleLogout}
         />
       )}
@@ -173,107 +187,148 @@ interface LandingPageProps {
 function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
   return (
     <div className="landing-page">
-      {/* Hero Section - CLEAR VALUE PROP */}
-      <section className="landing-hero">
-        <div className="hero-content">
-          {/* Brand Identity */}
-          <div className="brand-lockup">
-            <img src="/logo.png" alt="Floinvite" className="hero-logo" />
-            <h1 className="brand-title">
-              <span className="brand-flo">Flo</span>
-              <span className="brand-invite">invite</span>
+      {/* Hero Section */}
+      <section className="landing-hero-new">
+        <div className="hero-wrapper">
+          {/* Left Content */}
+          <div className="hero-left">
+            {/* Badge */}
+            <div className="hero-badge">
+              <span>🚀 Fast, Simple, Powerful</span>
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="hero-title">
+              Visitor Management
+              <span className="gradient-text"> That Actually Works</span>
             </h1>
+
+            {/* Subheadline */}
+            <p className="hero-description">
+              Check in guests in seconds, notify hosts instantly, and maintain complete visitor records. Built for businesses that care about their guests.
+            </p>
+
+            {/* Primary CTA */}
+            <div className="hero-cta-group">
+              <button className="btn btn-primary btn-lg btn-icon" onClick={onStartCheckIn}>
+                <span>Start Free Check-In</span>
+                <span>→</span>
+              </button>
+              <button className="btn btn-outline btn-lg" onClick={() => onNavigate('pricing')}>
+                View Pricing
+              </button>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="hero-trust">
+              <div className="trust-item">
+                <span className="trust-icon">✓</span>
+                <span className="trust-text">No credit card required</span>
+              </div>
+              <div className="trust-item">
+                <span className="trust-icon">✓</span>
+                <span className="trust-text">Works on all devices</span>
+              </div>
+              <div className="trust-item">
+                <span className="trust-icon">✓</span>
+                <span className="trust-text">Offline ready</span>
+              </div>
+            </div>
           </div>
 
-          {/* Value Proposition */}
-          <h2 className="hero-headline">
-            Visitor management that just works
-          </h2>
-          <p className="hero-subheadline">
-            Check in guests, notify hosts, and track visitors in seconds.
-            <br />
-            No hardware. No training. No hassle.
-          </p>
-
-          {/* Primary CTAs */}
-          <div className="hero-actions">
-            <button className="btn btn-primary btn-lg" onClick={onStartCheckIn}>
-              Start First Check-In
-            </button>
-            <button className="btn btn-secondary btn-lg" onClick={() => onNavigate('pricing')}>
-              View Pricing
-            </button>
-          </div>
-
-          {/* Social Proof */}
-          <div className="hero-proof">
-            <div className="proof-item">
-              <div className="proof-value">&lt; 30 sec</div>
-              <div className="proof-label">Average check-in</div>
-            </div>
-            <div className="proof-item">
-              <div className="proof-value">Offline-ready</div>
-              <div className="proof-label">Works without internet</div>
-            </div>
-            <div className="proof-item">
-              <div className="proof-value">Multi-channel</div>
-              <div className="proof-label">Email + WhatsApp alerts</div>
+          {/* Right Image */}
+          <div className="hero-right">
+            <div className="hero-image-wrapper">
+              <img
+                src="/heroimg.png"
+                alt="Visitor management dashboard"
+                className="hero-image"
+              />
             </div>
           </div>
         </div>
 
-        {/* Hero Image */}
-        <div className="hero-image">
-          <img
-            src="/heroimg.png"
-            alt="Visitor management dashboard"
-            className="hero-img"
-          />
-        </div>
-      </section>
-
-      {/* Features Section - KEEP SIMPLE */}
-      <section className="features-section">
-        <h3 className="features-title">Everything you need</h3>
-        <div className="features-grid">
-          <div className="feature-card">
-            <div className="feature-icon">
-              <ClipboardList size={28} />
-            </div>
-            <h4>Smart Check-In</h4>
-            <p>Two-path flow for walk-ins and expected visitors</p>
+        {/* Stats Bar */}
+        <div className="hero-stats">
+          <div className="stat-item">
+            <div className="stat-number">30s</div>
+            <div className="stat-label">Average Check-in</div>
           </div>
-          <div className="feature-card">
-            <div className="feature-icon">
-              <Bell size={28} />
-            </div>
-            <h4>Instant Alerts</h4>
-            <p>Email and WhatsApp notifications when guests arrive</p>
+          <div className="stat-divider"></div>
+          <div className="stat-item">
+            <div className="stat-number">100%</div>
+            <div className="stat-label">Offline Ready</div>
           </div>
-          <div className="feature-card">
-            <div className="feature-icon">
-              <BookOpen size={28} />
-            </div>
-            <h4>Complete Records</h4>
-            <p>Searchable logbook with CSV/JSON exports</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">
-              <Users size={28} />
-            </div>
-            <h4>Host Management</h4>
-            <p>Easy directory with notification preferences</p>
+          <div className="stat-divider"></div>
+          <div className="stat-item">
+            <div className="stat-number">Multi</div>
+            <div className="stat-label">Channel Alerts</div>
           </div>
         </div>
       </section>
 
-      {/* Secondary CTA */}
-      <section className="cta-section">
-        <h3>Ready to get started?</h3>
-        <p>No credit card required. Works on any device.</p>
-        <button className="btn btn-primary btn-lg" onClick={onStartCheckIn}>
-          Launch Check-In
-        </button>
+      {/* Features Section - Enhanced */}
+      <section className="features-section-new">
+        <div className="features-container">
+          {/* Header */}
+          <div className="features-header">
+            <h2>Everything You Need</h2>
+            <p>Comprehensive features for modern visitor management</p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="features-grid-new">
+            <div className="feature-card-new">
+              <div className="feature-icon-new">
+                <ClipboardList size={32} />
+              </div>
+              <h3>Smart Check-In</h3>
+              <p>Two-path flow optimized for both walk-ins and expected visitors. Get guests checked in in under 30 seconds.</p>
+              <a href="#" className="feature-link">Learn more →</a>
+            </div>
+
+            <div className="feature-card-new">
+              <div className="feature-icon-new">
+                <Bell size={32} />
+              </div>
+              <h3>Instant Alerts</h3>
+              <p>Hosts get notified immediately when guests arrive. Email, SMS, or WhatsApp - your choice.</p>
+              <a href="#" className="feature-link">Learn more →</a>
+            </div>
+
+            <div className="feature-card-new">
+              <div className="feature-icon-new">
+                <BookOpen size={32} />
+              </div>
+              <h3>Complete Records</h3>
+              <p>Searchable visitor logbook with advanced filtering and export options. CSV, JSON, and more.</p>
+              <a href="#" className="feature-link">Learn more →</a>
+            </div>
+
+            <div className="feature-card-new">
+              <div className="feature-icon-new">
+                <Users size={32} />
+              </div>
+              <h3>Host Management</h3>
+              <p>Easy employee directory with customizable notification preferences and bulk import from CSV.</p>
+              <a href="#" className="feature-link">Learn more →</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Final */}
+      <section className="cta-section-new">
+        <div className="cta-content">
+          <div className="cta-text">
+            <h2>Ready to transform your visitor management?</h2>
+            <p>Join businesses that have simplified their check-in process and improved guest experience.</p>
+          </div>
+          <button className="btn btn-primary btn-lg btn-icon" onClick={onStartCheckIn}>
+            <span>Get Started Free</span>
+            <span>→</span>
+          </button>
+        </div>
       </section>
     </div>
   );

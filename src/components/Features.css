@@ -4,16 +4,19 @@
 
 .features-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: white;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Hero Section */
 .features-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: white;
+  color: #1f2937;
   padding: 80px 2rem;
   text-align: center;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .hero-content {
@@ -26,11 +29,12 @@
   font-weight: 700;
   margin: 0 0 1.5rem 0;
   line-height: 1.2;
+  color: #1f2937;
 }
 
 .hero-subtitle {
   font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: #6b7280;
   margin: 0;
   line-height: 1.6;
 }
@@ -56,37 +60,63 @@
   background: white;
 }
 
-.features-grid {
+.features-list-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 3rem;
   margin-bottom: 0;
 }
 
-.feature-item {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 2rem;
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
+.feature-category {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  transition: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 }
 
-.feature-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-  border-color: #667eea;
+.feature-category:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.feature-category h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
 }
 
 .feature-icon {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
+  background: transparent;
+  color: #1f2937;
+  border-radius: 0;
   margin-bottom: 1.5rem;
+}
+
+.feature-item {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  transition: none;
+  display: none;
+}
+
+.feature-item:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: transparent;
 }
 
 .feature-item h3 {
@@ -112,60 +142,52 @@
 .feature-list li {
   color: #6b7280;
   padding: 0.5rem 0;
-  padding-left: 1.5rem;
-  position: relative;
-  font-size: 0.9rem;
-}
-
-.feature-list li:before {
-  content: '✓';
-  position: absolute;
-  left: 0;
-  color: #667eea;
-  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 /* Advanced Features Section */
 .advanced-features-section {
   padding: 80px 2rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  background: white;
+  border-top: 1px solid #e5e7eb;
 }
 
 .advanced-features {
-  display: flex;
+  display: none;
   flex-direction: column;
-  gap: 2rem;
+  gap: 3rem;
 }
 
 .advanced-feature-row {
-  display: grid;
+  display: none;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  gap: 3rem;
 }
 
 .advanced-feature {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  text-align: center;
-  transition: all 0.3s ease;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  text-align: left;
+  transition: none;
 }
 
 .advanced-feature:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  transform: none;
+  box-shadow: none;
 }
 
 .advanced-icon {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: #f0f4ff;
-  color: #667eea;
-  border-radius: 8px;
+  background: transparent;
+  color: #1f2937;
+  border-radius: 0;
   margin: 0 auto 1rem;
 }
 
@@ -187,6 +209,7 @@
 .features-comparison-section {
   padding: 80px 2rem;
   background: white;
+  border-top: 1px solid #e5e7eb;
 }
 
 .comparison-table {
@@ -199,12 +222,12 @@
 }
 
 .comparison-table th {
-  background: #f9fafb;
+  background: transparent;
   padding: 1.25rem;
   text-align: left;
   font-weight: 600;
   color: #1f2937;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
   font-size: 0.95rem;
 }
 
@@ -216,7 +239,7 @@
 }
 
 .comparison-table tr:hover {
-  background: #f9fafb;
+  background: transparent;
 }
 
 .comparison-table .check {
@@ -231,9 +254,10 @@
 /* CTA Section */
 .features-cta-section {
   padding: 80px 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: white;
   text-align: center;
-  color: white;
+  color: #1f2937;
+  border-top: 1px solid #e5e7eb;
 }
 
 .cta-content {
@@ -246,11 +270,12 @@
   font-weight: 700;
   margin: 0 0 1rem 0;
   line-height: 1.2;
+  color: #1f2937;
 }
 
 .cta-content p {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: #6b7280;
   margin: 0 0 2rem 0;
   line-height: 1.6;
 }
@@ -262,41 +287,27 @@
   flex-wrap: wrap;
 }
 
-.btn {
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 1rem;
-}
-
-.btn-primary {
-  background: white;
-  color: #667eea;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-}
-
-.btn-secondary {
+.cta-buttons .btn-primary {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
 }
 
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
+.cta-buttons .btn-primary:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  background: #f9fafb;
 }
 
-.btn-lg {
-  padding: 1.25rem 2.5rem;
-  font-size: 1.1rem;
+.cta-buttons .btn-secondary {
+  background: transparent;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+}
+
+.cta-buttons .btn-secondary:hover:not(:disabled) {
+  background: #f9fafb;
+  transform: none;
 }
 
 /* Responsive Design */
@@ -313,7 +324,7 @@
     font-size: 1.75rem;
   }
 
-  .features-grid {
+  .features-list-container {
     grid-template-columns: 1fr;
   }
 
@@ -353,8 +364,8 @@
     margin-bottom: 2rem;
   }
 
-  .feature-item {
-    padding: 1.5rem;
+  .feature-category {
+    padding: 0;
   }
 
   .cta-buttons {
