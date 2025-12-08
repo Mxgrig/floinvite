@@ -140,8 +140,8 @@ export function App() {
         />
       )}
 
-      {/* Mobile Warning - Show on screens < 768px */}
-      {isMobile && (
+      {/* Mobile Warning - Show only on authenticated app pages (not public pages) */}
+      {isMobile && isAuthenticated && !publicPages.includes(currentPage) && (
         <div className="mobile-warning">
           <div className="mobile-warning-content">
             <h1>⚠️ Small Screen Detected</h1>
