@@ -4,6 +4,7 @@
  */
 
 import { Home, LogOut } from 'lucide-react';
+import { MobileMenu } from './MobileMenu';
 import './Navbar.css';
 
 export interface NavbarProps {
@@ -33,6 +34,20 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
     }
   };
 
+  // Mobile menu items
+  const mobileMenuItems = showAppNav
+    ? [
+        { label: 'Check-In', page: 'check-in' },
+        { label: 'Logbook', page: 'logbook' },
+        { label: 'Hosts', page: 'hosts' },
+        { label: 'Settings', page: 'settings' },
+      ]
+    : [
+        { label: 'Pricing', page: 'pricing' },
+        { label: 'Features', page: 'features' },
+        { label: 'Contact', page: 'contact' },
+      ];
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -47,7 +62,7 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
           </div>
         </button>
 
-        {/* Navigation Menu */}
+        {/* Desktop Navigation Menu */}
         <div className="navbar-menu">
           {showAppNav ? (
             <>
@@ -102,7 +117,14 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
           )}
         </div>
 
-        {/* Right side: Tier badge + Logout button + Home button */}
+        {/* Mobile Menu */}
+        <MobileMenu
+          items={mobileMenuItems}
+          onNavigate={handleNavClick}
+          currentPage={currentPage}
+        />
+
+        {/* Right side: Tier badge + Logout button + Home button (desktop only) */}
         <div className="navbar-right">
           {showAppNav && userTier && (
             <span className="navbar-tier-badge" title={`Subscription: ${userTier}`}>
