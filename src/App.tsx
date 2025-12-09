@@ -6,7 +6,8 @@
 import { useState, useEffect } from 'react';
 import { ClipboardList, BookOpen, Users, Settings as SettingsIcon, Shield, Bell, Clock3, Mail, ArrowUpRight } from 'lucide-react';
 import { AppSettings } from './types';
-import { Login } from './components/Login';
+import { SignInPage } from './components/SignInPage';
+import { CreateAccountPage } from './components/CreateAccountPage';
 import { Pricing } from './components/Pricing';
 import { SmartTriage } from './components/SmartTriage';
 import { Logbook } from './components/Logbook';
@@ -18,13 +19,14 @@ import { Contact } from './components/Contact';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import { Features } from './components/Features';
+import { MarketingPage } from './components/MarketingPage';
 import { SessionVideoBackground } from './components/SessionVideoBackground';
 import { PaymentService } from './services/paymentService';
 import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { STORAGE_KEYS } from './utils/constants';
 import './App.css';
 
-type AppPage = 'landing' | 'pricing' | 'features' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'contact' | 'privacy' | 'terms';
+type AppPage = 'landing' | 'signin' | 'createaccount' | 'pricing' | 'features' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'contact' | 'privacy' | 'terms';
 
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
@@ -92,10 +94,16 @@ export function App() {
   // Render current page
   const renderPage = () => {
     switch (currentPage) {
+      case 'signin':
+        return <SignInPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} onLoginSuccessNavigate={setCurrentPage} currentPage={currentPage} />;
+      case 'createaccount':
+        return <CreateAccountPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} onLoginSuccessNavigate={setCurrentPage} currentPage={currentPage} />;
       case 'pricing':
         return <Pricing onNavigate={setCurrentPage} />;
       case 'features':
         return <Features onNavigate={setCurrentPage} />;
+      case 'marketing':
+        return <MarketingPage onNavigate={setCurrentPage} onStartCheckIn={handleStartCheckIn} />;
       case 'check-in':
         return <SmartTriage />;
       case 'logbook':
@@ -116,10 +124,11 @@ export function App() {
     }
   };
 
-  // Show login screen if not authenticated (but allow public pages: pricing, features, contact, privacy, terms)
-  const publicPages = ['pricing', 'features', 'contact', 'privacy', 'terms'];
+  // Redirect to landing if not authenticated and trying to access protected pages
+  const publicPages = ['pricing', 'features', 'marketing', 'contact', 'privacy', 'terms', 'signin', 'createaccount', 'landing'];
   if (!isAuthenticated && !publicPages.includes(currentPage)) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} currentPage={currentPage} />;
+    setCurrentPage('landing');
+    return renderPage();
   }
 
   return (

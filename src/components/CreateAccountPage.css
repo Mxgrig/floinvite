@@ -1,0 +1,248 @@
+/**
+ * Create Account Page Styles
+ */
+
+.createaccount-page {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.createaccount-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+/* Create Account Card */
+.createaccount-card {
+  position: relative;
+  z-index: 10;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem 2.5rem;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.createaccount-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.createaccount-logo-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.createaccount-logo {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.createaccount-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.createaccount-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.brand-blue {
+  color: var(--brand-blue, #4338ca);
+}
+
+.brand-green {
+  color: var(--brand-green, #10b981);
+}
+
+.createaccount-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.25rem 0 1rem 0;
+  text-align: center;
+}
+
+.createaccount-message {
+  font-size: 0.95rem;
+  color: #374151;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Form */
+.createaccount-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.createaccount-input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.createaccount-input:focus {
+  outline: none;
+  border-color: var(--brand-blue, #4338ca);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+}
+
+.createaccount-input::placeholder {
+  color: #9ca3af;
+}
+
+.createaccount-input:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.password-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-group .createaccount-input {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  color: #6b7280;
+}
+
+.password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Error Message */
+.createaccount-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 0.5rem;
+  background-color: #fee2e2;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Password Requirement */
+.createaccount-requirement {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
+  text-align: center;
+}
+
+/* Submit Button */
+.createaccount-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--brand-blue, #4338ca);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+
+.createaccount-button:hover:not(:disabled) {
+  background-color: var(--primary-dark, #3329a8);
+}
+
+.createaccount-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Links */
+.createaccount-link {
+  background: none;
+  border: none;
+  color: var(--brand-blue, #4338ca);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.createaccount-link:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
+
+/* Footer */
+.createaccount-footer {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 1rem 0 0 0;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .createaccount-card {
+    padding: 1.5rem 1rem;
+    max-width: 100%;
+  }
+
+  .createaccount-input {
+    padding: 0.5rem;
+  }
+}
