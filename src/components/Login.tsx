@@ -293,145 +293,179 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
       <LoopingVideo source="/login.mp4" />
       <div className="login-background" />
 
-      {/* Login Card */}
-      <div className="login-card">
-        {/* Logo and Title on same line */}
-        <div className="login-header">
-          <button
-            className="login-logo-button"
-            onClick={() => handleNavClick('landing')}
-            type="button"
-            title="Back to home"
-          >
-            <div className="login-logo">
-              <img src="/logo.png" alt="floinvite" />
+      {/* Two Column Layout */}
+      <div className="login-content">
+        {/* Left: Product Info */}
+        <div className="login-left">
+          <div className="product-info">
+            <h2 className="product-headline">Visitor Management That Just Works</h2>
+            <p className="product-description">
+              Check in guests, notify hosts, and track visitors in seconds. No hardware. No training. No hassle.
+            </p>
+
+            <div className="product-features">
+              <div className="feature">
+                <div className="feature-title">30-second check-ins</div>
+                <p>Walk-ins and expected visitors processed instantly</p>
+              </div>
+              <div className="feature">
+                <div className="feature-title">Instant host alerts</div>
+                <p>Email notifications sent automatically on arrival</p>
+              </div>
+              <div className="feature">
+                <div className="feature-title">Complete records</div>
+                <p>Searchable logbook with CSV/JSON exports</p>
+              </div>
+              <div className="feature">
+                <div className="feature-title">Works offline</div>
+                <p>Check-in works without internet connection</p>
+              </div>
             </div>
-          </button>
-
-          {/* Title */}
-          <h1 className="login-title">
-            <span className="brand-blue">flo</span><span className="brand-green">invite</span>
-          </h1>
+          </div>
         </div>
-        <p className="login-subtitle">Visitor Management</p>
 
-        {/* Welcome Message */}
-        <p className="login-message">
-          {userFlow === 'new'
-            ? 'Create your account to get started'
-            : 'Welcome back! Sign in to continue'
-          }
-        </p>
+        {/* Right: Login Card */}
+        <div className="login-right">
+          <div className="login-card">
+            {/* Logo and Title on same line */}
+            <div className="login-header">
+              <button
+                className="login-logo-button"
+                onClick={() => handleNavClick('landing')}
+                type="button"
+                title="Back to home"
+              >
+                <div className="login-logo">
+                  <img src="/logo.png" alt="floinvite" />
+                </div>
+              </button>
 
-        {/* Form */}
-        <form onSubmit={handleLogin} className="login-form">
-          {/* Name Input - Only for new users */}
-          {userFlow === 'new' && (
-            <input
-              type="text"
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setError('');
-              }}
-              className="login-input"
-              autoFocus
-              disabled={loading}
-              autoComplete="name"
-            />
-          )}
+              {/* Title */}
+              <h1 className="login-title">
+                <span className="brand-blue">flo</span><span className="brand-green">invite</span>
+              </h1>
+            </div>
+            <p className="login-subtitle">Visitor Management</p>
 
-          {/* Email Input */}
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setError('');
-            }}
-            className="login-input"
-            autoFocus={userFlow === 'returning'}
-            disabled={loading}
-            autoComplete={userFlow === 'new' ? 'email' : 'email'}
-          />
+            {/* Welcome Message */}
+            <p className="login-message">
+              {userFlow === 'new'
+                ? 'Create your account to get started'
+                : 'Welcome back! Sign in to continue'
+              }
+            </p>
 
-          {/* Password Input */}
-          <div className="password-input-group">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder={userFlow === 'new' ? 'Create a password (6+ characters)' : 'Enter your password'}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError('');
-              }}
-              className="login-input"
-              disabled={loading}
-              autoComplete={userFlow === 'new' ? 'new-password' : 'current-password'}
-            />
+            {/* Form */}
+            <form onSubmit={handleLogin} className="login-form">
+              {/* Name Input - Only for new users */}
+              {userFlow === 'new' && (
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setError('');
+                  }}
+                  className="login-input"
+                  autoFocus
+                  disabled={loading}
+                  autoComplete="name"
+                />
+              )}
+
+              {/* Email Input */}
+              <input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError('');
+                }}
+                className="login-input"
+                autoFocus={userFlow === 'returning'}
+                disabled={loading}
+                autoComplete={userFlow === 'new' ? 'email' : 'email'}
+              />
+
+              {/* Password Input */}
+              <div className="password-input-group">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={userFlow === 'new' ? 'Create a password (6+ characters)' : 'Enter your password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError('');
+                  }}
+                  className="login-input"
+                  disabled={loading}
+                  autoComplete={userFlow === 'new' ? 'new-password' : 'current-password'}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                  tabIndex={-1}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+
+              {/* Error Message */}
+              {error && <p className="login-error">{error}</p>}
+
+              {/* Password Requirements for new users */}
+              {userFlow === 'new' && !error && (
+                <p className="login-requirement">
+                  Minimum 6 characters for security
+                </p>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="login-button"
+                disabled={loading || (userFlow === 'new' ? !name || !email || !password : !email || !password)}
+              >
+                {loading ? 'Processing...' : userFlow === 'new' ? 'Create Account' : 'Sign In'}
+              </button>
+            </form>
+
+            {/* Change Option Link */}
             <button
               type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              disabled={loading}
-              tabIndex={-1}
+              className="login-reset"
+              onClick={() => {
+                setUserFlow(null);
+                setEmail('');
+                setName('');
+                setPassword('');
+                setError('');
+              }}
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
+              {userFlow === 'new' ? 'Already have an account? Sign in' : 'New here? Create account'}
             </button>
-          </div>
 
-          {/* Error Message */}
-          {error && <p className="login-error">{error}</p>}
+            {/* Password Reset - Only for returning users */}
+            {userFlow === 'returning' && (
+              <button
+                type="button"
+                className="login-reset login-reset-secondary"
+                onClick={handleReset}
+              >
+                Forgot password? Reset account
+              </button>
+            )}
 
-          {/* Password Requirements for new users */}
-          {userFlow === 'new' && !error && (
-            <p className="login-requirement">
-              Minimum 6 characters for security
+            {/* Footer */}
+            <p className="login-footer">
+              Secure login • Password protected
             </p>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="login-button"
-            disabled={loading || (userFlow === 'new' ? !name || !email || !password : !email || !password)}
-          >
-            {loading ? 'Processing...' : userFlow === 'new' ? 'Create Account' : 'Sign In'}
-          </button>
-        </form>
-
-        {/* Change Option Link */}
-        <button
-          type="button"
-          className="login-reset"
-          onClick={() => {
-            setUserFlow(null);
-            setEmail('');
-            setName('');
-            setPassword('');
-            setError('');
-          }}
-        >
-          {userFlow === 'new' ? 'Already have an account? Sign in' : 'New here? Create account'}
-        </button>
-
-        {/* Password Reset - Only for returning users */}
-        {userFlow === 'returning' && (
-          <button
-            type="button"
-            className="login-reset login-reset-secondary"
-            onClick={handleReset}
-          >
-            Forgot password? Reset account
-          </button>
-        )}
-
-        {/* Footer */}
-        <p className="login-footer">
-          Secure login • Password protected
-        </p>
+          </div>
+        </div>
       </div>
     </div>
   );
