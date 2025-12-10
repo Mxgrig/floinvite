@@ -11,6 +11,7 @@ import { UserCheck, Calendar, Mail, Phone, CheckCircle, AlertCircle } from 'luci
 import { Guest, Host, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
+import { LoopingVideo } from './LoopingVideo';
 import {
   generateVisitorArrivalNotification,
   generateReturningVisitorNotification
@@ -64,9 +65,6 @@ export function VisitorCheckIn() {
     }
   }, [hosts]);
 
-  const today = new Date().toDateString();
-  const checkedInToday = guests.filter(g => new Date(g.checkInTime).toDateString() === today).length;
-  const expectedToday = guests.filter(g => g.status === GUEST_STATUS.EXPECTED).length;
 
   /**
    * Determine notification method with fallback defaults
@@ -309,89 +307,10 @@ export function VisitorCheckIn() {
   };
 
   const renderLayout = (content: ReactNode) => (
-    <div className="smart-triage">
-      <div className="triage-shell">
-        <div className="triage-main">
-          {content}
-        </div>
-        <aside className="triage-sidebar">
-          <div className="sidebar-card">
-            <p className="eyebrow">Quick stats</p>
-            <div className="sidebar-stats">
-              <div className="stat-block">
-                <span>Arrivals today</span>
-                <strong>{checkedInToday}</strong>
-              </div>
-              <div className="stat-block">
-                <span>Expected</span>
-                <strong>{expectedToday}</strong>
-              </div>
-              <div className="stat-block">
-                <span>Hosts</span>
-                <strong>{hosts.length}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="sidebar-card">
-            <p className="eyebrow">Arrival steps</p>
-            <div className="timeline">
-              <div className="timeline-row">
-                <span className="dot" />
-                <div>
-                  <strong>Choose lane</strong>
-                  <p className="muted">Walk-in or expected visitor with lookup.</p>
-                </div>
-              </div>
-              <div className="timeline-row">
-                <span className="dot" />
-                <div>
-                  <strong>Capture essentials</strong>
-                  <p className="muted">Name, company, host, and contact details.</p>
-                </div>
-              </div>
-              <div className="timeline-row">
-                <span className="dot" />
-                <div>
-                  <strong>Notify + log</strong>
-                  <p className="muted">Instant notification preview, saved to logbook.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {lastGuest && (
-            <div className="sidebar-card">
-              <p className="eyebrow">Most recent</p>
-              <h4>{lastGuest.name}</h4>
-              {lastGuest.company && <p className="muted">From {lastGuest.company}</p>}
-              <p className="muted">Visiting {hosts.find(h => h.id === lastGuest.hostId)?.name || 'Host'}</p>
-              <small className="muted">Checked in just now</small>
-            </div>
-          )}
-
-          {notificationStatus && (
-            <div className={`notification-status ${notificationStatus.type}`}>
-              <div className="notification-icon">
-                {notificationStatus.type === 'success' ? (
-                  <CheckCircle size={14} />
-                ) : (
-                  <AlertCircle size={14} />
-                )}
-              </div>
-              <p className="notification-message">{notificationStatus.message}</p>
-            </div>
-          )}
-
-          {hosts.length === 0 && (
-            <div className="sidebar-card" style={{ backgroundColor: '#fef3c7', borderColor: '#f59e0b' }}>
-              <p className="eyebrow">⚠️ No hosts</p>
-              <p className="muted">
-                You need to create hosts first! Go to Settings and add hosts via CSV or manually.
-              </p>
-            </div>
-          )}
-        </aside>
+    <div className="checkin-page">
+      <LoopingVideo source="/sessionlogin.mp4" fallbackColor="#0b1220" />
+      <div className="checkin-content">
+        {content}
       </div>
     </div>
   );
@@ -451,9 +370,8 @@ function WelcomeStep({
   return (
     <div className="triage-panel">
       <div className="welcome-header">
-        <p className="eyebrow">Front desk mode</p>
-        <h1>Who are we welcoming?</h1>
-        <p className="muted">Choose the right lane. Both paths take under a minute.</p>
+        <h1>Welcome to Reception</h1>
+        <p className="muted">Sign in to get started</p>
       </div>
 
       <div className="path-buttons">
@@ -462,8 +380,8 @@ function WelcomeStep({
             <UserCheck size={48} strokeWidth={1.5} />
           </div>
           <div className="path-text">
-            <h2>Walk-in</h2>
-            <p>New visitor without an appointment</p>
+            <h2>I'm a new visitor</h2>
+            <p>Visiting without an appointment</p>
           </div>
         </button>
 
@@ -472,8 +390,8 @@ function WelcomeStep({
             <Calendar size={48} strokeWidth={1.5} />
           </div>
           <div className="path-text">
-            <h2>Expected</h2>
-            <p>Pre-registered guest or repeat visit</p>
+            <h2>I'm expected</h2>
+            <p>Already scheduled or returning visitor</p>
           </div>
         </button>
       </div>

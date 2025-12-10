@@ -64,6 +64,9 @@
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .tab:hover {
@@ -269,12 +272,26 @@
   color: var(--dark);
 }
 
+.quick-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.quick-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .backup-actions button {
-  display: block;
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   padding: 0.75rem 1.5rem;
   margin-bottom: 0.5rem;
-  text-align: left;
 }
 
 .danger-zone {
@@ -355,6 +372,10 @@
   transition: all 0.2s;
   font-family: inherit;
   font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
 }
 
 .btn-primary {
@@ -395,6 +416,27 @@
   border-radius: 0.5rem;
   border: 1px solid #bbf7d0;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.success-message svg {
+  flex-shrink: 0;
+}
+
+.btn svg {
+  flex-shrink: 0;
+}
+
+.danger-zone h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.danger-zone h3 svg {
+  flex-shrink: 0;
 }
 
 .info-box {
@@ -403,7 +445,19 @@
   color: #0284c7;
   border-radius: 0.5rem;
   border: 1px solid #bfdbfe;
-  margin-top: 1rem;
+  margin: 1rem 0 2rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.info-box svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.info-box div {
+  flex: 1;
 }
 
 .warning-box {
@@ -413,6 +467,14 @@
   border-radius: 0.5rem;
   border: 1px solid #fcd34d;
   margin-top: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.warning-box svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
 }
 
 /* ═══════════════════════════════════════════════════ */

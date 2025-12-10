@@ -12,7 +12,6 @@ import { VisitorCheckIn } from './components/VisitorCheckIn';
 import { Logbook } from './components/Logbook';
 import { HostManagement } from './components/HostManagement';
 import { Settings } from './components/Settings';
-import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
@@ -126,21 +125,36 @@ export function App() {
   }
 
   return (
-    <div className={`floinvite-app ${currentPage === 'settings' ? 'hide-navbar' : ''} ${currentPage === 'check-in' ? 'hide-navbar' : ''}`}>
-      {/* Session Video Background - Only on app pages, not on landing/pricing/settings */}
-      {currentPage !== 'pricing' && currentPage !== 'landing' && currentPage !== 'settings' && (
-        <SessionVideoBackground />
-      )}
+    <div className="floinvite-app">
+      {/* Session Video Background - Removed from all pages */}
 
-      {/* Navbar - Do not render on settings or check-in pages */}
-      {isAuthenticated && currentPage !== 'settings' && currentPage !== 'check-in' && (
-        <Navbar
-          currentPage={currentPage}
-          onNavigate={setCurrentPage}
-          userTier={userTier}
-          showAppNav={true}
-          onLogout={handleLogout}
-        />
+      {/* Branding Header - Simple navigation */}
+      {isAuthenticated && (
+        <header className="branding-header">
+          <div className="branding-content">
+            <button className="branding-logo" onClick={() => setCurrentPage('landing')} title="Back to home">
+              <img src="/logo.png" alt="Floinvite" />
+              <span>Floinvite</span>
+            </button>
+            <nav className="branding-nav">
+              <button onClick={() => setCurrentPage('logbook')} className={currentPage === 'logbook' ? 'active' : ''}>
+                Logbook
+              </button>
+              <button onClick={() => setCurrentPage('check-in')} className={currentPage === 'check-in' ? 'active' : ''}>
+                Check-In
+              </button>
+              <button onClick={() => setCurrentPage('hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
+                Hosts
+              </button>
+              <button onClick={() => setCurrentPage('settings')} className={currentPage === 'settings' ? 'active' : ''}>
+                Settings
+              </button>
+              <button onClick={handleLogout} className="logout-btn">
+                Logout
+              </button>
+            </nav>
+          </div>
+        </header>
       )}
 
       {/* Mobile Warning - Show only on authenticated app pages (not public pages) */}
