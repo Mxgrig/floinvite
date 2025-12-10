@@ -126,19 +126,19 @@ export function App() {
   }
 
   return (
-    <div className="floinvite-app">
+    <div className={`floinvite-app ${currentPage === 'settings' ? 'hide-navbar' : ''} ${currentPage === 'check-in' ? 'hide-navbar' : ''}`}>
       {/* Session Video Background - Only on app pages, not on landing/pricing/settings */}
       {currentPage !== 'pricing' && currentPage !== 'landing' && currentPage !== 'settings' && (
         <SessionVideoBackground />
       )}
 
-      {/* Navbar - Hide on check-in (kiosk mode), settings (admin setup), and public pages for unauthenticated users */}
-      {currentPage !== 'settings' && currentPage !== 'check-in' && isAuthenticated && (
+      {/* Navbar - Do not render on settings or check-in pages */}
+      {isAuthenticated && currentPage !== 'settings' && currentPage !== 'check-in' && (
         <Navbar
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           userTier={userTier}
-          showAppNav={isAuthenticated && currentPage !== 'pricing' && currentPage !== 'landing'}
+          showAppNav={true}
           onLogout={handleLogout}
         />
       )}
