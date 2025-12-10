@@ -106,6 +106,7 @@ export function CreateAccountPage({
                 placeholder="you@company.com"
                 className="form-input"
                 disabled={loading}
+                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -119,6 +120,7 @@ export function CreateAccountPage({
                 placeholder="Your company"
                 className="form-input"
                 disabled={loading}
+                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -132,6 +134,7 @@ export function CreateAccountPage({
                 placeholder="+1 (555) 123-4567"
                 className="form-input"
                 disabled={loading}
+                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -145,6 +148,7 @@ export function CreateAccountPage({
                 placeholder="••••••••"
                 className="form-input"
                 disabled={loading}
+                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -158,6 +162,7 @@ export function CreateAccountPage({
                 placeholder="••••••••"
                 className="form-input"
                 disabled={loading}
+                style={{ color: '#ffffff' }}
               />
             </div>
 
