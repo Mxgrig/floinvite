@@ -1,63 +1,47 @@
 /**
- * Create Account Page
- * Simple page with video background and create account form
+ * CreateAccountPage Component
+ * User registration with full account details
  */
 
 import { useState } from 'react';
-import './CreateAccountPage.css';
 import { LoopingVideo } from './LoopingVideo';
+import './AuthPage.css';
 
 interface CreateAccountPageProps {
   onLoginSuccess: () => void;
-  onNavigate?: (page: string) => void;
+  onNavigate: (page: string) => void;
   onLoginSuccessNavigate?: (page: string) => void;
   currentPage?: string;
 }
 
-export function CreateAccountPage({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, currentPage = 'landing' }: CreateAccountPageProps) {
-  const [name, setName] = useState('');
+export function CreateAccountPage({
+  onLoginSuccess,
+  onNavigate,
+  onLoginSuccessNavigate,
+}: CreateAccountPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [company, setCompany] = useState('');
+  const [phone, setPhone] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const handleNavClick = (link: string) => {
-    if (onNavigate) {
-      onNavigate(link);
-    }
-  };
-
-  const hashPassword = (pwd: string): string => {
-    return btoa(pwd);
-  };
-
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    if (!name.trim()) {
-      setError('Please enter your name');
+    // Validation
+    if (!email || !password || !confirmPassword || !company) {
+      setError('Please fill in all required fields');
       setLoading(false);
       return;
     }
 
-    if (!email.trim()) {
-      setError('Please enter your email address');
-      setLoading(false);
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       setLoading(false);
       return;
     }
@@ -68,146 +52,148 @@ export function CreateAccountPage({ onLoginSuccess, onNavigate, onLoginSuccessNa
       return;
     }
 
-    try {
-      const hash = hashPassword(password);
-      const userAccount = {
-        name: name.trim(),
-        email: email.trim(),
-        passwordHash: hash,
-        createdAt: new Date().toISOString(),
-      };
-      localStorage.setItem('user_account', JSON.stringify(userAccount));
-      localStorage.setItem('current_user', email.trim());
-      onLoginSuccess();
-      if (onLoginSuccessNavigate) {
-        onLoginSuccessNavigate(currentPage === 'check-in' ? 'check-in' : 'hosts');
-      }
-    } catch (err) {
-      setError('Failed to create account. Please try again.');
+    if (!termsAccepted) {
+      setError('You must accept the terms of service');
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
+    // Simulate account creation
+    setTimeout(() => {
+      // Store account data
+      localStorage.setItem('floinvite_account', JSON.stringify({
+        email,
+        company,
+        phone,
+        createdAt: new Date().toISOString(),
+      }));
+
+      onLoginSuccess();
+      onLoginSuccessNavigate?.('check-in');
+      setLoading(false);
+    }, 800);
   };
 
   return (
-    <div className="createaccount-page">
-      {/* Background Video */}
-      <LoopingVideo source="/login.mp4" />
-      <div className="createaccount-background" />
+    <div className="auth-page">
+      <LoopingVideo source="/login.mp4" fallbackColor="#0b1220" />
 
-      {/* Create Account Card */}
-      <div className="createaccount-card">
-        {/* Logo and Title */}
-        <div className="createaccount-header">
-          <button
-            className="createaccount-logo-button"
-            onClick={() => handleNavClick('landing')}
-            type="button"
-            title="Back to home"
-          >
-            <div className="createaccount-logo">
-              <img src="/logo.png" alt="floinvite" />
-            </div>
-          </button>
+      <div className="auth-overlay"></div>
 
-          <h1 className="createaccount-title">
-            <span className="brand-blue">flo</span><span className="brand-green">invite</span>
-          </h1>
-        </div>
-        <p className="createaccount-subtitle">Visitor Management</p>
-
-        {/* Welcome Message */}
-        <p className="createaccount-message">Create your account to get started</p>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="createaccount-form">
-          {/* Name Input */}
-          <input
-            type="text"
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setError('');
-            }}
-            className="createaccount-input"
-            autoFocus
-            disabled={loading}
-            autoComplete="name"
-          />
-
-          {/* Email Input */}
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setError('');
-            }}
-            className="createaccount-input"
-            disabled={loading}
-            autoComplete="email"
-          />
-
-          {/* Password Input */}
-          <div className="password-input-group">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Create a password (6+ characters)"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError('');
-              }}
-              className="createaccount-input"
-              disabled={loading}
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              disabled={loading}
-              tabIndex={-1}
-            >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
-            </button>
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-brand">
+            <img src="/logo.png" alt="Floinvite" className="auth-logo" />
+            <span className="auth-brand-name">Floinvite</span>
           </div>
 
-          {/* Error Message */}
-          {error && <p className="createaccount-error">{error}</p>}
+          <h1 className="auth-title">Get Started</h1>
 
-          {/* Password Requirement */}
-          {!error && (
-            <p className="createaccount-requirement">
-              Minimum 6 characters for security
-            </p>
-          )}
+          <p className="auth-subtitle">
+            Create your account to manage visitor check-ins
+          </p>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="createaccount-button"
-            disabled={loading || !name || !email || !password}
-          >
-            {loading ? 'Creating account...' : 'Create Account'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="auth-form">
+            {error && <div className="auth-error">{error}</div>}
 
-        {/* Links */}
-        <button
-          type="button"
-          className="createaccount-link"
-          onClick={() => handleNavClick('landing')}
-        >
-          Already have an account? Sign in
-        </button>
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">Email Address *</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="form-input"
+                disabled={loading}
+              />
+            </div>
 
-        {/* Footer */}
-        <p className="createaccount-footer">
-          Secure login • Password protected
-        </p>
+            <div className="form-group">
+              <label htmlFor="company" className="form-label">Company Name *</label>
+              <input
+                id="company"
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="Your company"
+                className="form-input"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="phone" className="form-label">Phone Number</label>
+              <input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567"
+                className="form-input"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">Password *</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="form-input"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword" className="form-label">Confirm Password *</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="form-input"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-checkbox">
+              <input
+                id="termsAccepted"
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="checkbox-input"
+                disabled={loading}
+              />
+              <label htmlFor="termsAccepted" className="checkbox-label">
+                I accept the terms of service
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              className="auth-button auth-button-primary"
+              disabled={loading}
+            >
+              {loading ? 'Creating account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            <span className="auth-footer-text">Already have an account?</span>
+            <button
+              className="auth-footer-link"
+              onClick={() => onNavigate('signin')}
+            >
+              Sign in
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

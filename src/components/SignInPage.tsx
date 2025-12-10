@@ -1,215 +1,143 @@
 /**
- * Sign In Page
- * Simple page with video background and sign-in form
+ * SignInPage Component
+ * User login with email and password
  */
 
 import { useState } from 'react';
-import './SignInPage.css';
 import { LoopingVideo } from './LoopingVideo';
+import './AuthPage.css';
 
 interface SignInPageProps {
   onLoginSuccess: () => void;
-  onNavigate?: (page: string) => void;
+  onNavigate: (page: string) => void;
   onLoginSuccessNavigate?: (page: string) => void;
   currentPage?: string;
 }
 
-export function SignInPage({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, currentPage = 'landing' }: SignInPageProps) {
+export function SignInPage({
+  onLoginSuccess,
+  onNavigate,
+  onLoginSuccessNavigate,
+}: SignInPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const handleNavClick = (link: string) => {
-    if (onNavigate) {
-      onNavigate(link);
-    }
-  };
-
-  const hashPassword = (pwd: string): string => {
-    return btoa(pwd);
-  };
-
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    if (!email.trim()) {
-      setError('Please enter your email address');
+    // Basic validation
+    if (!email || !password) {
+      setError('Please enter both email and password');
       setLoading(false);
       return;
     }
 
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
+    // Simulate login
+    setTimeout(() => {
+      // Store remember me preference
+      if (rememberMe) {
+        localStorage.setItem('floinvite_remember_email', email);
+      }
+
+      onLoginSuccess();
+      onLoginSuccessNavigate?.('check-in');
       setLoading(false);
-      return;
-    }
-
-    if (!password) {
-      setError('Please enter your password');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const savedAccount = localStorage.getItem('user_account');
-      if (!savedAccount) {
-        setError('Account not found. Please create an account first.');
-        setLoading(false);
-        return;
-      }
-
-      const account = JSON.parse(savedAccount);
-      if (account.email !== email.trim()) {
-        setError('Email address not found. Please check and try again.');
-        setLoading(false);
-        return;
-      }
-
-      const hash = hashPassword(password);
-      if (hash === account.passwordHash) {
-        localStorage.setItem('current_user', email.trim());
-        onLoginSuccess();
-        if (onLoginSuccessNavigate) {
-          onLoginSuccessNavigate(currentPage === 'check-in' ? 'check-in' : 'hosts');
-        }
-      } else {
-        setError('Incorrect password. Please try again.');
-      }
-    } catch (err) {
-      setError('Sign in failed. Please try again.');
-    }
-
-    setLoading(false);
-  };
-
-  const handleReset = () => {
-    if (window.confirm('Reset account? You will need to create a new account.')) {
-      localStorage.removeItem('user_account');
-      localStorage.removeItem('current_user');
-      localStorage.removeItem('auth_token');
-      setEmail('');
-      setPassword('');
-      setError('');
-    }
+    }, 800);
   };
 
   return (
-    <div className="signin-page">
-      {/* Background Video */}
-      <LoopingVideo source="/login.mp4" />
-      <div className="signin-background" />
+    <div className="auth-page">
+      <LoopingVideo source="/login.mp4" fallbackColor="#0b1220" />
 
-      {/* Sign In Card */}
-      <div className="signin-card">
-        {/* Logo and Title */}
-        <div className="signin-header">
-          <button
-            className="signin-logo-button"
-            onClick={() => handleNavClick('landing')}
-            type="button"
-            title="Back to home"
-          >
-            <div className="signin-logo">
-              <img src="/logo.png" alt="floinvite" />
-            </div>
-          </button>
+      <div className="auth-overlay"></div>
 
-          <h1 className="signin-title">
-            <span className="brand-blue">flo</span><span className="brand-green">invite</span>
-          </h1>
-        </div>
-        <p className="signin-subtitle">Visitor Management</p>
-
-        {/* Welcome Message */}
-        <p className="signin-message">Welcome back! Sign in to continue</p>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="signin-form">
-          {/* Email Input */}
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setError('');
-            }}
-            className="signin-input"
-            autoFocus
-            disabled={loading}
-            autoComplete="email"
-          />
-
-          {/* Password Input */}
-          <div className="password-input-group">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError('');
-              }}
-              className="signin-input"
-              disabled={loading}
-              autoComplete="current-password"
-            />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              disabled={loading}
-              tabIndex={-1}
-            >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
-            </button>
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="auth-brand">
+            <img src="/logo.png" alt="Floinvite" className="auth-logo" />
+            <span className="auth-brand-name">Floinvite</span>
           </div>
 
-          {/* Error Message */}
-          {error && <p className="signin-error">{error}</p>}
+          <h1 className="auth-title">Welcome Back</h1>
 
-          {/* Submit Button */}
+          <p className="auth-subtitle">
+            Sign in to manage your visitor check-ins
+          </p>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            {error && <div className="auth-error">{error}</div>}
+
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">Email Address</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="form-input"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="form-input"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-checkbox">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="checkbox-input"
+                disabled={loading}
+              />
+              <label htmlFor="rememberMe" className="checkbox-label">
+                Remember me
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              className="auth-button auth-button-primary"
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
           <button
-            type="submit"
-            className="signin-button"
-            disabled={loading || !email || !password}
+            className="auth-link"
+            onClick={() => onNavigate('marketing')}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            Forgot password?
           </button>
-        </form>
 
-        {/* Links */}
-        <button
-          type="button"
-          className="signin-link"
-          onClick={() => handleNavClick('landing')}
-        >
-          New here? Create account
-        </button>
-
-        <button
-          type="button"
-          className="signin-link signin-link-secondary"
-          onClick={handleReset}
-        >
-          Forgot password? Reset account
-        </button>
-
-        {/* Footer */}
-        <p className="signin-footer">
-          Secure login • Password protected
-        </p>
+          <div className="auth-footer">
+            <span className="auth-footer-text">Don't have an account?</span>
+            <button
+              className="auth-footer-link"
+              onClick={() => onNavigate('createaccount')}
+            >
+              Create one
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

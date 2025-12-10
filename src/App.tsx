@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { ClipboardList, BookOpen, Users, Settings as SettingsIcon, Shield, Bell, Clock3, Mail, ArrowUpRight } from 'lucide-react';
 import { AppSettings } from './types';
 import { SignInPage } from './components/SignInPage';
 import { CreateAccountPage } from './components/CreateAccountPage';
@@ -15,10 +14,9 @@ import { HostManagement } from './components/HostManagement';
 import { Settings } from './components/Settings';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { Contact } from './components/Contact';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
-import { Features } from './components/Features';
+import { LandingPage } from './components/LandingPage';
 import { MarketingPage } from './components/MarketingPage';
 import { SessionVideoBackground } from './components/SessionVideoBackground';
 import { PaymentService } from './services/paymentService';
@@ -26,7 +24,7 @@ import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { STORAGE_KEYS } from './utils/constants';
 import './App.css';
 
-type AppPage = 'landing' | 'signin' | 'createaccount' | 'pricing' | 'features' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'contact' | 'privacy' | 'terms';
+type AppPage = 'landing' | 'signin' | 'createaccount' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'privacy' | 'terms';
 
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
@@ -100,8 +98,6 @@ export function App() {
         return <CreateAccountPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} onLoginSuccessNavigate={setCurrentPage} currentPage={currentPage} />;
       case 'pricing':
         return <Pricing onNavigate={setCurrentPage} />;
-      case 'features':
-        return <Features onNavigate={setCurrentPage} />;
       case 'marketing':
         return <MarketingPage onNavigate={setCurrentPage} onStartCheckIn={handleStartCheckIn} />;
       case 'check-in':
@@ -112,20 +108,18 @@ export function App() {
         return <HostManagement />;
       case 'settings':
         return <Settings />;
-      case 'contact':
-        return <Contact onNavigate={setCurrentPage} />;
       case 'privacy':
         return <PrivacyPolicy onNavigate={setCurrentPage} />;
       case 'terms':
         return <TermsOfService onNavigate={setCurrentPage} />;
       case 'landing':
       default:
-        return <LandingPage onNavigate={setCurrentPage} onStartCheckIn={handleStartCheckIn} />;
+        return <LandingPage onNavigate={setCurrentPage as (page: string) => void} onStartCheckIn={handleStartCheckIn} />;
     }
   };
 
   // Redirect to landing if not authenticated and trying to access protected pages
-  const publicPages = ['pricing', 'features', 'marketing', 'contact', 'privacy', 'terms', 'signin', 'createaccount', 'landing'];
+  const publicPages = ['pricing', 'marketing', 'privacy', 'terms', 'signin', 'createaccount', 'landing'];
   if (!isAuthenticated && !publicPages.includes(currentPage)) {
     setCurrentPage('landing');
     return renderPage();
@@ -133,8 +127,8 @@ export function App() {
 
   return (
     <div className="floinvite-app">
-      {/* Session Video Background - Only on app pages, not on landing/pricing/features */}
-      {currentPage !== 'pricing' && currentPage !== 'landing' && currentPage !== 'features' && (
+      {/* Session Video Background - Only on app pages, not on landing/pricing */}
+      {currentPage !== 'pricing' && currentPage !== 'landing' && (
         <SessionVideoBackground />
       )}
 
@@ -144,7 +138,7 @@ export function App() {
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           userTier={userTier}
-          showAppNav={isAuthenticated && currentPage !== 'pricing' && currentPage !== 'landing' && currentPage !== 'features'}
+          showAppNav={isAuthenticated && currentPage !== 'pricing' && currentPage !== 'landing'}
           onLogout={handleLogout}
         />
       )}
@@ -181,164 +175,6 @@ export function App() {
 
       {/* Footer - Show on all pages */}
       <Footer onNavigate={setCurrentPage} />
-    </div>
-  );
-}
-
-/**
- * Landing Page - Welcome/Hero Section
- */
-interface LandingPageProps {
-  onNavigate: (page: AppPage) => void;
-  onStartCheckIn: () => void;
-}
-
-function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
-  return (
-    <div className="landing-page">
-      {/* Hero Section */}
-      <section className="landing-hero-new">
-        <div className="hero-wrapper">
-          {/* Left Content */}
-          <div className="hero-left">
-            {/* Badge */}
-            <div className="hero-badge">
-              <span>🚀 Fast, Simple, Powerful</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="hero-title">
-              Visitor Management
-              <span className="gradient-text"> That Actually Works</span>
-            </h1>
-
-            {/* Subheadline */}
-            <p className="hero-description">
-              Check in guests in seconds, notify hosts instantly, and maintain complete visitor records. Built for businesses that care about their guests.
-            </p>
-
-            {/* Primary CTA */}
-            <div className="hero-cta-group">
-              <button className="btn btn-primary btn-lg btn-icon" onClick={onStartCheckIn}>
-                <span>Start Free Check-In</span>
-                <span>→</span>
-              </button>
-              <button className="btn btn-outline btn-lg" onClick={() => onNavigate('pricing')}>
-                View Pricing
-              </button>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="hero-trust">
-              <div className="trust-item">
-                <span className="trust-icon">✓</span>
-                <span className="trust-text">No credit card required</span>
-              </div>
-              <div className="trust-item">
-                <span className="trust-icon">✓</span>
-                <span className="trust-text">Works on all devices</span>
-              </div>
-              <div className="trust-item">
-                <span className="trust-icon">✓</span>
-                <span className="trust-text">Offline ready</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Image */}
-          <div className="hero-right">
-            <div className="hero-image-wrapper">
-              <img
-                src="/heroimg.png"
-                alt="Visitor management dashboard"
-                className="hero-image"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Bar */}
-        <div className="hero-stats">
-          <div className="stat-item">
-            <div className="stat-number">30s</div>
-            <div className="stat-label">Average Check-in</div>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <div className="stat-number">100%</div>
-            <div className="stat-label">Offline Ready</div>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <div className="stat-number">Multi</div>
-            <div className="stat-label">Channel Alerts</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section - Enhanced */}
-      <section className="features-section-new">
-        <div className="features-container">
-          {/* Header */}
-          <div className="features-header">
-            <h2>Everything You Need</h2>
-            <p>Comprehensive features for modern visitor management</p>
-          </div>
-
-          {/* Features Grid */}
-          <div className="features-grid-new">
-            <div className="feature-card-new">
-              <div className="feature-icon-new">
-                <ClipboardList size={32} />
-              </div>
-              <h3>Smart Check-In</h3>
-              <p>Two-path flow optimized for both walk-ins and expected visitors. Get guests checked in in under 30 seconds.</p>
-              <a href="#" className="feature-link">Learn more →</a>
-            </div>
-
-            <div className="feature-card-new">
-              <div className="feature-icon-new">
-                <Bell size={32} />
-              </div>
-              <h3>Instant Alerts</h3>
-              <p>Hosts get notified immediately when guests arrive. Email, SMS, or WhatsApp - your choice.</p>
-              <a href="#" className="feature-link">Learn more →</a>
-            </div>
-
-            <div className="feature-card-new">
-              <div className="feature-icon-new">
-                <BookOpen size={32} />
-              </div>
-              <h3>Complete Records</h3>
-              <p>Searchable visitor logbook with advanced filtering and export options. CSV, JSON, and more.</p>
-              <a href="#" className="feature-link">Learn more →</a>
-            </div>
-
-            <div className="feature-card-new">
-              <div className="feature-icon-new">
-                <Users size={32} />
-              </div>
-              <h3>Host Management</h3>
-              <p>Easy employee directory with customizable notification preferences and bulk import from CSV.</p>
-              <a href="#" className="feature-link">Learn more →</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section - Final */}
-      <section className="cta-section-new">
-        <div className="cta-content">
-          <div className="cta-text">
-            <h2>Ready to transform your visitor management?</h2>
-            <p>Join businesses that have simplified their check-in process and improved guest experience.</p>
-          </div>
-          <button className="btn btn-primary btn-lg btn-icon" onClick={onStartCheckIn}>
-            <span>Get Started Free</span>
-            <span>→</span>
-          </button>
-        </div>
-      </section>
     </div>
   );
 }
