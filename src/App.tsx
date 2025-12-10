@@ -8,7 +8,7 @@ import { AppSettings } from './types';
 import { SignInPage } from './components/SignInPage';
 import { CreateAccountPage } from './components/CreateAccountPage';
 import { Pricing } from './components/Pricing';
-import { SmartTriage } from './components/SmartTriage';
+import { VisitorCheckIn } from './components/VisitorCheckIn';
 import { Logbook } from './components/Logbook';
 import { HostManagement } from './components/HostManagement';
 import { Settings } from './components/Settings';
@@ -101,7 +101,7 @@ export function App() {
       case 'marketing':
         return <MarketingPage onNavigate={setCurrentPage} onStartCheckIn={handleStartCheckIn} />;
       case 'check-in':
-        return <SmartTriage />;
+        return <VisitorCheckIn />;
       case 'logbook':
         return <Logbook />;
       case 'hosts':
@@ -132,8 +132,8 @@ export function App() {
         <SessionVideoBackground />
       )}
 
-      {/* Navbar - Hide in kiosk mode on check-in page, hide for unauthenticated users on public pages */}
-      {!(settings.kioskMode && currentPage === 'check-in') && !(publicPages.includes(currentPage) && !isAuthenticated) && (
+      {/* Navbar - Hide on check-in (kiosk mode), settings (admin setup), and public pages for unauthenticated users */}
+      {!(settings.kioskMode && currentPage === 'check-in') && currentPage !== 'settings' && !(publicPages.includes(currentPage) && !isAuthenticated) && (
         <Navbar
           currentPage={currentPage}
           onNavigate={setCurrentPage}
