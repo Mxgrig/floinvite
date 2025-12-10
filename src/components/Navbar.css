@@ -12,6 +12,11 @@
   z-index: 100;
 }
 
+/* Hide navbar on settings and check-in pages */
+.hide-navbar .navbar {
+  display: none !important;
+}
+
 .navbar-container {
   max-width: 1400px;
   margin: 0 auto;

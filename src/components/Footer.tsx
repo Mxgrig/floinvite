@@ -27,7 +27,12 @@ export function Footer({ onNavigate }: FooterProps) {
           Terms
         </button>
         <span className="footer-divider">•</span>
-        <p className="footer-copyright">&copy; {new Date().getFullYear()} Floinvite</p>
+        <p className="footer-copyright">
+          &copy; {new Date().getFullYear()} Floinvite — A product of{' '}
+          <a href="https://www.xtenalyze.co.uk" target="_blank" rel="noopener noreferrer">
+            xtenalyze
+          </a>
+        </p>
       </div>
     </footer>
   );

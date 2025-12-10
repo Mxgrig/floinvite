@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { Users, Clock, Settings as SettingsIcon, Database, Info, Upload, Download, AlertTriangle, CheckCircle } from 'lucide-react';
 import { AppSettings, Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { usePersistedState } from '../utils/hooks';
@@ -85,25 +86,29 @@ export function Settings() {
           className={`tab ${activeTab === 'hosts' ? 'active' : ''}`}
           onClick={() => setActiveTab('hosts')}
         >
-          👥 Host Management
+          <Users size={18} />
+          Host Management
         </button>
         <button
           className={`tab ${activeTab === 'session' ? 'active' : ''}`}
           onClick={() => setActiveTab('session')}
         >
-          ⏱️ Session Settings
+          <Clock size={18} />
+          Session Settings
         </button>
         <button
           className={`tab ${activeTab === 'system' ? 'active' : ''}`}
           onClick={() => setActiveTab('system')}
         >
-          ⚙️ System Setup
+          <SettingsIcon size={18} />
+          System Setup
         </button>
         <button
           className={`tab ${activeTab === 'backup' ? 'active' : ''}`}
           onClick={() => setActiveTab('backup')}
         >
-          💾 Backup & Data
+          <Database size={18} />
+          Backup & Data
         </button>
       </div>
 
@@ -117,12 +122,18 @@ export function Settings() {
             </div>
 
             <div className="info-box">
-              <strong>ℹ️ Tip:</strong> Add hosts here, then import guest lists to assign visitors to specific hosts. Navigate to the Host Management page for detailed setup.
+              <Info size={18} />
+              <div>
+                <strong>Tip:</strong> Add hosts here, then import guest lists to assign visitors to specific hosts. Navigate to the Host Management page for detailed setup.
+              </div>
             </div>
 
             <div className="quick-actions">
               <button className="btn btn-primary">+ Add New Host</button>
-              <button className="btn btn-secondary">📤 Import Hosts (CSV)</button>
+              <button className="btn btn-secondary">
+                <Upload size={18} />
+                Import Hosts (CSV)
+              </button>
             </div>
 
             <div className="empty-state">
@@ -176,7 +187,12 @@ export function Settings() {
                 <small>Keep records of login/logout times for audit purposes</small>
               </div>
 
-              {saved && <div className="success-message">✓ Settings saved</div>}
+              {saved && (
+                <div className="success-message">
+                  <CheckCircle size={18} />
+                  Settings saved
+                </div>
+              )}
 
               <button onClick={handleSave} className="btn btn-primary">
                 Save Session Settings
@@ -238,7 +254,12 @@ export function Settings() {
                 </div>
               </div>
 
-              {saved && <div className="success-message">✓ Settings saved</div>}
+              {saved && (
+                <div className="success-message">
+                  <CheckCircle size={18} />
+                  Settings saved
+                </div>
+              )}
 
               <button onClick={handleSave} className="btn btn-primary">
                 Save System Settings
@@ -269,7 +290,8 @@ export function Settings() {
                 </p>
                 {storageInfo.percentage > 80 && (
                   <div className="warning-box">
-                    ⚠️ Storage nearly full. Consider exporting and clearing old data.
+                    <AlertTriangle size={18} />
+                    Storage nearly full. Consider exporting and clearing old data.
                   </div>
                 )}
               </div>
@@ -278,7 +300,8 @@ export function Settings() {
                 <h3>Backup & Restore</h3>
 
                 <button onClick={handleExportData} className="btn btn-secondary">
-                  📥 Export All Data
+                  <Download size={18} />
+                  Export All Data
                 </button>
                 <p className="help-text">Download all your data as a JSON file for backup</p>
 
@@ -300,13 +323,17 @@ export function Settings() {
                   };
                   input.click();
                 }}>
-                  📤 Import Data
+                  <Upload size={18} />
+                  Import Data
                 </button>
                 <p className="help-text">Restore from a previously exported JSON file</p>
               </div>
 
               <div className="danger-zone">
-                <h3>⚠️ Danger Zone</h3>
+                <h3>
+                  <AlertTriangle size={18} />
+                  Danger Zone
+                </h3>
                 <button onClick={handleClearAllData} className="btn btn-danger">
                   Delete All Data
                 </button>
