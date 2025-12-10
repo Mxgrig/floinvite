@@ -82,6 +82,7 @@ export function SignInPage({
                 placeholder="you@company.com"
                 className="form-input"
                 disabled={loading}
+                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -95,6 +96,7 @@ export function SignInPage({
                 placeholder="••••••••"
                 className="form-input"
                 disabled={loading}
+                style={{ color: '#ffffff' }}
               />
             </div>
 

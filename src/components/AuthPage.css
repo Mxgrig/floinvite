@@ -52,11 +52,13 @@
   padding: 1.25rem 2rem;
   width: 100%;
   max-width: 420px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.55rem;
   text-align: center;
+  overflow-y: auto;
 }
 
 /* Brand Section */
@@ -92,7 +94,7 @@
 
 .auth-subtitle {
   font-size: 0.8rem;
-  color: #b8c2d8;
+  color: #ffffff;
   line-height: 1.3;
   margin: 0;
   letter-spacing: -0.2px;
@@ -116,51 +118,55 @@
 .form-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #f0f4f8;
+  color: #ffffff !important;
   letter-spacing: -0.2px;
 }
 
-.form-input {
-  padding: 0.7rem 0.9rem;
+.auth-card .form-input {
+  padding: 0.7rem 0.9rem !important;
   border: 1px solid rgba(79, 70, 229, 0.3) !important;
-  border-radius: 8px;
+  border-radius: 8px !important;
   background: rgba(79, 70, 229, 0.2) !important;
-  color: #f0f4f8 !important;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  font-weight: 500;
-  caret-color: #f0f4f8;
+  color: #ffffff !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s ease !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+  caret-color: #ffffff !important;
 }
 
-.form-input::placeholder {
+.auth-card .form-input::placeholder {
   color: rgba(255, 255, 255, 0.65) !important;
 }
 
-input.form-input {
-  color: #f0f4f8 !important;
+.auth-card input[type="email"].form-input,
+.auth-card input[type="password"].form-input,
+.auth-card input[type="text"].form-input,
+.auth-card input[type="tel"].form-input,
+.auth-card textarea.form-input {
+  color: #ffffff !important;
 }
 
-input.form-input:-webkit-autofill {
+.auth-card input.form-input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px rgba(79, 70, 229, 0.2) inset !important;
-  -webkit-text-fill-color: #f0f4f8 !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
-input.form-input:-webkit-autofill:focus {
+.auth-card input.form-input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 1000px rgba(79, 70, 229, 0.3) inset !important;
-  -webkit-text-fill-color: #f0f4f8 !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
-.form-input:focus {
-  outline: none;
-  background: rgba(79, 70, 229, 0.3);
-  border-color: rgba(79, 70, 229, 0.5);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+.auth-card .form-input:focus {
+  outline: none !important;
+  background: rgba(79, 70, 229, 0.3) !important;
+  border-color: rgba(79, 70, 229, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important;
 }
 
-.form-input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.auth-card .form-input:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
 }
 
 /* Checkbox */
@@ -188,7 +194,7 @@ input.form-input:-webkit-autofill:focus {
 }
 
 .checkbox-label {
-  color: #e9ecf5;
+  color: #ffffff;
   cursor: pointer;
   user-select: none;
 }
@@ -242,7 +248,7 @@ input.form-input:-webkit-autofill:focus {
 .auth-link {
   background: none;
   border: none;
-  color: #c9d2e3;
+  color: #ffffff;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
@@ -257,12 +263,13 @@ input.form-input:-webkit-autofill:focus {
 
 .auth-link:hover {
   color: #ffffff;
+  opacity: 0.8;
 }
 
 /* Footer */
 .auth-footer {
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: #ffffff;
   line-height: 1.5;
   margin-top: 0.5rem;
 }
@@ -270,6 +277,7 @@ input.form-input:-webkit-autofill:focus {
 .auth-footer-text {
   display: block;
   margin-bottom: 0.3rem;
+  color: #ffffff;
 }
 
 .auth-footer-link {
@@ -285,6 +293,7 @@ input.form-input:-webkit-autofill:focus {
 
 .auth-footer-link:hover {
   color: #6366f1;
+  opacity: 1;
 }
 
 /* Session Info */
@@ -298,7 +307,7 @@ input.form-input:-webkit-autofill:focus {
 }
 
 .session-user-email {
-  color: #e9ecf5;
+  color: #ffffff;
   font-weight: 500;
   margin: 0;
   font-size: 0.95rem;
@@ -370,4 +379,27 @@ input.form-input:-webkit-autofill:focus {
   .auth-link {
     font-size: 0.85rem;
   }
+}
+
+/* CRITICAL: Override all form input text color to white */
+.auth-page .auth-card input[type="email"],
+.auth-page .auth-card input[type="password"],
+.auth-page .auth-card input[type="text"],
+.auth-page .auth-card input[type="tel"] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  text-fill-color: #ffffff !important;
+}
+
+/* Additional fallback for all form inputs in auth context */
+.auth-card input.form-input {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+}
+
+/* Ensure labels are white in auth context */
+.auth-card .form-label {
+  color: #ffffff !important;
 }

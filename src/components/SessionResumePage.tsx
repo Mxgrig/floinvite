@@ -78,6 +78,7 @@ export function SessionResumePage({
                 className="form-input"
                 disabled={loading}
                 autoFocus
+                style={{ color: '#ffffff' }}
               />
             </div>
 
