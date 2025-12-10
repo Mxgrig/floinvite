@@ -69,7 +69,7 @@ export function CreateAccountPage({
       }));
 
       onLoginSuccess();
-      onLoginSuccessNavigate?.('check-in');
+      onLoginSuccessNavigate?.('settings');
       setLoading(false);
     }, 800);
   };
@@ -82,10 +82,15 @@ export function CreateAccountPage({
 
       <div className="auth-container">
         <div className="auth-card">
-          <div className="auth-brand">
+          <button
+            className="auth-brand"
+            onClick={() => onNavigate('landing')}
+            type="button"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
             <img src="/logo.png" alt="Floinvite" className="auth-logo" />
             <span className="auth-brand-name">Floinvite</span>
-          </div>
+          </button>
 
           <h1 className="auth-title">Get Started</h1>
 
@@ -106,7 +111,6 @@ export function CreateAccountPage({
                 placeholder="you@company.com"
                 className="form-input"
                 disabled={loading}
-                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -120,7 +124,6 @@ export function CreateAccountPage({
                 placeholder="Your company"
                 className="form-input"
                 disabled={loading}
-                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -134,7 +137,6 @@ export function CreateAccountPage({
                 placeholder="+1 (555) 123-4567"
                 className="form-input"
                 disabled={loading}
-                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -148,7 +150,6 @@ export function CreateAccountPage({
                 placeholder="••••••••"
                 className="form-input"
                 disabled={loading}
-                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -162,7 +163,6 @@ export function CreateAccountPage({
                 placeholder="••••••••"
                 className="form-input"
                 disabled={loading}
-                style={{ color: '#ffffff' }}
               />
             </div>
 

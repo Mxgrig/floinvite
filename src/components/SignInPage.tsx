@@ -45,7 +45,7 @@ export function SignInPage({
       }
 
       onLoginSuccess();
-      onLoginSuccessNavigate?.('check-in');
+      onLoginSuccessNavigate?.('logbook');
       setLoading(false);
     }, 800);
   };
@@ -58,10 +58,15 @@ export function SignInPage({
 
       <div className="auth-container">
         <div className="auth-card">
-          <div className="auth-brand">
+          <button
+            className="auth-brand"
+            onClick={() => onNavigate('landing')}
+            type="button"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
             <img src="/logo.png" alt="Floinvite" className="auth-logo" />
             <span className="auth-brand-name">Floinvite</span>
-          </div>
+          </button>
 
           <h1 className="auth-title">Welcome Back</h1>
 
@@ -82,7 +87,6 @@ export function SignInPage({
                 placeholder="you@company.com"
                 className="form-input"
                 disabled={loading}
-                style={{ color: '#ffffff' }}
               />
             </div>
 
@@ -96,7 +100,6 @@ export function SignInPage({
                 placeholder="••••••••"
                 className="form-input"
                 disabled={loading}
-                style={{ color: '#ffffff' }}
               />
             </div>
 

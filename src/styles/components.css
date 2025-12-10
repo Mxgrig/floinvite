@@ -249,6 +249,17 @@ h6 { font-size: var(--text-base); }
   opacity: 0.6;
 }
 
+/* Auth page styles are now managed by AuthPage.css using design tokens */
+.auth-card .form-input {
+  color: var(--auth-input-text-color) !important;
+  background: var(--auth-input-bg) !important;
+  border-color: rgba(79, 70, 229, 0.3) !important;
+}
+
+.auth-card .form-label {
+  color: var(--auth-label-color) !important;
+}
+
 .form-help {
   font-size: var(--text-sm);
   color: var(--text-tertiary);

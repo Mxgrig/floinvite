@@ -49,10 +49,15 @@ export function SessionResumePage({
 
       <div className="auth-container">
         <div className="auth-card">
-          <div className="auth-brand">
+          <button
+            className="auth-brand"
+            onClick={() => onNavigate('landing')}
+            type="button"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          >
             <img src="/logo.png" alt="Floinvite" className="auth-logo" />
             <span className="auth-brand-name">Floinvite</span>
-          </div>
+          </button>
 
           <h1 className="auth-title">Resume Session</h1>
 
@@ -78,7 +83,6 @@ export function SessionResumePage({
                 className="form-input"
                 disabled={loading}
                 autoFocus
-                style={{ color: '#ffffff' }}
               />
             </div>
 
