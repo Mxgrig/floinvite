@@ -124,9 +124,54 @@
 
   --header-height: 64px;
   --header-height-mobile: 56px;
+
+  /* ═══════════════════════════════════════════════════ */
+  /* Auth Page Design Tokens */
+  /* ═══════════════════════════════════════════════════ */
+  --auth-bg-color: #0b1220;
+  --auth-card-bg: rgba(20, 25, 35, 0.75);
+  --auth-card-border: 1px solid rgba(255, 255, 255, 0.08);
+  --auth-card-border-radius: 16px;
+  --auth-card-blur: 12px;
+  --auth-card-padding: 1.25rem 2rem;
+  --auth-card-max-width: 420px;
+  --auth-card-max-height: 85vh;
+  --auth-card-gap: 0.55rem;
+
+  --auth-input-bg: rgba(79, 70, 229, 0.2);
+  --auth-input-border: 1px solid rgba(79, 70, 229, 0.3);
+  --auth-input-border-radius: 8px;
+  --auth-input-text-color: #e0e7ff;
+  --auth-input-caret-color: #e0e7ff;
+  --auth-input-placeholder-color: rgba(255, 255, 255, 0.5);
+  --auth-input-focus-bg: rgba(79, 70, 229, 0.3);
+  --auth-input-focus-border: rgba(79, 70, 229, 0.5);
+  --auth-input-focus-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+
+  --auth-text-color: #ffffff;
+  --auth-label-color: #ffffff;
+  --auth-title-font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  --auth-title-font-weight: 800;
+  --auth-subtitle-font-size: 0.8rem;
+  --auth-subtitle-color: #ffffff;
+
+  --auth-button-bg: rgba(80, 90, 110, 0.6);
+  --auth-button-bg-hover: rgba(90, 100, 120, 0.8);
+  --auth-button-border: 1px solid rgba(255, 255, 255, 0.1);
+  --auth-button-text-color: #ffffff;
+  --auth-button-padding: 0.7rem 1.1rem;
+  --auth-button-radius: 8px;
+
+  --auth-link-color: #ffffff;
+  --auth-link-hover-opacity: 0.8;
+  --auth-footer-link-color: #4f46e5;
+  --auth-footer-link-hover-color: #6366f1;
+
+  --auth-error-bg: rgba(239, 68, 68, 0.15);
+  --auth-error-border: 1px solid rgba(239, 68, 68, 0.3);
+  --auth-error-text: #fecaca;
 }
 
-/* ═══════════════════════════════════════════════════ */
 /* Dark Mode Support */
 /* ═══════════════════════════════════════════════════ */
 @media (prefers-color-scheme: dark) {

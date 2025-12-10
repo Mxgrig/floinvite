@@ -1,19 +1,20 @@
 /**
  * Settings Component
- * App configuration and preferences
+ * System configuration, session management, and host setup
+ * This is the main control panel for administrators after login
  */
 
 import { useState } from 'react';
-import { AppSettings } from '../types';
+import { AppSettings, Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
 import './Settings.css';
 
-type SettingsTab = 'general' | 'notifications' | 'data' | 'about';
+type SettingsTab = 'hosts' | 'session' | 'system' | 'backup';
 
 export function Settings() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+  const [activeTab, setActiveTab] = useState<SettingsTab>('hosts');
   const now = new Date().toISOString();
   const [settings, setSettings] = usePersistedState<AppSettings>(
     STORAGE_KEYS.settings,
@@ -21,7 +22,8 @@ export function Settings() {
       businessName: 'My Company',
       notificationEmail: 'admin@floinvite.com',
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      sessionTimeout: 15
     }
   );
   const [formData, setFormData] = useState(settings);
@@ -71,51 +73,135 @@ export function Settings() {
   const storageInfo = StorageService.getStorageInfo();
 
   return (
-    <div className="settings-container">
-      <h1>Settings</h1>
+    <div className="settings-page">
+      <div className="settings-header">
+        <h1>System Settings</h1>
+        <p>Configure your front-desk system, hosts, and notifications</p>
+      </div>
 
       {/* Tabs */}
       <div className="settings-tabs">
         <button
-          className={`tab ${activeTab === 'general' ? 'active' : ''}`}
-          onClick={() => setActiveTab('general')}
+          className={`tab ${activeTab === 'hosts' ? 'active' : ''}`}
+          onClick={() => setActiveTab('hosts')}
         >
-          General
+          👥 Host Management
         </button>
         <button
-          className={`tab ${activeTab === 'notifications' ? 'active' : ''}`}
-          onClick={() => setActiveTab('notifications')}
+          className={`tab ${activeTab === 'session' ? 'active' : ''}`}
+          onClick={() => setActiveTab('session')}
         >
-          Notifications
+          ⏱️ Session Settings
         </button>
         <button
-          className={`tab ${activeTab === 'data' ? 'active' : ''}`}
-          onClick={() => setActiveTab('data')}
+          className={`tab ${activeTab === 'system' ? 'active' : ''}`}
+          onClick={() => setActiveTab('system')}
         >
-          Data & Backup
+          ⚙️ System Setup
         </button>
         <button
-          className={`tab ${activeTab === 'about' ? 'active' : ''}`}
-          onClick={() => setActiveTab('about')}
+          className={`tab ${activeTab === 'backup' ? 'active' : ''}`}
+          onClick={() => setActiveTab('backup')}
         >
-          About
+          💾 Backup & Data
         </button>
       </div>
 
       <div className="settings-content">
-        {/* General Tab */}
-        {activeTab === 'general' && (
+        {/* Host Management Tab */}
+        {activeTab === 'hosts' && (
           <div className="tab-panel">
-            <h2>General Settings</h2>
+            <div className="tab-intro">
+              <h2>Host Management</h2>
+              <p>Manage the employees, departments, or teams that receive visitor notifications</p>
+            </div>
+
+            <div className="info-box">
+              <strong>ℹ️ Tip:</strong> Add hosts here, then import guest lists to assign visitors to specific hosts. Navigate to the Host Management page for detailed setup.
+            </div>
+
+            <div className="quick-actions">
+              <button className="btn btn-primary">+ Add New Host</button>
+              <button className="btn btn-secondary">📤 Import Hosts (CSV)</button>
+            </div>
+
+            <div className="empty-state">
+              <h3>No hosts configured yet</h3>
+              <p>Start by adding your first host above to begin receiving visitor notifications.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Session Settings Tab */}
+        {activeTab === 'session' && (
+          <div className="tab-panel">
+            <div className="tab-intro">
+              <h2>Session & Security</h2>
+              <p>Configure session timeout and security preferences</p>
+            </div>
 
             <div className="settings-form">
               <div className="form-group">
-                <label>Business Name</label>
+                <label>Session Timeout (minutes)</label>
+                <input
+                  type="number"
+                  min="5"
+                  max="480"
+                  value={formData.sessionTimeout || 15}
+                  onChange={(e) => setFormData({ ...formData, sessionTimeout: parseInt(e.target.value) })}
+                  placeholder="15"
+                />
+                <small>Users will be automatically logged out after this duration of inactivity</small>
+              </div>
+
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                  />
+                  <span>Require password on return</span>
+                </label>
+                <small>Ask users to re-enter password after session timeout</small>
+              </div>
+
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                  />
+                  <span>Enable session history logging</span>
+                </label>
+                <small>Keep records of login/logout times for audit purposes</small>
+              </div>
+
+              {saved && <div className="success-message">✓ Settings saved</div>}
+
+              <button onClick={handleSave} className="btn btn-primary">
+                Save Session Settings
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* System Setup Tab */}
+        {activeTab === 'system' && (
+          <div className="tab-panel">
+            <div className="tab-intro">
+              <h2>System Setup</h2>
+              <p>Configure your business information and system preferences</p>
+            </div>
+
+            <div className="settings-form">
+              <div className="form-group">
+                <label>Business Name *</label>
                 <input
                   type="text"
                   value={formData.businessName || ''}
                   onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                   placeholder="Your company name"
+                  required
                 />
               </div>
 
@@ -130,6 +216,17 @@ export function Settings() {
               </div>
 
               <div className="form-group">
+                <label>Notification Email</label>
+                <input
+                  type="email"
+                  value={formData.notificationEmail || 'admin@floinvite.com'}
+                  onChange={(e) => setFormData({ ...formData, notificationEmail: e.target.value })}
+                  placeholder="admin@floinvite.com"
+                />
+                <small>Email address used for sending visitor notifications. Must be admin@floinvite.com</small>
+              </div>
+
+              <div className="form-group">
                 <label>Primary Color</label>
                 <div className="color-picker-group">
                   <input
@@ -141,101 +238,22 @@ export function Settings() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    defaultChecked
-                  />
-                  <span>Enable dark mode</span>
-                </label>
-              </div>
-
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={formData.kioskMode ?? false}
-                    onChange={(e) => setFormData({ ...formData, kioskMode: e.target.checked })}
-                  />
-                  <span>Enable Kiosk Mode</span>
-                </label>
-                <small>Fullscreen mode with hidden navbar, optimized for tablet/kiosk displays</small>
-              </div>
-
-              {formData.kioskMode && (
-                <div className="info-box">
-                  <strong>💡 Kiosk Mode Active:</strong> Press F11 or use the fullscreen button below to enter fullscreen. Press ESC to exit.
-                </div>
-              )}
-
-              <button
-                onClick={() => {
-                  if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().catch(err =>
-                      alert(`Error attempting to enable fullscreen: ${err.message}`)
-                    );
-                  }
-                }}
-                className="btn btn-secondary"
-              >
-                Enter Fullscreen
-              </button>
-
               {saved && <div className="success-message">✓ Settings saved</div>}
 
               <button onClick={handleSave} className="btn btn-primary">
-                Save Settings
+                Save System Settings
               </button>
             </div>
           </div>
         )}
 
-        {/* Notifications Tab */}
-        {activeTab === 'notifications' && (
+        {/* Backup & Data Tab */}
+        {activeTab === 'backup' && (
           <div className="tab-panel">
-            <h2>Notification Settings</h2>
-
-            <div className="notification-settings">
-              <div className="setting-item">
-                <h3>Email Notifications</h3>
-                <p>From: {formData.notificationEmail}</p>
-                <p className="help-text">
-                  Emails will be sent from this address when guests check in
-                </p>
-              </div>
-
-              <div className="setting-item">
-                <h3>Notification Tones</h3>
-                <p>Choose how formal or casual your visitor notifications are</p>
-                <select>
-                  <option>Professional</option>
-                  <option>Friendly</option>
-                  <option>Casual</option>
-                </select>
-              </div>
-
-              <div className="setting-item">
-                <h3>Quiet Hours</h3>
-                <p>Set a time window when notifications are not sent</p>
-                <div className="time-inputs">
-                  <input type="time" placeholder="Start time" />
-                  <span>to</span>
-                  <input type="time" placeholder="End time" />
-                </div>
-              </div>
-
-              <div className="info-box">
-                <strong>💡 Pro Tip:</strong> Configure per-host notification preferences in Host Management
-              </div>
+            <div className="tab-intro">
+              <h2>Backup & Data Management</h2>
+              <p>Export, import, and manage your data</p>
             </div>
-          </div>
-        )}
-
-        {/* Data & Backup Tab */}
-        {activeTab === 'data' && (
-          <div className="tab-panel">
-            <h2>Data & Backup</h2>
 
             <div className="data-section">
               <div className="storage-info">
@@ -258,11 +276,11 @@ export function Settings() {
 
               <div className="backup-actions">
                 <h3>Backup & Restore</h3>
-                
+
                 <button onClick={handleExportData} className="btn btn-secondary">
                   📥 Export All Data
                 </button>
-                <p className="help-text">Download all your data as a JSON file</p>
+                <p className="help-text">Download all your data as a JSON file for backup</p>
 
                 <button className="btn btn-secondary" onClick={(e) => {
                   const input = document.createElement('input');
@@ -273,7 +291,6 @@ export function Settings() {
                     if (file) {
                       const reader = new FileReader();
                       reader.onload = (e) => {
-                        const text = e.target?.result as string;
                         handleImportData({
                           target: { files: [file] }
                         } as any);
@@ -296,61 +313,6 @@ export function Settings() {
                 <p className="help-text warning-text">
                   Permanently delete all guests, hosts, and settings. This cannot be undone.
                 </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* About Tab */}
-        {activeTab === 'about' && (
-          <div className="tab-panel">
-            <h2>About Floinvite</h2>
-
-            <div className="about-section">
-              <div className="about-box">
-                <h3>🎯 Version</h3>
-                <p>Floinvite v1.0.0</p>
-              </div>
-
-              <div className="about-box">
-                <h3>📖 What is Floinvite?</h3>
-                <p>
-                  Floinvite is a modern visitor management system designed for small to medium-sized offices.
-                  It helps you track guest arrivals, send instant notifications, and maintain professional records.
-                </p>
-              </div>
-
-              <div className="about-box">
-                <h3>🔒 Privacy & Security</h3>
-                <p>
-                  Your data stays on your device. We don't store anything on our servers unless you upgrade
-                  to a paid plan with cloud backup.
-                </p>
-              </div>
-
-              <div className="about-box">
-                <h3>📱 Offline Support</h3>
-                <p>
-                  Floinvite works completely offline. Check in guests, manage hosts, and generate reports
-                  without an internet connection.
-                </p>
-              </div>
-
-              <div className="about-box">
-                <h3>💬 Support</h3>
-                <p>
-                  Questions? Contact us at{' '}
-                  <strong>admin@floinvite.com</strong>
-                </p>
-              </div>
-
-              <div className="about-box">
-                <h3>🌐 Links</h3>
-                <ul>
-                  <li><a href="#privacy">Privacy Policy</a></li>
-                  <li><a href="#terms">Terms of Service</a></li>
-                  <li><a href="#status">System Status</a></li>
-                </ul>
               </div>
             </div>
           </div>
