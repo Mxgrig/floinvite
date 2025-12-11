@@ -27,48 +27,89 @@ export class PaymentService {
    */
   static async createCheckoutSession(
     tierId: 'starter' | 'professional' | 'enterprise',
-    billingCycle: 'month' | 'year'
+    billingCycle: 'month' | 'year',
+    customerEmail?: string,
+    customAmount?: number
   ): Promise<CheckoutSession> {
     try {
+      // Get customer email
+      const email = customerEmail || this.getCustomerEmail();
+      if (!email) {
+        throw new Error('Customer email is required');
+      }
+
       // Determine the correct Stripe price ID based on tier and billing cycle
       const priceIdKey = this.getPriceIdKey(tierId, billingCycle);
-      const priceId = this.getStripeEnvVar(priceIdKey);
+      const priceId = customAmount ? undefined : this.getStripeEnvVar(priceIdKey);
 
-      if (!priceId) {
+      // Validate price configuration
+      if (!customAmount && !priceId) {
         throw new Error(`Stripe price ID not configured for ${tierId} ${billingCycle}`);
       }
 
       // Call backend to create checkout session
-      const response = await fetch(`${this.API_BASE_URL}/checkout-session`, {
+      const response = await fetch('/api/create-checkout-session.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          priceId,
+          priceId: priceId || undefined,
+          customAmount: customAmount || undefined,
           tierId,
-          billingCycle
+          billingCycle,
+          customerEmail: email
         })
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to create checkout session');
+        throw new Error(error.error || error.message || 'Failed to create checkout session');
       }
 
-      const session: CheckoutSession = await response.json();
+      const session: any = await response.json();
+
+      if (!session.success) {
+        throw new Error(session.error || 'Failed to create checkout session');
+      }
 
       // Store checkout session ID in localStorage for recovery
-      this.storeCheckoutSession(session.id);
+      this.storeCheckoutSession(session.sessionId);
 
       // Redirect to Stripe checkout
       if (session.url) {
         window.location.href = session.url;
       }
 
-      return session;
+      return {
+        id: session.sessionId,
+        url: session.url
+      };
     } catch (error) {
       console.error('Checkout error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create Enterprise Payment Link with Custom Price
+   * Generates a reusable payment link for custom-priced enterprise plans
+   */
+  static async createEnterprisePaymentLink(
+    customerEmail: string,
+    customAmount: number
+  ): Promise<string> {
+    try {
+      // Use the checkout session with custom amount
+      const session = await this.createCheckoutSession(
+        'enterprise',
+        'month',
+        customerEmail,
+        customAmount * 100 // Convert to cents
+      );
+      return session.url;
+    } catch (error) {
+      console.error('Payment link error:', error);
       throw error;
     }
   }
@@ -316,6 +357,22 @@ export class PaymentService {
       return sub.tier || 'starter';
     } catch {
       return 'starter';
+    }
+  }
+
+  /**
+   * Get customer email from stored settings
+   */
+  private static getCustomerEmail(): string {
+    try {
+      const settings = localStorage.getItem('floinvite_settings');
+      if (settings) {
+        const parsed = JSON.parse(settings);
+        return parsed.notificationEmail || '';
+      }
+      return '';
+    } catch {
+      return '';
     }
   }
 }
