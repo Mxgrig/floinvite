@@ -107,7 +107,7 @@ export function App() {
 
   // Route to check-in if user is on starter or paid tier
   const handleStartCheckIn = () => {
-    if (userTier === 'starter' || PaymentService.isSubscribed('professional') || PaymentService.isSubscribed('enterprise')) {
+    if (userTier === 'starter' || userTier === 'starter-paid' || PaymentService.isSubscribed('professional') || PaymentService.isSubscribed('enterprise')) {
       setCurrentPage('check-in');
     } else {
       setCurrentPage('pricing');
