@@ -1,0 +1,58 @@
+<svg viewBox="0 0 640 540" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="hatShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.25" flood-color="#000000"/>
+    </filter>
+    <linearGradient id="hatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991B1B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Original Floinvite Logo -->
+  <g id="envelope-logo" transform="translate(0, 80)">
+    <!-- Envelope outer box -->
+    <rect x="106" y="12" width="428" height="280" rx="40" fill="none" stroke="#4F46E5" stroke-width="28"/>
+
+    <!-- Envelope flap/letter -->
+    <path d="M 106 12 L 310 172 L 534 12" fill="none" stroke="#4F46E5" stroke-width="28" stroke-linejoin="round"/>
+
+    <!-- Hand supporting envelope - Blue wave -->
+    <path d="M 50 320 Q 100 290 180 320 Q 240 350 280 320" fill="none" stroke="#4F46E5" stroke-width="32" stroke-linecap="round"/>
+
+    <!-- Hand supporting envelope - Green wave -->
+    <path d="M 80 380 Q 150 360 240 390" fill="none" stroke="#16A34A" stroke-width="32" stroke-linecap="round"/>
+  </g>
+
+  <!-- Santa Hat -->
+  <g id="santa-hat" filter="url(#hatShadow)">
+    <!-- Main hat cone -->
+    <polygon points="320,-30 250,85 590,85" fill="url(#hatGradient)" stroke="#7F1D1D" stroke-width="0.5"/>
+
+    <!-- Hat shading for depth -->
+    <polygon points="320,-30 250,85 320,50" fill="#991B1B" opacity="0.4"/>
+
+    <!-- Pom-pom base connection -->
+    <ellipse cx="320" cy="-25" rx="32" ry="20" fill="#DC2626" stroke="#991B1B" stroke-width="0.5"/>
+
+    <!-- White fur trim at bottom of hat -->
+    <ellipse cx="420" cy="87" rx="175" ry="28" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+
+    <!-- Fur trim texture lines -->
+    <path d="M 260 87 Q 280 75 300 87" fill="none" stroke="#F5F5F5" stroke-width="2" opacity="0.6"/>
+    <path d="M 330 87 Q 360 70 390 87" fill="none" stroke="#F5F5F5" stroke-width="2" opacity="0.6"/>
+    <path d="M 420 87 Q 450 72 480 87" fill="none" stroke="#F5F5F5" stroke-width="2" opacity="0.6"/>
+    <path d="M 510 87 Q 540 75 560 87" fill="none" stroke="#F5F5F5" stroke-width="2" opacity="0.6"/>
+
+    <!-- Fluffy white pom-pom at top -->
+    <circle cx="320" cy="-45" r="35" fill="#FFFFFF" stroke="#F3F4F6" stroke-width="1"/>
+
+    <!-- Pom-pom highlights for shine -->
+    <circle cx="305" cy="-60" r="14" fill="#FFFFFF" opacity="0.7"/>
+    <circle cx="325" cy="-58" r="10" fill="#FFFFFF" opacity="0.5"/>
+    <circle cx="340" cy="-50" r="8" fill="#FFFFFF" opacity="0.4"/>
+
+    <!-- Small gold bell accent on hat -->
+    <circle cx="290" cy="20" r="6" fill="#FFD700" stroke="#FFA500" stroke-width="0.5" opacity="0.8"/>
+  </g>
+</svg>

@@ -11,6 +11,8 @@ interface CreateAccountPageProps {
   onLoginSuccess: () => void;
   onNavigate: (page: string) => void;
   onLoginSuccessNavigate?: (page: string) => void;
+  selectedTier?: 'starter' | 'professional' | null;
+  setUserTier?: (tier: 'starter' | 'professional' | 'enterprise') => void;
   currentPage?: string;
 }
 
@@ -18,6 +20,8 @@ export function CreateAccountPage({
   onLoginSuccess,
   onNavigate,
   onLoginSuccessNavigate,
+  selectedTier = 'starter',
+  setUserTier,
 }: CreateAccountPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,8 +69,14 @@ export function CreateAccountPage({
         email,
         company,
         phone,
+        tier: selectedTier,
         createdAt: new Date().toISOString(),
       }));
+
+      // Set user tier based on selection
+      if (setUserTier) {
+        setUserTier(selectedTier as 'starter' | 'professional');
+      }
 
       onLoginSuccess();
       onLoginSuccessNavigate?.('settings');
@@ -88,7 +98,7 @@ export function CreateAccountPage({
             type="button"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <img src="/logo.png" alt="Floinvite" className="auth-logo" />
+            <img src="/xmas-logo.png" alt="Floinvite" className="auth-logo" />
             <span className="auth-brand-name">Floinvite</span>
           </button>
 

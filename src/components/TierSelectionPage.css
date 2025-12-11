@@ -1,0 +1,504 @@
+/**
+ * TierSelectionPage Styles
+ * Professional tier selection interface
+ */
+
+.tier-selection-page {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.tier-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.tier-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  padding: 3rem 2rem;
+}
+
+.tier-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.tier-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.tier-brand:hover {
+  opacity: 0.8;
+}
+
+.tier-logo {
+  height: 40px;
+  width: auto;
+}
+
+.tier-brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.tier-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.tier-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Cards Grid */
+.tier-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.tier-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.tier-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+}
+
+.tier-card.recommended {
+  border: 2px solid #4f46e5;
+  transform: scale(1.02);
+}
+
+.tier-card.recommended:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.tier-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 0 0 0 12px;
+  z-index: 10;
+}
+
+.tier-card-header {
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f3f4f6 100%);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tier-card-name {
+  margin: 0 0 1rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.tier-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.price-amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+.price-period {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.tier-card-description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.tier-features {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.features-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.features-title.locked-title {
+  margin-top: 1rem;
+  color: #9ca3af;
+}
+
+.features-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.features-list.locked {
+  opacity: 0.6;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.feature-item.locked {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.feature-item.highlight {
+  color: #4f46e5;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.feature-icon.highlight {
+  color: #4f46e5;
+}
+
+.feature-item.locked .feature-icon {
+  color: #d1d5db;
+}
+
+.feature-name {
+  flex: 1;
+}
+
+.tier-usage-limit {
+  padding: 1rem;
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+.usage-limit-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.tier-value-prop {
+  padding: 1rem;
+  background: #dbeafe;
+  border-left: 4px solid #4f46e5;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+.value-prop-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #1e40af;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.tier-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  margin-top: auto;
+}
+
+.tier-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.tier-button-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+}
+
+.tier-button-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+}
+
+.tier-button-secondary {
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 2px solid #d1d5db;
+}
+
+.tier-button-secondary:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.tier-secure-checkout {
+  margin: 1rem 0 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* Footer */
+.tier-footer {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tier-footer-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  margin: 0 0 1rem 0;
+}
+
+.tier-footer-link {
+  background: none;
+  border: none;
+  color: #93c5fd;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.5rem;
+  transition: color 0.2s;
+}
+
+.tier-footer-link:hover {
+  color: white;
+}
+
+.tier-footer-note {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tier-container {
+    padding: 2rem 1rem;
+  }
+
+  .tier-title {
+    font-size: 2rem;
+  }
+
+  .tier-subtitle {
+    font-size: 1rem;
+  }
+
+  .tier-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .tier-card.recommended {
+    transform: scale(1);
+  }
+
+  .tier-card.recommended:hover {
+    transform: translateY(-4px) scale(1);
+  }
+
+  .tier-card-header {
+    padding: 1.5rem;
+  }
+
+  .tier-features {
+    padding: 1.5rem;
+  }
+
+  .tier-button {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tier-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .tier-title {
+    font-size: 1.75rem;
+  }
+
+  .tier-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .tier-card-name {
+    font-size: 1.5rem;
+  }
+
+  .price-amount {
+    font-size: 2rem;
+  }
+
+  .features-title {
+    font-size: 0.85rem;
+  }
+
+  .feature-item {
+    font-size: 0.9rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .tier-card {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+
+  .tier-card-header {
+    background: #111827;
+    border-bottom-color: #374151;
+  }
+
+  .tier-card-name {
+    color: #f9fafb;
+  }
+
+  .tier-card-description {
+    color: #d1d5db;
+  }
+
+  .features-title {
+    color: #e5e7eb;
+  }
+
+  .features-title.locked-title {
+    color: #6b7280;
+  }
+
+  .feature-item {
+    color: #d1d5db;
+  }
+
+  .feature-item.locked {
+    color: #6b7280;
+  }
+
+  .feature-item.highlight {
+    color: #93c5fd;
+  }
+
+  .feature-icon {
+    color: #10b981;
+  }
+
+  .feature-icon.highlight {
+    color: #93c5fd;
+  }
+
+  .tier-usage-limit {
+    background: rgba(245, 158, 11, 0.1);
+    border-left-color: #f59e0b;
+    color: #fcd34d;
+  }
+
+  .usage-limit-text {
+    color: #fcd34d;
+  }
+
+  .tier-value-prop {
+    background: rgba(79, 70, 229, 0.1);
+    border-left-color: #7c3aed;
+  }
+
+  .value-prop-text {
+    color: #93c5fd;
+  }
+
+  .tier-button-secondary {
+    background: #111827;
+    color: #f9fafb;
+    border-color: #374151;
+  }
+
+  .tier-button-secondary:hover:not(:disabled) {
+    background: #1f2937;
+    border-color: #6b7280;
+  }
+}

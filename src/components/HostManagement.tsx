@@ -4,11 +4,13 @@
  */
 
 import { useState } from 'react';
+import { Lock, Mail } from 'lucide-react';
 import { Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { usePersistedState } from '../utils/hooks';
 import { validateHostName, validateHostEmail, isValidCSVFile, parseCSVText } from '../utils/validators';
 import { STORAGE_KEYS } from '../utils/constants';
+import { hasFeature } from '../utils/featureGating';
 import PageLayout from './PageLayout';
 import './HostManagement.css';
 
@@ -16,6 +18,7 @@ type HostStep = 'list' | 'add' | 'import';
 
 export function HostManagement() {
   const [hosts, setHosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
+  const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [step, setStep] = useState<HostStep>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -25,8 +28,7 @@ export function HostManagement() {
     email: '',
     phone: '',
     department: '',
-    notificationMethod: 'email',
-    whatsappNumber: ''
+    notificationMethod: 'email'
   });
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -38,8 +40,7 @@ export function HostManagement() {
       email: '',
       phone: '',
       department: '',
-      notificationMethod: 'email',
-      whatsappNumber: ''
+      notificationMethod: 'email'
     });
     setErrors([]);
   };
@@ -66,11 +67,6 @@ export function HostManagement() {
       newErrors.push(...emailValidation.errors);
     }
 
-    // Validate WhatsApp number if WhatsApp is selected
-    if ((formData.notificationMethod === 'whatsapp' || formData.notificationMethod === 'both') && !formData.whatsappNumber) {
-      newErrors.push('WhatsApp number is required for WhatsApp notifications');
-    }
-
     if (newErrors.length > 0) {
       setErrors(newErrors);
       return;
@@ -93,7 +89,6 @@ export function HostManagement() {
         phone: formData.phone,
         department: formData.department,
         notificationMethod: formData.notificationMethod || 'email',
-        whatsappNumber: formData.whatsappNumber,
         createdAt: now,
         updatedAt: now
       };
@@ -135,7 +130,6 @@ export function HostManagement() {
           phone: row.Phone,
           department: row.Department,
           notificationMethod: (row.NotificationMethod as any) || 'email',
-          whatsappNumber: row.Phone, // Use phone as WhatsApp number by default
           createdAt: now,
           updatedAt: now
         })).filter(h => h.name && h.email) as Host[];
@@ -156,8 +150,7 @@ export function HostManagement() {
   // Render list view
   if (step === 'list') {
     const hostStats = [
-      { value: String(hosts.length), label: 'Hosts' },
-      { value: String(hosts.filter(h => h.notificationMethod === 'whatsapp' || h.notificationMethod === 'both').length), label: 'WhatsApp enabled' }
+      { value: String(hosts.length), label: 'Hosts' }
     ];
 
     return (
@@ -195,8 +188,9 @@ export function HostManagement() {
                 <div className="col-email" data-label="Email">{host.email}</div>
                 <div className="col-phone" data-label="Phone">{host.phone || '—'}</div>
                 <div className="col-notifications" data-label="Notifications">
-                  {(host.notificationMethod === 'email' || host.notificationMethod === 'both') && <span className="badge email">✉️ Email</span>}
-                  {(host.notificationMethod === 'whatsapp' || host.notificationMethod === 'both') && <span className="badge whatsapp">💬 WhatsApp</span>}
+                  <span className="badge email">
+                    <Mail size={12} /> Email
+                  </span>
                 </div>
                 <div className="col-actions" data-label="Actions">
                   <button onClick={() => handleEdit(host)} className="btn-action edit">Edit</button>
@@ -293,45 +287,12 @@ export function HostManagement() {
                       checked={formData.notificationMethod === 'email'}
                       onChange={(e) => setFormData({ ...formData, notificationMethod: e.target.value as any })}
                     />
-                    <span>✉️ Email only</span>
-                  </label>
-
-                  <label>
-                    <input
-                      type="radio"
-                      name="notificationMethod"
-                      value="whatsapp"
-                      checked={formData.notificationMethod === 'whatsapp'}
-                      onChange={(e) => setFormData({ ...formData, notificationMethod: e.target.value as any })}
-                    />
-                    <span>💬 WhatsApp only</span>
-                  </label>
-
-                  <label>
-                    <input
-                      type="radio"
-                      name="notificationMethod"
-                      value="both"
-                      checked={formData.notificationMethod === 'both'}
-                      onChange={(e) => setFormData({ ...formData, notificationMethod: e.target.value as any })}
-                    />
-                    <span>📱 Both (Email + WhatsApp)</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Mail size={16} /> Email only
+                    </span>
                   </label>
                 </div>
               </div>
-
-              {(formData.notificationMethod === 'whatsapp' || formData.notificationMethod === 'both') && (
-                <div className="form-group">
-                  <label>WhatsApp Number</label>
-                  <input
-                    type="tel"
-                    value={formData.whatsappNumber || ''}
-                    onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
-                    placeholder="+1 234 567 8900"
-                  />
-                  <small>The phone number where WhatsApp messages will be sent</small>
-                </div>
-              )}
             </div>
 
             <button type="submit" className="btn btn-primary btn-lg">
@@ -378,10 +339,10 @@ export function HostManagement() {
           <div className="import-example">
             <h4>Example CSV Format:</h4>
             <pre>Name,Email,Phone,Department,NotificationMethod
-John Doe,john@example.com,+1234567890,Engineering,whatsapp
+John Doe,john@example.com,+1234567890,Engineering,email
 Jane Smith,jane@example.com,+1234567891,Sales,email
-Bob Wilson,bob@example.com,+1234567892,HR,both</pre>
-            <p><small>NotificationMethod options: email, whatsapp, both (default: email)</small></p>
+Bob Wilson,bob@example.com,+1234567892,HR,email</pre>
+            <p><small>NotificationMethod options: email (default: email)</small></p>
           </div>
         </div>
       </div>

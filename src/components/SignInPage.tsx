@@ -64,7 +64,7 @@ export function SignInPage({
             type="button"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <img src="/logo.png" alt="Floinvite" className="auth-logo" />
+            <img src="/xmas-logo.png" alt="Floinvite" className="auth-logo" />
             <span className="auth-brand-name">Floinvite</span>
           </button>
 

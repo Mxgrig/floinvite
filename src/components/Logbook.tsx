@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Lock } from 'lucide-react';
 import { Guest, Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
@@ -14,7 +15,11 @@ import { FeatureLocked } from './FeatureLocked';
 import PageLayout from './PageLayout';
 import './Logbook.css';
 
-export function Logbook() {
+interface LogbookProps {
+  onNavigate?: (page: string) => void;
+}
+
+export function Logbook({ onNavigate }: LogbookProps) {
   const [guests, setGuests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
   const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
@@ -138,20 +143,66 @@ export function Logbook() {
           <button
             onClick={handleExportCSV}
             className={`btn btn-secondary ${!canExport ? 'btn-disabled' : ''}`}
-            title={!canExport ? 'Upgrade to Professional to export' : ''}
             disabled={!canExport}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            Export CSV {!canExport && '🔒'}
+            Export CSV {!canExport && <Lock size={16} />}
           </button>
           <button
             onClick={handleExportJSON}
             className={`btn btn-secondary ${!canExport ? 'btn-disabled' : ''}`}
-            title={!canExport ? 'Upgrade to Professional to export' : ''}
             disabled={!canExport}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            Export JSON {!canExport && '🔒'}
+            Export JSON {!canExport && <Lock size={16} />}
           </button>
         </div>
+
+        {!canExport && (
+          <div style={{
+            backgroundColor: '#fef3c7',
+            border: '1px solid #fcd34d',
+            borderRadius: '0.5rem',
+            padding: '0.75rem 1rem',
+            color: '#92400e',
+            fontSize: '0.9rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Lock size={18} />
+              <span><strong>Export features available in Professional tier.</strong> Upgrade to unlock CSV/JSON export and cloud backup.</span>
+            </div>
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('pricing')}
+                style={{
+                  background: '#fcd34d',
+                  border: 'none',
+                  color: '#92400e',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.4rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#fbbf24';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#fcd34d';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                View Pricing
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="logbook-content">

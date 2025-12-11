@@ -33,7 +33,7 @@ const FEATURE_MATRIX: Record<string, Record<SubscriptionTier, boolean>> = {
     enterprise: true
   },
   'expected_guests': {
-    starter: false,
+    starter: true,
     professional: true,
     enterprise: true
   },
