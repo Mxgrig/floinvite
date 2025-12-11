@@ -16,31 +16,50 @@ interface UpgradePromptProps {
 
 export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
   const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'professional' | null>(null);
   const usage = UsageTracker.getUsage();
   const percentage = UsageTracker.getUsagePercentage();
 
-  const handleUpgrade = async (tier: 'professional') => {
+  const handleUpgrade = async (tier: 'starter' | 'professional') => {
     setLoading(true);
+    setSelectedPlan(tier);
+
     try {
+      // For Starter, just mark as paid and dismiss
+      if (tier === 'starter') {
+        localStorage.setItem('floinvite_user_tier', 'starter-paid');
+        onClose?.();
+        window.location.reload();
+        return;
+      }
+
+      // For Professional, redirect to Stripe
       await PaymentService.createCheckoutSession(tier, 'month');
       // Will redirect to Stripe checkout
     } catch (error) {
       console.error('Upgrade failed:', error);
       alert('Failed to initiate checkout. Please try again.');
       setLoading(false);
+      setSelectedPlan(null);
     }
   };
 
   const handleDismiss = () => {
-    UsageTracker.dismissUpgradePrompt();
-    onClose?.();
+    // Do NOT allow dismissal when over limit
+    // User must choose a plan
+    alert('You must choose a plan to continue using Floinvite.');
   };
 
   return (
     <div className="upgrade-prompt-overlay">
       <div className="upgrade-prompt-modal">
-        {/* Close Button */}
-        <button className="upgrade-prompt-close" onClick={handleDismiss} title="Dismiss">
+        {/* Close Button - Disabled to enforce payment */}
+        <button
+          className="upgrade-prompt-close"
+          onClick={handleDismiss}
+          title="You must choose a plan to continue"
+          disabled
+        >
           <X size={24} />
         </button>
 
@@ -95,17 +114,21 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
           </div>
         </div>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons - User MUST choose a plan */}
         <div className="upgrade-prompt-buttons">
-          <button className="btn-secondary" onClick={handleDismiss} disabled={loading}>
-            Remind Later
+          <button
+            className="btn-secondary"
+            onClick={() => handleUpgrade('starter')}
+            disabled={loading || selectedPlan !== null}
+          >
+            {loading && selectedPlan === 'starter' ? 'Processing...' : 'Pay $5/mo (Starter)'}
           </button>
           <button
             className="btn-primary"
             onClick={() => handleUpgrade('professional')}
-            disabled={loading}
+            disabled={loading || selectedPlan !== null}
           >
-            {loading ? 'Processing...' : 'Choose a Plan'}
+            {loading && selectedPlan === 'professional' ? 'Processing...' : 'Pay $10/mo (Professional)'}
           </button>
         </div>
 

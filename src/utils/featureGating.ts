@@ -145,8 +145,10 @@ const FEATURE_MATRIX: Record<string, Record<SubscriptionTier, boolean>> = {
 /**
  * Check if a feature is available for the given tier
  */
-export function hasFeature(tier: SubscriptionTier, feature: string): boolean {
-  return FEATURE_MATRIX[feature]?.[tier] ?? false;
+export function hasFeature(tier: string, feature: string): boolean {
+  // Normalize tier - treat 'starter-paid' same as 'starter'
+  const normalizedTier = tier === 'starter-paid' ? 'starter' : (tier as SubscriptionTier);
+  return FEATURE_MATRIX[feature]?.[normalizedTier] ?? false;
 }
 
 /**
