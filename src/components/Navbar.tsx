@@ -54,7 +54,7 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
         {/* Logo & Branding */}
         <button className="navbar-brand" onClick={handleLogoClick} title="Back to home">
           <div className="navbar-logo-icon">
-            <img src="/logo.png" alt="Floinvite" />
+            <img src="/xmas-logo.png" alt="Floinvite" />
           </div>
           <div className="navbar-brand-text">
             <span className="navbar-brand-flo">Flo</span>

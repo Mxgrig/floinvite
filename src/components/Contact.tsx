@@ -19,7 +19,7 @@ export function Contact({ onNavigate }: ContactProps) {
           {/* Logo & Brand */}
           <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
             <div className="legal-navbar-logo">
-              <img src="/logo.png" alt="floinvite" />
+              <img src="/xmas-logo.png" alt="floinvite" />
             </div>
             <span>floinvite</span>
           </button>
@@ -47,7 +47,7 @@ export function Contact({ onNavigate }: ContactProps) {
             title="Back to home"
           >
             <div className="legal-brand">
-              <img src="/logo.png" alt="Floinvite" className="legal-logo" />
+              <img src="/xmas-logo.png" alt="Floinvite" className="legal-logo" />
               <span className="legal-brand-text">Floinvite</span>
             </div>
           </button>

@@ -173,7 +173,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
             {/* Logo & Brand */}
             <button className="login-navbar-brand" onClick={() => handleNavClick('landing')}>
               <div className="login-navbar-logo">
-                <img src="/logo.png" alt="floinvite" />
+                <img src="/xmas-logo.png" alt="floinvite" />
               </div>
               <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>floinvite</span>
             </button>
@@ -245,7 +245,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
                 }}
               >
                 <div className="login-logo">
-                  <img src="/logo.png" alt="floinvite" />
+                  <img src="/xmas-logo.png" alt="floinvite" />
                 </div>
               </button>
 
@@ -336,7 +336,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
                 title="Back to home"
               >
                 <div className="login-logo">
-                  <img src="/logo.png" alt="floinvite" />
+                  <img src="/xmas-logo.png" alt="floinvite" />
                 </div>
               </button>
 

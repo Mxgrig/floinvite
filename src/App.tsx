@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { AppSettings } from './types';
 import { SignInPage } from './components/SignInPage';
 import { CreateAccountPage } from './components/CreateAccountPage';
+import { TierSelectionPage } from './components/TierSelectionPage';
 import { Pricing } from './components/Pricing';
 import { VisitorCheckIn } from './components/VisitorCheckIn';
 import { Logbook } from './components/Logbook';
@@ -25,7 +26,7 @@ import { UsageTracker } from './utils/usageTracker';
 import { STORAGE_KEYS } from './utils/constants';
 import './App.css';
 
-type AppPage = 'landing' | 'signin' | 'createaccount' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'privacy' | 'terms';
+type AppPage = 'landing' | 'signin' | 'createaccount' | 'tier-selection' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'privacy' | 'terms';
 
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
@@ -34,6 +35,7 @@ export function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [selectedTierForSignup, setSelectedTierForSignup] = useState<'starter' | 'professional' | null>(null);
   const [settings] = usePersistedState<AppSettings>(
     STORAGE_KEYS.settings,
     {
@@ -49,6 +51,14 @@ export function App() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentPage('landing');
+  };
+
+  // Handle tier selection during signup
+  const handleTierSelected = (tier: 'starter' | 'professional') => {
+    setSelectedTierForSignup(tier);
+    // Both starter and professional proceed to account creation
+    // No payment prompt - users can upgrade anytime they want
+    setCurrentPage('createaccount');
   };
 
   // Setup inactivity logout (15 minutes default)
@@ -104,8 +114,10 @@ export function App() {
     switch (currentPage) {
       case 'signin':
         return <SignInPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} onLoginSuccessNavigate={setCurrentPage} currentPage={currentPage} />;
+      case 'tier-selection':
+        return <TierSelectionPage onTierSelected={handleTierSelected} onNavigate={setCurrentPage} />;
       case 'createaccount':
-        return <CreateAccountPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} onLoginSuccessNavigate={setCurrentPage} currentPage={currentPage} />;
+        return <CreateAccountPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} onLoginSuccessNavigate={setCurrentPage} selectedTier={selectedTierForSignup} setUserTier={setUserTier} currentPage={currentPage} />;
       case 'pricing':
         return <Pricing onNavigate={setCurrentPage} />;
       case 'marketing':
@@ -113,11 +125,11 @@ export function App() {
       case 'check-in':
         return <VisitorCheckIn />;
       case 'logbook':
-        return <Logbook />;
+        return <Logbook onNavigate={setCurrentPage} />;
       case 'hosts':
         return <HostManagement />;
       case 'settings':
-        return <Settings />;
+        return <Settings onNavigate={setCurrentPage} />;
       case 'privacy':
         return <PrivacyPolicy onNavigate={setCurrentPage} />;
       case 'terms':
@@ -129,7 +141,7 @@ export function App() {
   };
 
   // Redirect to landing if not authenticated and trying to access protected pages
-  const publicPages = ['pricing', 'marketing', 'privacy', 'terms', 'signin', 'createaccount', 'landing'];
+  const publicPages = ['pricing', 'marketing', 'privacy', 'terms', 'signin', 'createaccount', 'tier-selection', 'landing'];
   if (!isAuthenticated && !publicPages.includes(currentPage)) {
     setCurrentPage('landing');
     return renderPage();
@@ -155,7 +167,7 @@ export function App() {
         <header className="branding-header">
           <div className="branding-content">
             <button className="branding-logo" onClick={() => setCurrentPage('landing')} title="Back to home">
-              <img src="/logo.png" alt="Floinvite" />
+              <img src="/xmas-logo.png" alt="Floinvite" />
               <span>Floinvite</span>
             </button>
             <nav className="branding-nav">

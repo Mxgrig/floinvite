@@ -24,7 +24,7 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
       <div className="landing-container">
         <div className="landing-card">
           <div className="landing-brand">
-            <img src="/logo.png" alt="Floinvite" className="landing-logo" />
+            <img src="/xmas-logo.png" alt="Floinvite" className="landing-logo" />
             <span className="landing-brand-name">Floinvite</span>
           </div>
 
@@ -46,7 +46,7 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
             </button>
             <button
               className="landing-button landing-button-secondary"
-              onClick={() => onNavigate('createaccount')}
+              onClick={() => onNavigate('tier-selection')}
             >
               Create Account
             </button>

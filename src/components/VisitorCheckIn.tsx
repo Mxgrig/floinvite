@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, type ReactNode } from 'react';
-import { UserCheck, Calendar, Mail, Phone, CheckCircle, AlertCircle } from 'lucide-react';
+import { UserCheck, Calendar, Mail, Phone, CheckCircle, AlertCircle, Lock } from 'lucide-react';
 import { Guest, Host, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
@@ -20,6 +20,8 @@ import { validateGuestName } from '../utils/validators';
 import { usePersistedState } from '../utils/hooks';
 import { isEmailReady, getActiveChannels } from '../utils/notificationConfig';
 import { GUEST_STATUS, STORAGE_KEYS } from '../utils/constants';
+import { hasFeature } from '../utils/featureGating';
+import { FeatureLocked } from './FeatureLocked';
 import './VisitorCheckIn.css';
 
 type TriageStep = 'welcome' | 'walk-in' | 'expected' | 'success';
@@ -32,6 +34,7 @@ interface NotificationStatus {
 export function VisitorCheckIn() {
   const [step, setStep] = useState<TriageStep>('welcome');
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
+  const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
   const guests = StorageService.getGuests();
   const [notificationStatus, setNotificationStatus] = useState<NotificationStatus | null>(null);
 
@@ -316,11 +319,16 @@ export function VisitorCheckIn() {
   );
 
   /**
+   * Check if expected guests feature is available
+   */
+  const canUseExpected = hasFeature(userTier, 'expected_guests');
+
+  /**
    * Render by step
    */
   switch (step) {
     case 'welcome':
-      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} />);
+      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} canUseExpected={canUseExpected} userTier={userTier} />);
 
     case 'walk-in':
       return renderLayout(
@@ -362,10 +370,14 @@ export function VisitorCheckIn() {
  */
 function WelcomeStep({
   onWalkIn,
-  onExpected
+  onExpected,
+  canUseExpected,
+  userTier
 }: {
   onWalkIn: () => void;
   onExpected: () => void;
+  canUseExpected: boolean;
+  userTier: 'starter' | 'professional' | 'enterprise';
 }) {
   return (
     <div className="triage-panel">
@@ -385,16 +397,45 @@ function WelcomeStep({
           </div>
         </button>
 
-        <button className="path-button expected" onClick={onExpected}>
-          <div className="path-icon">
-            <Calendar size={48} strokeWidth={1.5} />
+        {canUseExpected ? (
+          <button className="path-button expected" onClick={onExpected}>
+            <div className="path-icon">
+              <Calendar size={48} strokeWidth={1.5} />
+            </div>
+            <div className="path-text">
+              <h2>I'm expected</h2>
+              <p>Already scheduled or returning visitor</p>
+            </div>
+          </button>
+        ) : (
+          <div className="path-button expected locked" style={{ cursor: 'default', opacity: 0.6 }}>
+            <div className="path-icon" style={{ position: 'relative' }}>
+              <Calendar size={48} strokeWidth={1.5} />
+              <Lock size={20} style={{ position: 'absolute', bottom: -4, right: -4, color: '#dc2626' }} />
+            </div>
+            <div className="path-text">
+              <h2>I'm expected</h2>
+              <p style={{ fontSize: '0.85rem', color: '#dc2626' }}>Upgrade to unlock</p>
+            </div>
           </div>
-          <div className="path-text">
-            <h2>I'm expected</h2>
-            <p>Already scheduled or returning visitor</p>
-          </div>
-        </button>
+        )}
       </div>
+
+      {!canUseExpected && (
+        <div style={{
+          backgroundColor: '#fef3c7',
+          border: '1px solid #fcd34d',
+          borderRadius: '8px',
+          padding: '16px',
+          marginTop: '24px',
+          color: '#92400e'
+        }}>
+          <strong>Expected Guest Lookup - Upgrade to Unlock</strong>
+          <p style={{ fontSize: '0.9rem', marginTop: '8px', marginBottom: 0 }}>
+            Unlock expected guest lookup with Starter tier ($5/month after 20 items) or upgrade to Professional ($10/month) for returning visitor tracking and advanced features.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

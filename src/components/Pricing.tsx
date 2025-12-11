@@ -39,7 +39,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
           {/* Logo & Brand */}
           <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
             <div className="legal-navbar-logo">
-              <img src="/logo.png" alt="floinvite" />
+              <img src="/xmas-logo.png" alt="floinvite" />
             </div>
             <span>floinvite</span>
           </button>

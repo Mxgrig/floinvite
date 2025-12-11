@@ -5,17 +5,24 @@
  */
 
 import { useState } from 'react';
-import { Users, Clock, Settings as SettingsIcon, Database, Info, Upload, Download, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Users, Clock, Settings as SettingsIcon, Database, Info, Upload, Download, AlertTriangle, CheckCircle, Lock } from 'lucide-react';
 import { AppSettings, Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
+import { hasFeature } from '../utils/featureGating';
+import { FeatureLocked } from './FeatureLocked';
 import './Settings.css';
 
 type SettingsTab = 'hosts' | 'session' | 'system' | 'backup';
 
-export function Settings() {
+interface SettingsProps {
+  onNavigate?: (page: string) => void;
+}
+
+export function Settings({ onNavigate }: SettingsProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('hosts');
+  const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
   const now = new Date().toISOString();
   const [settings, setSettings] = usePersistedState<AppSettings>(
     STORAGE_KEYS.settings,
@@ -276,6 +283,7 @@ export function Settings() {
               <p>Export, import, and manage your data</p>
             </div>
 
+            {hasFeature(userTier, 'cloud_backup') ? (
             <div className="data-section">
               <div className="storage-info">
                 <h3>Storage Usage</h3>
@@ -342,6 +350,51 @@ export function Settings() {
                 </p>
               </div>
             </div>
+            ) : (
+            <div style={{
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              padding: '32px',
+              textAlign: 'center'
+            }}>
+              <Lock size={48} style={{ color: '#dc2626', marginBottom: '16px', opacity: 0.6 }} />
+              <h3 style={{ margin: '16px 0', color: '#1f2937' }}>Cloud Backup - Professional Feature</h3>
+              <p style={{ color: '#6b7280', marginBottom: '20px' }}>
+                Export and backup your data to protect against data loss. This feature is available in the Professional tier and above.
+              </p>
+              <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #d1d5db' }}>
+                <strong>Starter tier:</strong> All data is stored locally in your browser<br />
+                <strong>Professional tier:</strong> Enable cloud backup and export capabilities
+              </div>
+              {onNavigate && (
+                <button
+                  onClick={() => onNavigate('pricing')}
+                  style={{
+                    marginTop: '24px',
+                    background: '#4f46e5',
+                    border: 'none',
+                    color: 'white',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.5rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#4338ca';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#4f46e5';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  View Pricing & Upgrade
+                </button>
+              )}
+            </div>
+            )}
           </div>
         )}
       </div>
