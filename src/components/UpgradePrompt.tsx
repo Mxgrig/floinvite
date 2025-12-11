@@ -50,11 +50,11 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
         </div>
 
         {/* Title */}
-        <h2 className="upgrade-prompt-title">Upgrade to Continue</h2>
+        <h2 className="upgrade-prompt-title">Free Limit Reached</h2>
 
         {/* Message */}
         <p className="upgrade-prompt-message">
-          You've used all {usage.hostsLimit} free slots (hosts + visitors). Upgrade to Professional to add more.
+          You've reached your free limit of {usage.hostsLimit} hosts/visitors. To continue using Floinvite, choose a paid plan below.
         </p>
 
         {/* Usage Bar */}
@@ -72,22 +72,25 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
           <div className="plan-card current">
             <h3>Starter (Current)</h3>
             <p className="plan-price">$5<span>/month</span></p>
+            <p className="plan-subtitle">To continue using</p>
             <ul className="plan-features">
               <li>✓ Up to 20 hosts/visitors</li>
               <li>✓ Email notifications</li>
-              <li>✓ CSV import/export</li>
+              <li>✓ Guest logbook & search</li>
+              <li>✓ CSV import</li>
             </ul>
           </div>
 
           <div className="plan-card upgrade">
             <h3>Professional</h3>
             <p className="plan-price">$10<span>/month</span></p>
+            <p className="plan-subtitle">Unlock more features</p>
             <ul className="plan-features">
               <li>✓ Unlimited hosts/visitors</li>
               <li>✓ SMS notifications</li>
-              <li>✓ Slack & Teams integration</li>
-              <li>✓ Cloud backup</li>
-              <li>✓ Advanced analytics</li>
+              <li>✓ CSV export & backup</li>
+              <li>✓ Advanced filtering</li>
+              <li>✓ Priority support</li>
             </ul>
           </div>
         </div>
@@ -95,20 +98,20 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
         {/* CTA Buttons */}
         <div className="upgrade-prompt-buttons">
           <button className="btn-secondary" onClick={handleDismiss} disabled={loading}>
-            Maybe Later
+            Remind Later
           </button>
           <button
             className="btn-primary"
             onClick={() => handleUpgrade('professional')}
             disabled={loading}
           >
-            {loading ? 'Processing...' : 'Upgrade Now'}
+            {loading ? 'Processing...' : 'Choose a Plan'}
           </button>
         </div>
 
         {/* Footer Note */}
         <p className="upgrade-prompt-note">
-          You can always upgrade later from Settings. No lock-in contracts.
+          Select Starter ($5/mo) to continue, or Professional ($10/mo) for unlimited access and extra features. Cancel anytime.
         </p>
       </div>
     </div>

@@ -141,8 +141,15 @@
 .plan-card h3 {
   font-size: 16px;
   font-weight: 600;
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   color: #222;
+}
+
+.plan-subtitle {
+  font-size: 12px;
+  color: #999;
+  margin: 0 0 12px 0;
+  font-weight: 500;
 }
 
 .plan-price {
