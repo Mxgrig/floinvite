@@ -18,8 +18,10 @@ import { TermsOfService } from './components/TermsOfService';
 import { LandingPage } from './components/LandingPage';
 import { MarketingPage } from './components/MarketingPage';
 import { SessionVideoBackground } from './components/SessionVideoBackground';
+import { UpgradePrompt } from './components/UpgradePrompt';
 import { PaymentService } from './services/paymentService';
 import { usePersistedState, useInactivityLogout } from './utils/hooks';
+import { UsageTracker } from './utils/usageTracker';
 import { STORAGE_KEYS } from './utils/constants';
 import './App.css';
 
@@ -31,6 +33,7 @@ export function App() {
   const [userTier, setUserTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [settings] = usePersistedState<AppSettings>(
     STORAGE_KEYS.settings,
     {
@@ -79,6 +82,14 @@ export function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Check usage and show upgrade prompt when needed
+  useEffect(() => {
+    if (isAuthenticated && userTier === 'starter') {
+      const shouldShow = UsageTracker.shouldShowUpgradePrompt();
+      setShowUpgradePrompt(shouldShow);
+    }
+  }, [isAuthenticated, userTier]);
+
   // Route to check-in if user is on starter or paid tier
   const handleStartCheckIn = () => {
     if (userTier === 'starter' || PaymentService.isSubscribed('professional') || PaymentService.isSubscribed('enterprise')) {
@@ -126,6 +137,17 @@ export function App() {
 
   return (
     <div className="floinvite-app">
+      {/* Upgrade Prompt Modal */}
+      {showUpgradePrompt && (
+        <UpgradePrompt
+          onClose={() => setShowUpgradePrompt(false)}
+          onUpgrade={() => {
+            // User will be redirected to Stripe checkout
+            setShowUpgradePrompt(false);
+          }}
+        />
+      )}
+
       {/* Session Video Background - Removed from all pages */}
 
       {/* Branding Header - Simple navigation */}
