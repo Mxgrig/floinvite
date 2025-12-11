@@ -95,8 +95,13 @@ export function App() {
   // Check usage and show upgrade prompt when needed
   useEffect(() => {
     if (isAuthenticated && userTier === 'starter') {
-      const shouldShow = UsageTracker.shouldShowUpgradePrompt();
-      setShowUpgradePrompt(shouldShow);
+      // Re-check usage periodically (every 2 seconds) to catch when user exceeds limit
+      const interval = setInterval(() => {
+        const shouldShow = UsageTracker.shouldShowUpgradePrompt();
+        setShowUpgradePrompt(shouldShow);
+      }, 2000);
+
+      return () => clearInterval(interval);
     }
   }, [isAuthenticated, userTier]);
 
