@@ -1,0 +1,79 @@
+.feature-locked-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: linear-gradient(135deg, #f5f5f5 0%, #efefef 100%);
+  border-radius: 8px;
+  padding: 40px;
+}
+
+.feature-locked-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.feature-locked-icon {
+  color: #ff6b6b;
+  margin-bottom: 20px;
+}
+
+.feature-locked-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #222;
+  margin: 0 0 12px 0;
+}
+
+.feature-locked-message {
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.feature-locked-upgrade,
+.feature-locked-contact,
+.feature-locked-support {
+  display: inline-block;
+  padding: 12px 32px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.feature-locked-upgrade {
+  background: #4a90e2;
+  color: white;
+}
+
+.feature-locked-upgrade:hover {
+  background: #3a7bc8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(74, 144, 226, 0.3);
+}
+
+.feature-locked-contact {
+  background: #667eea;
+  color: white;
+}
+
+.feature-locked-contact:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.feature-locked-support {
+  background: #50c878;
+  color: white;
+}
+
+.feature-locked-support:hover {
+  background: #45b370;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(80, 200, 120, 0.3);
+}

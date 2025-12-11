@@ -9,15 +9,21 @@ import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
 import { usePersistedState, useDebounce } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
+import { hasFeature } from '../utils/featureGating';
+import { FeatureLocked } from './FeatureLocked';
 import PageLayout from './PageLayout';
 import './Logbook.css';
 
 export function Logbook() {
   const [guests, setGuests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
+  const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+  // Check if export is available
+  const canExport = hasFeature(userTier, 'csv_export');
 
   // Search and filter guests
   const filteredGuests = guests.filter(guest => {
@@ -32,10 +38,16 @@ export function Logbook() {
   }).sort((a, b) => new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime());
 
   const handleExportCSV = () => {
+    if (!canExport) {
+      return;
+    }
     ExportService.exportGuestsToCSV(filteredGuests, `guests-${new Date().toISOString().split('T')[0]}.csv`);
   };
 
   const handleExportJSON = () => {
+    if (!canExport) {
+      return;
+    }
     ExportService.exportGuestsToJSON(filteredGuests, `guests-${new Date().toISOString().split('T')[0]}.json`);
   };
 
@@ -123,11 +135,21 @@ export function Logbook() {
             <option value="No Show">No Show</option>
           </select>
 
-          <button onClick={handleExportCSV} className="btn btn-secondary">
-            Export CSV
+          <button
+            onClick={handleExportCSV}
+            className={`btn btn-secondary ${!canExport ? 'btn-disabled' : ''}`}
+            title={!canExport ? 'Upgrade to Professional to export' : ''}
+            disabled={!canExport}
+          >
+            Export CSV {!canExport && '🔒'}
           </button>
-          <button onClick={handleExportJSON} className="btn btn-secondary">
-            Export JSON
+          <button
+            onClick={handleExportJSON}
+            className={`btn btn-secondary ${!canExport ? 'btn-disabled' : ''}`}
+            title={!canExport ? 'Upgrade to Professional to export' : ''}
+            disabled={!canExport}
+          >
+            Export JSON {!canExport && '🔒'}
           </button>
         </div>
       </div>

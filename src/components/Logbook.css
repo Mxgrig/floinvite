@@ -562,3 +562,21 @@
     color: #f9fafb;
   }
 }
+
+/* Button Disabled State */
+.btn-disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #d1d5db;
+  border-color: #9ca3af;
+  color: #6b7280;
+}
+
+.btn-disabled:hover,
+.btn:disabled:hover {
+  background-color: #d1d5db;
+  border-color: #9ca3af;
+  color: #6b7280;
+  opacity: 0.5;
+}
