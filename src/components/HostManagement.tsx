@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Lock, Mail } from 'lucide-react';
 import { Host } from '../types';
 import { StorageService } from '../services/storageService';
+import { ServerPaymentService } from '../services/serverPaymentService';
 import { usePersistedState } from '../utils/hooks';
 import { validateHostName, validateHostEmail, isValidCSVFile, parseCSVText } from '../utils/validators';
 import { STORAGE_KEYS } from '../utils/constants';
@@ -53,7 +54,7 @@ export function HostManagement() {
     setErrors([]);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newErrors: string[] = [];
 
     // Validate name
@@ -73,15 +74,26 @@ export function HostManagement() {
       return;
     }
 
-    // Check payment limit for free starter tier (only when adding new host, not editing)
-    // 'starter-paid' and higher tiers have no limit
-    if (!editingId && userTier === 'starter') {
-      const usage = UsageTracker.getUsage();
-      // Block if already at or over limit
-      if (usage.totalHosts + usage.totalVisitors >= 20) {
-        newErrors.push('You have reached the free tier limit of 20 hosts/visitors. Please upgrade to Starter Paid ($5/month) to continue use.');
-        setErrors(newErrors);
-        return;
+    // Check payment enforcement server-side - prevents exceeding 20-item free tier limit
+    // Only check when adding new host, not when editing
+    if (!editingId) {
+      const userEmail = localStorage.getItem('floinvite_user_email') || '';
+      if (userEmail) {
+        const currentHosts = hosts.length;
+        const currentGuests = StorageService.getGuests().length;
+
+        const operationCheck = await ServerPaymentService.checkIfOperationAllowed(
+          userEmail,
+          'add_host',
+          currentHosts,
+          currentGuests
+        );
+
+        if (!operationCheck.allowed) {
+          newErrors.push(operationCheck.message || 'You have reached your free tier limit. You cannot add more hosts.');
+          setErrors(newErrors);
+          return;
+        }
       }
     }
 
@@ -125,24 +137,33 @@ export function HostManagement() {
       return;
     }
 
-    // Check payment limit for free starter tier (only free tier has 20-item limit)
-    // 'starter-paid' and higher tiers have no limit
-    if (userTier === 'starter') {
-      const usage = UsageTracker.getUsage();
-      if (usage.totalHosts + usage.totalVisitors >= 20) {
-        setErrors(['You have reached the free tier limit of 20 hosts/visitors. Please upgrade to Starter Paid ($5/month) to continue use.']);
-        return;
-      }
-    }
-
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const text = event.target?.result as string;
       try {
         const rows = parseCSVText(text);
         if (rows.length === 0) {
           setErrors(['No data found in CSV']);
           return;
+        }
+
+        // Check payment enforcement server-side - prevents exceeding 20-item free tier limit
+        const userEmail = localStorage.getItem('floinvite_user_email') || '';
+        if (userEmail) {
+          const currentHosts = hosts.length;
+          const currentGuests = StorageService.getGuests().length;
+
+          const operationCheck = await ServerPaymentService.checkIfOperationAllowed(
+            userEmail,
+            'import_hosts',
+            currentHosts,
+            currentGuests
+          );
+
+          if (!operationCheck.allowed) {
+            setErrors([operationCheck.message || 'You have reached your free tier limit. You cannot import more hosts.']);
+            return;
+          }
         }
 
         const now = new Date().toISOString();

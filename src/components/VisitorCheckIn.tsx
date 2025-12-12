@@ -11,6 +11,7 @@ import { UserCheck, Calendar, Mail, Phone, CheckCircle, AlertCircle, Lock } from
 import { Guest, Host, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
+import { ServerPaymentService } from '../services/serverPaymentService';
 import { LoopingVideo } from './LoopingVideo';
 import {
   generateVisitorArrivalNotification,
@@ -154,13 +155,22 @@ export function VisitorCheckIn() {
       return;
     }
 
-    // Check payment limit for free starter tier (only free tier has 20-item limit)
-    // 'starter-paid' and higher tiers have no limit
-    if (userTier === 'starter') {
-      const usage = UsageTracker.getUsage();
-      // Block if already at or over limit
-      if (usage.totalHosts + usage.totalVisitors >= 20) {
-        newErrors.push('You have reached the free tier limit of 20 hosts/visitors. Please upgrade to Starter Paid ($5/month) to continue use.');
+    // Check payment enforcement server-side - prevents exceeding 20-item free tier limit
+    // This is enforced by backend and cannot be bypassed
+    const userEmail = localStorage.getItem('floinvite_user_email') || '';
+    if (userEmail) {
+      const currentHosts = hosts.length;
+      const currentGuests = StorageService.getGuests().length;
+
+      const operationCheck = await ServerPaymentService.checkIfOperationAllowed(
+        userEmail,
+        'checkin',
+        currentHosts,
+        currentGuests
+      );
+
+      if (!operationCheck.allowed) {
+        newErrors.push(operationCheck.message || 'You have reached your free tier limit. You cannot check in more guests.');
         setErrors(newErrors);
         return;
       }
@@ -283,12 +293,21 @@ export function VisitorCheckIn() {
   };
 
   const handleCheckInExpected = async (guestId: string) => {
-    // Check payment limit for starter tier
-    if (userTier === 'starter') {
-      const usage = UsageTracker.getUsage();
-      // Block if already at or over limit
-      if (usage.totalHosts + usage.totalVisitors >= 20) {
-        setErrors(['You have reached the free tier limit of 20 hosts/visitors. Please upgrade to Starter Paid ($5/month) to continue use.']);
+    // Check payment enforcement server-side - prevents exceeding 20-item free tier limit
+    const userEmail = localStorage.getItem('floinvite_user_email') || '';
+    if (userEmail) {
+      const currentHosts = hosts.length;
+      const currentGuests = StorageService.getGuests().length;
+
+      const operationCheck = await ServerPaymentService.checkIfOperationAllowed(
+        userEmail,
+        'checkin',
+        currentHosts,
+        currentGuests
+      );
+
+      if (!operationCheck.allowed) {
+        setErrors([operationCheck.message || 'You have reached your free tier limit. You cannot check in more guests.']);
         return;
       }
     }
