@@ -21,6 +21,7 @@ import { usePersistedState } from '../utils/hooks';
 import { isEmailReady, getActiveChannels } from '../utils/notificationConfig';
 import { GUEST_STATUS, STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
+import { UsageTracker } from '../utils/usageTracker';
 import { FeatureLocked } from './FeatureLocked';
 import './VisitorCheckIn.css';
 
@@ -153,6 +154,17 @@ export function VisitorCheckIn() {
       return;
     }
 
+    // Check payment limit for starter tier
+    if (userTier === 'starter') {
+      const usage = UsageTracker.getUsage();
+      // Block if already at or over limit
+      if (usage.totalHosts + usage.totalVisitors >= 20) {
+        newErrors.push('You have reached the free tier limit of 20 hosts/visitors. Please upgrade to Starter Paid ($5/month) to continue use.');
+        setErrors(newErrors);
+        return;
+      }
+    }
+
     // Find host to notify
     const host = hosts.find(h => h.id === selectedHost);
     if (!host) {
@@ -270,6 +282,16 @@ export function VisitorCheckIn() {
   };
 
   const handleCheckInExpected = async (guestId: string) => {
+    // Check payment limit for starter tier
+    if (userTier === 'starter') {
+      const usage = UsageTracker.getUsage();
+      // Block if already at or over limit
+      if (usage.totalHosts + usage.totalVisitors >= 20) {
+        setErrors(['You have reached the free tier limit of 20 hosts/visitors. Please upgrade to Starter Paid ($5/month) to continue use.']);
+        return;
+      }
+    }
+
     const guest = StorageService.getGuest(guestId);
     if (!guest) return;
 
