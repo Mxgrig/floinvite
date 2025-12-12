@@ -154,10 +154,13 @@ export function App() {
 
   return (
     <div className="floinvite-app">
-      {/* Upgrade Prompt Modal */}
+      {/* Upgrade Prompt Modal - BLOCKING: User must pay to continue */}
       {showUpgradePrompt && (
         <UpgradePrompt
-          onClose={() => setShowUpgradePrompt(false)}
+          onClose={() => {
+            // Do NOT allow closing - user must choose a plan
+            alert('You must choose a plan to continue using Floinvite.');
+          }}
           onUpgrade={() => {
             // User will be redirected to Stripe checkout
             setShowUpgradePrompt(false);
@@ -167,8 +170,8 @@ export function App() {
 
       {/* Session Video Background - Removed from all pages */}
 
-      {/* Branding Header - Simple navigation */}
-      {isAuthenticated && (
+      {/* Branding Header - Simple navigation (hidden when upgrade prompt shown) */}
+      {isAuthenticated && !showUpgradePrompt && (
         <header className="branding-header">
           <div className="branding-content">
             <button className="branding-logo" onClick={() => setCurrentPage('landing')} title="Back to home">
@@ -214,20 +217,24 @@ export function App() {
         </div>
       )}
 
-      {/* Main Content */}
-      <main className="app-main">
-        {isLoading ? (
-          <div className="loading-screen">
-            <div className="loading-spinner"></div>
-            <p>Loading...</p>
-          </div>
-        ) : (
-          renderPage()
-        )}
-      </main>
+      {/* Main Content (hidden when upgrade prompt shown) */}
+      {!showUpgradePrompt && (
+        <>
+          <main className="app-main">
+            {isLoading ? (
+              <div className="loading-screen">
+                <div className="loading-spinner"></div>
+                <p>Loading...</p>
+              </div>
+            ) : (
+              renderPage()
+            )}
+          </main>
 
-      {/* Footer - Show on all pages */}
-      <Footer onNavigate={setCurrentPage} />
+          {/* Footer - Show on all pages */}
+          <Footer onNavigate={setCurrentPage} />
+        </>
+      )}
     </div>
   );
 }

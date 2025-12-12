@@ -73,7 +73,8 @@ export function HostManagement() {
       return;
     }
 
-    // Check payment limit for starter tier (only when adding new host, not editing)
+    // Check payment limit for free starter tier (only when adding new host, not editing)
+    // 'starter-paid' and higher tiers have no limit
     if (!editingId && userTier === 'starter') {
       const usage = UsageTracker.getUsage();
       // Block if already at or over limit
@@ -124,7 +125,8 @@ export function HostManagement() {
       return;
     }
 
-    // Check payment limit for starter tier
+    // Check payment limit for free starter tier (only free tier has 20-item limit)
+    // 'starter-paid' and higher tiers have no limit
     if (userTier === 'starter') {
       const usage = UsageTracker.getUsage();
       if (usage.totalHosts + usage.totalVisitors >= 20) {

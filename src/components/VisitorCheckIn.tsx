@@ -154,7 +154,8 @@ export function VisitorCheckIn() {
       return;
     }
 
-    // Check payment limit for starter tier
+    // Check payment limit for free starter tier (only free tier has 20-item limit)
+    // 'starter-paid' and higher tiers have no limit
     if (userTier === 'starter') {
       const usage = UsageTracker.getUsage();
       // Block if already at or over limit
