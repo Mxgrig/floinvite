@@ -31,6 +31,9 @@ pnpm-debug.log
 
 # Testing
 /coverage
+/test-results
+/playwright-report
+*.trace.zip
 
 # Generated files
 *.tsbuildinfo

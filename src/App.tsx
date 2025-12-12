@@ -1,6 +1,7 @@
 /**
  * Floinvite App
  * Main application component with routing and layout
+ * Migrated to IndexedDB for persistent storage
  */
 
 import { useState, useEffect } from 'react';
@@ -21,6 +22,7 @@ import { MarketingPage } from './components/MarketingPage';
 import { SessionVideoBackground } from './components/SessionVideoBackground';
 import { UpgradePrompt } from './components/UpgradePrompt';
 import { PaymentService } from './services/paymentService';
+import { MigrationService } from './services/migrationService';
 import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { UsageTracker } from './utils/usageTracker';
 import { STORAGE_KEYS } from './utils/constants';
@@ -67,6 +69,23 @@ export function App() {
     handleLogout();
     console.log('Session logged out due to inactivity');
   }, 15);
+
+  // Run migration from localStorage to IndexedDB on app start
+  useEffect(() => {
+    const runMigration = async () => {
+      try {
+        const status = await MigrationService.runMigration();
+        console.log('Migration status:', status);
+        if (status.errors.length > 0) {
+          console.warn('Migration completed with errors:', status.errors);
+        }
+      } catch (error) {
+        console.error('Migration failed:', error);
+      }
+    };
+
+    runMigration();
+  }, []);
 
   // Check subscription status on mount
   useEffect(() => {
