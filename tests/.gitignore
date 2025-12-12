@@ -1,0 +1,12 @@
+# Playwright test artifacts
+test-results/
+playwright-report/
+*.png
+*.webm
+*.zip
+trace.zip
+
+# Don't ignore test files themselves
+!*.spec.ts
+!*.spec.js
+!README.md

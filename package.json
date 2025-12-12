@@ -10,9 +10,15 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:payment": "playwright test payment-enforcement.spec.ts",
+    "test:payment:headed": "playwright test payment-enforcement.spec.ts --headed",
+    "test:report": "playwright show-report test-results/html-report"
   },
   "dependencies": {
+    "dexie": "^4.2.1",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

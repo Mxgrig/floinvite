@@ -1,64 +1,103 @@
 /**
  * Custom React Hooks
- * usePersistedState: State that automatically syncs with localStorage
+ * usePersistedState: State that automatically syncs with IndexedDB or localStorage
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { db, dbUtils } from '../db/floinviteDB';
+import { Host, Guest, AppSettings } from '../types';
 
 /**
  * usePersistedState Hook
- * Syncs state with localStorage automatically
- * Useful for: hosts, guests, settings, preferences
+ * Syncs state with IndexedDB (for user data) or localStorage (for simple data)
+ *
+ * Uses IndexedDB for:
+ * - 'hosts' -> db.hosts
+ * - 'guests' -> db.guests
+ * - 'settings' -> db.settings
+ *
+ * Uses localStorage for:
+ * - auth tokens, emails, simple preferences
  *
  * @example
- * const [hosts, setHosts] = usePersistedState<Host[]>('floinvite_hosts', []);
- * setHosts([...hosts, newHost]); // Automatically saved to localStorage
+ * const [hosts, setHosts] = usePersistedState<Host[]>('hosts', []);
+ * setHosts([...hosts, newHost]); // Automatically saved to IndexedDB
  */
 export function usePersistedState<T>(
   key: string,
   defaultValue: T
 ): [T, (value: T | ((val: T) => T)) => void] {
-  const [state, setState] = useState<T>(() => {
-    try {
-      const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : defaultValue;
-    } catch (error) {
-      console.error(`Failed to read from localStorage (${key}):`, error);
-      return defaultValue;
-    }
-  });
+  const [state, setState] = useState<T>(defaultValue);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Update localStorage when state changes
+  // Load initial data
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        let data: any = defaultValue;
+
+        // Load from IndexedDB for user data
+        if (key === 'hosts') {
+          data = await dbUtils.getAllHosts();
+        } else if (key === 'guests') {
+          data = await dbUtils.getAllGuests();
+        } else if (key === 'settings') {
+          data = await dbUtils.getSettings();
+        } else {
+          // Fall back to localStorage for other data
+          const item = localStorage.getItem(key);
+          data = item ? JSON.parse(item) : defaultValue;
+        }
+
+        setState(data ?? defaultValue);
+      } catch (error) {
+        console.error(`Failed to load persisted state (${key}):`, error);
+        setState(defaultValue);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [key, defaultValue]);
+
+  // Save state changes to appropriate storage
   const setPersistentState = useCallback(
     (value: T | ((val: T) => T)) => {
       setState(prevState => {
         const newValue = value instanceof Function ? value(prevState) : value;
-        try {
-          localStorage.setItem(key, JSON.stringify(newValue));
-        } catch (error) {
-          console.error(`Failed to write to localStorage (${key}):`, error);
+
+        // Save to appropriate storage
+        if (key === 'hosts') {
+          if (Array.isArray(newValue)) {
+            dbUtils.bulkUpsertHosts(newValue as any[]).catch(error =>
+              console.error('Failed to save hosts to IndexedDB:', error)
+            );
+          }
+        } else if (key === 'guests') {
+          if (Array.isArray(newValue)) {
+            dbUtils.bulkUpsertGuests(newValue as any[]).catch(error =>
+              console.error('Failed to save guests to IndexedDB:', error)
+            );
+          }
+        } else if (key === 'settings') {
+          dbUtils.updateSettings(newValue as any).catch(error =>
+            console.error('Failed to save settings to IndexedDB:', error)
+          );
+        } else {
+          // Save to localStorage for non-user-data
+          try {
+            localStorage.setItem(key, JSON.stringify(newValue));
+          } catch (error) {
+            console.error(`Failed to write to localStorage (${key}):`, error);
+          }
         }
+
         return newValue;
       });
     },
     [key]
   );
-
-  // Sync across tabs/windows
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === key && event.newValue) {
-        try {
-          setState(JSON.parse(event.newValue));
-        } catch (error) {
-          console.error(`Failed to sync from storage event (${key}):`, error);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [key]);
 
   return [state, setPersistentState];
 }
