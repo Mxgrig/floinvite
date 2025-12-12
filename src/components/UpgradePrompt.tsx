@@ -25,15 +25,8 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
     setSelectedPlan(tier);
 
     try {
-      // For Starter, just mark as paid and dismiss
-      if (tier === 'starter') {
-        localStorage.setItem('floinvite_user_tier', 'starter-paid');
-        onClose?.();
-        window.location.reload();
-        return;
-      }
-
-      // For Professional, redirect to Stripe
+      // Both Starter and Professional require Stripe payment
+      // Redirect to Stripe checkout for payment processing
       await PaymentService.createCheckoutSession(tier, 'month');
       // Will redirect to Stripe checkout
     } catch (error) {
