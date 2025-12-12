@@ -96,8 +96,8 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
         localStorage.setItem('current_user', email.trim());
         onLoginSuccess();
         if (onLoginSuccessNavigate) {
-          // Navigate to the intended page (check-in or hosts)
-          onLoginSuccessNavigate(currentPage === 'check-in' ? 'check-in' : 'hosts');
+          // Navigate to the intended page (check-in or logbook)
+          onLoginSuccessNavigate(currentPage === 'check-in' ? 'check-in' : 'logbook');
         }
       } catch (err) {
         setError('Failed to create account. Please try again.');
@@ -136,8 +136,8 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
           localStorage.setItem('current_user', email.trim());
           onLoginSuccess();
           if (onLoginSuccessNavigate) {
-            // Navigate to the intended page (check-in or hosts)
-            onLoginSuccessNavigate(currentPage === 'check-in' ? 'check-in' : 'hosts');
+            // Navigate to the intended page (check-in or logbook)
+            onLoginSuccessNavigate(currentPage === 'check-in' ? 'check-in' : 'logbook');
           }
         } else {
           setError('Incorrect password. Please try again.');
