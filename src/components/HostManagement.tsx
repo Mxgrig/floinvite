@@ -11,6 +11,7 @@ import { usePersistedState } from '../utils/hooks';
 import { validateHostName, validateHostEmail, isValidCSVFile, parseCSVText } from '../utils/validators';
 import { STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
+import { UsageTracker } from '../utils/usageTracker';
 import PageLayout from './PageLayout';
 import './HostManagement.css';
 
@@ -72,6 +73,17 @@ export function HostManagement() {
       return;
     }
 
+    // Check payment limit for starter tier (only when adding new host, not editing)
+    if (!editingId && userTier === 'starter') {
+      const usage = UsageTracker.getUsage();
+      // Block if already at or over limit
+      if (usage.totalHosts + usage.totalVisitors >= 20) {
+        newErrors.push('You have reached the free tier limit of 20 hosts/visitors. Please upgrade to Starter Paid ($5/month) to continue use.');
+        setErrors(newErrors);
+        return;
+      }
+    }
+
     const now = new Date().toISOString();
 
     if (editingId) {
@@ -110,6 +122,15 @@ export function HostManagement() {
     if (!file || !isValidCSVFile(file)) {
       setErrors(['Please select a valid CSV file']);
       return;
+    }
+
+    // Check payment limit for starter tier
+    if (userTier === 'starter') {
+      const usage = UsageTracker.getUsage();
+      if (usage.totalHosts + usage.totalVisitors >= 20) {
+        setErrors(['You have reached the free tier limit of 20 hosts/visitors. Please upgrade to Starter Paid ($5/month) to continue use.']);
+        return;
+      }
     }
 
     const reader = new FileReader();
