@@ -20,7 +20,6 @@ import { TermsOfService } from './components/TermsOfService';
 import { LandingPage } from './components/LandingPage';
 import { MarketingPage } from './components/MarketingPage';
 import { SessionVideoBackground } from './components/SessionVideoBackground';
-import { UpgradePrompt } from './components/UpgradePrompt';
 import { PaymentService } from './services/paymentService';
 import { MigrationService } from './services/migrationService';
 import { usePersistedState, useInactivityLogout } from './utils/hooks';
@@ -37,6 +36,7 @@ export function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradeLoading, setUpgradeLoading] = useState<'starter' | 'professional' | null>(null);
   const [selectedTierForSignup, setSelectedTierForSignup] = useState<'starter' | 'professional' | null>(null);
   const [settings] = usePersistedState<AppSettings>(
     STORAGE_KEYS.settings,
@@ -133,6 +133,22 @@ export function App() {
     }
   };
 
+  const handleUpgrade = async (tier: 'starter' | 'professional') => {
+    setUpgradeLoading(tier);
+    try {
+      await PaymentService.createCheckoutSession(tier, 'month');
+    } catch (error) {
+      console.error('Upgrade failed:', error);
+      alert('Failed to initiate checkout. Please try again.');
+      setUpgradeLoading(null);
+    }
+  };
+
+  const handleUpgradeDismiss = () => {
+    UsageTracker.dismissUpgradePrompt();
+    setShowUpgradePrompt(false);
+  };
+
   // Render current page
   const renderPage = () => {
     switch (currentPage) {
@@ -173,24 +189,43 @@ export function App() {
 
   return (
     <div className="floinvite-app">
-      {/* Upgrade Prompt Modal - BLOCKING: User must pay to continue */}
+      {/* Upgrade Notice - Non-blocking */}
       {showUpgradePrompt && (
-        <UpgradePrompt
-          onClose={() => {
-            // Do NOT allow closing - user must choose a plan
-            alert('You must choose a plan to continue using Floinvite.');
-          }}
-          onUpgrade={() => {
-            // User will be redirected to Stripe checkout
-            setShowUpgradePrompt(false);
-          }}
-        />
+        <div className="upgrade-notice">
+          <div className="upgrade-notice-content">
+            <div className="upgrade-notice-text">
+              <strong>Free limit reached.</strong> Continue on Starter for $5/month, or upgrade to Professional for unlimited access.
+            </div>
+            <div className="upgrade-notice-actions">
+              <button
+                className="upgrade-notice-primary"
+                onClick={() => handleUpgrade('starter')}
+                disabled={upgradeLoading !== null}
+              >
+                {upgradeLoading === 'starter' ? 'Processing...' : 'Pay $5/mo'}
+              </button>
+              <button
+                className="upgrade-notice-secondary"
+                onClick={() => handleUpgrade('professional')}
+                disabled={upgradeLoading !== null}
+              >
+                {upgradeLoading === 'professional' ? 'Processing...' : 'Upgrade to $10'}
+              </button>
+              <button
+                className="upgrade-notice-dismiss"
+                onClick={handleUpgradeDismiss}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Session Video Background - Removed from all pages */}
 
-      {/* Branding Header - Simple navigation (hidden when upgrade prompt shown) */}
-      {isAuthenticated && !showUpgradePrompt && (
+      {/* Branding Header - Simple navigation */}
+      {isAuthenticated && (
         <header className="branding-header">
           <div className="branding-content">
             <button className="branding-logo" onClick={() => setCurrentPage('landing')} title="Back to home">
@@ -239,24 +274,19 @@ export function App() {
         </div>
       )}
 
-      {/* Main Content (hidden when upgrade prompt shown) */}
-      {!showUpgradePrompt && (
-        <>
-          <main className="app-main">
-            {isLoading ? (
-              <div className="loading-screen">
-                <div className="loading-spinner"></div>
-                <p>Loading...</p>
-              </div>
-            ) : (
-              renderPage()
-            )}
-          </main>
+      <main className="app-main">
+        {isLoading ? (
+          <div className="loading-screen">
+            <div className="loading-spinner"></div>
+            <p>Loading...</p>
+          </div>
+        ) : (
+          renderPage()
+        )}
+      </main>
 
-          {/* Footer - Show on all pages */}
-          <Footer onNavigate={setCurrentPage} />
-        </>
-      )}
+      {/* Footer - Show on all pages */}
+      <Footer onNavigate={setCurrentPage} />
     </div>
   );
 }

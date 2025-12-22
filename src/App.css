@@ -113,6 +113,79 @@ body {
   color: #dc2626 !important;
 }
 
+/* Upgrade Notice */
+.upgrade-notice {
+  background: #fef3c7;
+  border-bottom: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+.upgrade-notice-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.upgrade-notice-text {
+  font-size: 0.95rem;
+}
+
+.upgrade-notice-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.upgrade-notice-primary,
+.upgrade-notice-secondary,
+.upgrade-notice-dismiss {
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upgrade-notice-primary {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.upgrade-notice-primary:hover:not(:disabled) {
+  background: #059669;
+}
+
+.upgrade-notice-secondary {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.upgrade-notice-secondary:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.upgrade-notice-dismiss {
+  background: transparent;
+  color: #92400e;
+}
+
+.upgrade-notice-dismiss:hover {
+  text-decoration: underline;
+}
+
+.upgrade-notice-actions button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* Session Video Background */
 .session-video-background-wrapper {
   position: fixed;
