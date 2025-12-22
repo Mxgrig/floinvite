@@ -49,7 +49,7 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
             </button>
             <button
               className="landing-button landing-button-secondary"
-              onClick={() => onNavigate('tier-selection')}
+              onClick={() => onNavigate('createaccount')}
             >
               Create Account
             </button>
