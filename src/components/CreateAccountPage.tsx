@@ -98,8 +98,11 @@ export function CreateAccountPage({
             type="button"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <img src="/xmas-logo.png" alt="Floinvite" className="auth-logo" />
-            <span className="auth-brand-name">Floinvite</span>
+            <img src="/xmas-logo.png" alt="floinvite" className="auth-logo" />
+            <span className="auth-brand-name brand-wordmark">
+              <span className="brand-wordmark-flo">flo</span>
+              <span className="brand-wordmark-invite">invite</span>
+            </span>
           </button>
 
           <h1 className="auth-title">Get Started</h1>

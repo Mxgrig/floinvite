@@ -175,7 +175,10 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
               <div className="login-navbar-logo">
                 <img src="/xmas-logo.png" alt="floinvite" />
               </div>
-              <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>floinvite</span>
+              <span className="brand-wordmark">
+                <span className="brand-wordmark-flo">flo</span>
+                <span className="brand-wordmark-invite">invite</span>
+              </span>
             </button>
 
             {/* Navigation Links */}
@@ -250,8 +253,9 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
               </button>
 
               {/* Title */}
-              <h1 className="login-title">
-                <span className="brand-blue">flo</span><span className="brand-green">invite</span>
+              <h1 className="login-title brand-wordmark">
+                <span className="brand-wordmark-flo">flo</span>
+                <span className="brand-wordmark-invite">invite</span>
               </h1>
               <p className="login-subtitle">Visitor Management</p>
 
@@ -341,8 +345,9 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
               </button>
 
               {/* Title */}
-              <h1 className="login-title">
-                <span className="brand-blue">flo</span><span className="brand-green">invite</span>
+              <h1 className="login-title brand-wordmark">
+                <span className="brand-wordmark-flo">flo</span>
+                <span className="brand-wordmark-invite">invite</span>
               </h1>
             </div>
             <p className="login-subtitle">Visitor Management</p>

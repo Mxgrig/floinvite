@@ -7,6 +7,25 @@
 /* Page Layout Components */
 /* ═══════════════════════════════════════════════════ */
 
+.brand-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2em;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1;
+  text-transform: lowercase;
+  font-family: var(--font-family);
+}
+
+.brand-wordmark-flo {
+  color: var(--brand-blue);
+}
+
+.brand-wordmark-invite {
+  color: var(--brand-green);
+}
+
 .page-container {
   max-width: var(--max-width-xl);
   margin: 0 auto;

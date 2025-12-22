@@ -24,8 +24,11 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
       <div className="landing-container">
         <div className="landing-card">
           <div className="landing-brand">
-            <img src="/xmas-logo.png" alt="Floinvite" className="landing-logo" />
-            <span className="landing-brand-name">Floinvite</span>
+            <img src="/xmas-logo.png" alt="floinvite" className="landing-logo" />
+            <span className="landing-brand-name brand-wordmark">
+              <span className="brand-wordmark-flo">flo</span>
+              <span className="brand-wordmark-invite">invite</span>
+            </span>
           </div>
 
           <h1 className="landing-title">
