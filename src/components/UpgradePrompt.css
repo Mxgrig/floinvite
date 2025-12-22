@@ -134,14 +134,13 @@
 }
 
 .plan-card.current {
-  background: #f9f9f9;
-  border-color: #ddd;
+  background: #f0fff6;
+  border-color: #10b981;
 }
 
 .plan-card.upgrade {
-  background: #f0f8ff;
-  border-color: #4a90e2;
-  border-width: 2px;
+  background: #f9f9f9;
+  border-color: #ddd;
 }
 
 .plan-card h3 {

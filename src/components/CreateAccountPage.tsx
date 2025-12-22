@@ -72,6 +72,7 @@ export function CreateAccountPage({
         tier: selectedTier,
         createdAt: new Date().toISOString(),
       }));
+      localStorage.setItem('floinvite_user_email', email);
 
       // Set user tier based on selection
       if (setUserTier) {

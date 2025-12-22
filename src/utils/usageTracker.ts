@@ -124,11 +124,11 @@ export class UsageTracker {
     const usage = this.getUsage();
 
     if (usage.isOverLimit) {
-      return `You've reached the free tier limit! Upgrade to Professional to continue adding hosts and visitors.`;
+      return `You've reached the free tier limit! Continue on Starter for $5/month, or upgrade to Professional for unlimited access.`;
     }
 
     if (usage.totalHosts + usage.totalVisitors > this.HOSTS_LIMIT * 0.8) {
-      return `You're using ${this.getUsagePercentage()}% of your free tier limit. Consider upgrading to Professional!`;
+      return `You're using ${this.getUsagePercentage()}% of your free tier limit. Starter continues at $5/month after 20 items.`;
     }
 
     return null;
