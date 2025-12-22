@@ -43,6 +43,7 @@ export function SignInPage({
       if (rememberMe) {
         localStorage.setItem('floinvite_remember_email', email);
       }
+      localStorage.setItem('floinvite_user_email', email);
 
       onLoginSuccess();
       onLoginSuccessNavigate?.('logbook');

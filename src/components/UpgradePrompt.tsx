@@ -66,7 +66,7 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
 
         {/* Message */}
         <p className="upgrade-prompt-message">
-          You've reached your free limit of {usage.hostsLimit} hosts/visitors. To continue using Floinvite, choose a paid plan below.
+          You've reached your free limit of {usage.hostsLimit} hosts/visitors. Continue on Starter for $5/month, or upgrade to Professional for unlimited access.
         </p>
 
         {/* Usage Bar */}
@@ -82,9 +82,9 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
         {/* Plan Comparison */}
         <div className="plan-comparison">
           <div className="plan-card current">
-            <h3>Starter (Current)</h3>
+            <h3>Starter (Continue)</h3>
             <p className="plan-price">$5<span>/month</span></p>
-            <p className="plan-subtitle">To continue using</p>
+            <p className="plan-subtitle">Keep going after 20 items</p>
             <ul className="plan-features">
               <li>✓ Up to 20 hosts/visitors</li>
               <li>✓ Email notifications</li>
@@ -94,9 +94,9 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
           </div>
 
           <div className="plan-card upgrade">
-            <h3>Professional</h3>
+            <h3>Professional (Optional)</h3>
             <p className="plan-price">$10<span>/month</span></p>
-            <p className="plan-subtitle">Unlock more features</p>
+            <p className="plan-subtitle">Unlimited + advanced features</p>
             <ul className="plan-features">
               <li>✓ Unlimited hosts/visitors</li>
               <li>✓ SMS notifications</li>
@@ -110,14 +110,14 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
         {/* CTA Buttons - User MUST choose a plan */}
         <div className="upgrade-prompt-buttons">
           <button
-            className="btn-secondary"
+            className="btn-primary"
             onClick={() => handleUpgrade('starter')}
             disabled={loading || selectedPlan !== null}
           >
             {loading && selectedPlan === 'starter' ? 'Processing...' : 'Pay $5/mo (Starter)'}
           </button>
           <button
-            className="btn-primary"
+            className="btn-secondary"
             onClick={() => handleUpgrade('professional')}
             disabled={loading || selectedPlan !== null}
           >

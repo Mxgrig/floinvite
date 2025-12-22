@@ -94,6 +94,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
         };
         localStorage.setItem('user_account', JSON.stringify(userAccount));
         localStorage.setItem('current_user', email.trim());
+        localStorage.setItem('floinvite_user_email', email.trim());
         onLoginSuccess();
         if (onLoginSuccessNavigate) {
           // Navigate to the intended page (check-in or logbook)
@@ -134,6 +135,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
         const hash = hashPassword(password);
         if (hash === account.passwordHash) {
           localStorage.setItem('current_user', email.trim());
+          localStorage.setItem('floinvite_user_email', email.trim());
           onLoginSuccess();
           if (onLoginSuccessNavigate) {
             // Navigate to the intended page (check-in or logbook)

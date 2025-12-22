@@ -219,8 +219,8 @@ try {
         'message' => $allowed
             ? "Operation allowed"
             : ($reason === 'limit_reached'
-                ? "You have reached the free tier limit. Upgrade to continue."
-                : "Payment required. Upgrade your subscription.")
+                ? "You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional."
+                : "Payment required. Continue on Starter for $5/month, or upgrade to Professional.")
     ]);
 
 } catch (Exception $e) {

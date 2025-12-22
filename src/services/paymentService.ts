@@ -375,6 +375,32 @@ export class PaymentService {
    */
   private static getCustomerEmail(): string {
     try {
+      const directEmail = localStorage.getItem('floinvite_user_email');
+      if (directEmail) {
+        return directEmail;
+      }
+
+      const currentUser = localStorage.getItem('current_user');
+      if (currentUser) {
+        return currentUser;
+      }
+
+      const floinviteAccount = localStorage.getItem('floinvite_account');
+      if (floinviteAccount) {
+        const parsedAccount = JSON.parse(floinviteAccount);
+        if (parsedAccount?.email) {
+          return parsedAccount.email;
+        }
+      }
+
+      const userAccount = localStorage.getItem('user_account');
+      if (userAccount) {
+        const parsedAccount = JSON.parse(userAccount);
+        if (parsedAccount?.email) {
+          return parsedAccount.email;
+        }
+      }
+
       const settings = localStorage.getItem('floinvite_settings');
       if (settings) {
         const parsed = JSON.parse(settings);

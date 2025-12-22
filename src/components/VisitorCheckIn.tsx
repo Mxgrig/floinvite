@@ -170,7 +170,9 @@ export function VisitorCheckIn() {
       );
 
       if (!operationCheck.allowed) {
-        newErrors.push(operationCheck.message || 'You have reached your free tier limit. You cannot check in more guests.');
+        newErrors.push(
+          operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional.'
+        );
         setErrors(newErrors);
         return;
       }
@@ -307,7 +309,9 @@ export function VisitorCheckIn() {
       );
 
       if (!operationCheck.allowed) {
-        setErrors([operationCheck.message || 'You have reached your free tier limit. You cannot check in more guests.']);
+        setErrors([
+          operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional.'
+        ]);
         return;
       }
     }

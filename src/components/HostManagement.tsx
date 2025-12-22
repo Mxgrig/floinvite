@@ -90,7 +90,9 @@ export function HostManagement() {
         );
 
         if (!operationCheck.allowed) {
-          newErrors.push(operationCheck.message || 'You have reached your free tier limit. You cannot add more hosts.');
+          newErrors.push(
+            operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional.'
+          );
           setErrors(newErrors);
           return;
         }
@@ -161,7 +163,9 @@ export function HostManagement() {
           );
 
           if (!operationCheck.allowed) {
-            setErrors([operationCheck.message || 'You have reached your free tier limit. You cannot import more hosts.']);
+            setErrors([
+              operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional.'
+            ]);
             return;
           }
         }
