@@ -194,8 +194,11 @@ export function App() {
         <header className="branding-header">
           <div className="branding-content">
             <button className="branding-logo" onClick={() => setCurrentPage('landing')} title="Back to home">
-              <img src="/xmas-logo.png" alt="Floinvite" />
-              <span>Floinvite</span>
+              <img src="/xmas-logo.png" alt="floinvite" />
+              <span className="brand-wordmark">
+                <span className="brand-wordmark-flo">flo</span>
+                <span className="brand-wordmark-invite">invite</span>
+              </span>
             </button>
             <nav className="branding-nav">
               <button onClick={() => setCurrentPage('logbook')} className={currentPage === 'logbook' ? 'active' : ''}>

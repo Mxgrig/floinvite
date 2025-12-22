@@ -140,6 +140,12 @@
   background-clip: text;
 }
 
+.legal-brand-text.brand-wordmark {
+  background: none;
+  -webkit-text-fill-color: inherit;
+  color: inherit;
+}
+
 .legal-hero h1 {
   font-size: 2.5rem;
   font-weight: 800;

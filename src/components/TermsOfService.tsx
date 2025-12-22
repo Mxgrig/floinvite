@@ -20,7 +20,10 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
             <div className="legal-navbar-logo">
               <img src="/xmas-logo.png" alt="floinvite" />
             </div>
-            <span>floinvite</span>
+            <span className="brand-wordmark">
+              <span className="brand-wordmark-flo">flo</span>
+              <span className="brand-wordmark-invite">invite</span>
+            </span>
           </button>
 
           {/* Navigation Links */}
@@ -46,8 +49,11 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
             title="Back to home"
           >
             <div className="legal-brand">
-              <img src="/xmas-logo.png" alt="Floinvite" className="legal-logo" />
-              <span className="legal-brand-text">Floinvite</span>
+              <img src="/xmas-logo.png" alt="floinvite" className="legal-logo" />
+              <span className="legal-brand-text brand-wordmark">
+                <span className="brand-wordmark-flo">flo</span>
+                <span className="brand-wordmark-invite">invite</span>
+              </span>
             </div>
           </button>
           <h1>Terms of Service</h1>

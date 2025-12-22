@@ -65,8 +65,11 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
             type="button"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <img src="/xmas-logo.png" alt="Floinvite" className="tier-logo" />
-            <span className="tier-brand-name">Floinvite</span>
+            <img src="/xmas-logo.png" alt="floinvite" className="tier-logo" />
+            <span className="tier-brand-name brand-wordmark">
+              <span className="brand-wordmark-flo">flo</span>
+              <span className="brand-wordmark-invite">invite</span>
+            </span>
           </button>
 
           <h1 className="tier-title">Choose Your Plan</h1>

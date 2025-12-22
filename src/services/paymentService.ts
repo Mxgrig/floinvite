@@ -280,14 +280,24 @@ export class PaymentService {
   ): string {
     const cycle = billingCycle === 'month' ? 'MONTHLY' : 'YEARLY';
     const tier = tierId.toUpperCase();
-    return `REACT_APP_STRIPE_${tier}_${cycle}`;
+    return `VITE_STRIPE_${tier}_${cycle}`;
   }
 
   /**
    * Get environment variable safely
    */
   private static getStripeEnvVar(key: string): string | undefined {
-    return import.meta.env[key] as string | undefined;
+    const direct = import.meta.env[key] as string | undefined;
+    if (direct) {
+      return direct;
+    }
+
+    if (key.startsWith('VITE_STRIPE_')) {
+      const legacyKey = key.replace('VITE_', 'REACT_APP_');
+      return import.meta.env[legacyKey] as string | undefined;
+    }
+
+    return undefined;
   }
 
   /**

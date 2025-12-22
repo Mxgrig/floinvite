@@ -21,7 +21,10 @@ export function Features({ onNavigate }: FeaturesPageProps) {
             <div className="legal-navbar-logo">
               <img src="/xmas-logo.png" alt="floinvite" />
             </div>
-            <span>floinvite</span>
+            <span className="brand-wordmark">
+              <span className="brand-wordmark-flo">flo</span>
+              <span className="brand-wordmark-invite">invite</span>
+            </span>
           </button>
 
           {/* Navigation Links */}

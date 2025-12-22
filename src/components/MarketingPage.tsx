@@ -172,9 +172,9 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
               padding: 0
             }}
           >
-            <h1 className="marketing-brand-text">
-              <span className="marketing-brand-flo">flo</span>
-              <span className="marketing-brand-invite">invite</span>
+            <h1 className="marketing-brand-text brand-wordmark">
+              <span className="brand-wordmark-flo">flo</span>
+              <span className="brand-wordmark-invite">invite</span>
             </h1>
           </button>
         </div>
