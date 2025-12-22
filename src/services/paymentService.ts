@@ -40,10 +40,22 @@ export class PaymentService {
 
       // Determine the correct Stripe price ID based on tier and billing cycle
       const priceIdKey = this.getPriceIdKey(tierId, billingCycle);
-      const priceId = customAmount ? undefined : this.getStripeEnvVar(priceIdKey);
+      let resolvedCustomAmount = customAmount;
+      const priceId = resolvedCustomAmount ? undefined : this.getStripeEnvVar(priceIdKey);
+
+      if (!priceId && !resolvedCustomAmount) {
+        const defaultAmounts: Record<string, { month: number; year: number }> = {
+          starter: { month: 500, year: 4800 },
+          professional: { month: 1000, year: 14400 }
+        };
+        const fallback = defaultAmounts[tierId];
+        if (fallback) {
+          resolvedCustomAmount = billingCycle === 'year' ? fallback.year : fallback.month;
+        }
+      }
 
       // Validate price configuration
-      if (!customAmount && !priceId) {
+      if (!resolvedCustomAmount && !priceId) {
         throw new Error(`Stripe price ID not configured for ${tierId} ${billingCycle}`);
       }
 
@@ -55,7 +67,7 @@ export class PaymentService {
         },
         body: JSON.stringify({
           priceId: priceId || undefined,
-          customAmount: customAmount || undefined,
+          customAmount: resolvedCustomAmount || undefined,
           tierId,
           billingCycle,
           customerEmail: email
@@ -376,39 +388,45 @@ export class PaymentService {
   private static getCustomerEmail(): string {
     try {
       const directEmail = localStorage.getItem('floinvite_user_email');
-      if (directEmail) {
-        return directEmail;
+      if (directEmail && directEmail.trim()) {
+        return directEmail.trim();
       }
 
       const currentUser = localStorage.getItem('current_user');
-      if (currentUser) {
-        return currentUser;
+      if (currentUser && currentUser.trim()) {
+        return currentUser.trim();
       }
 
       const floinviteAccount = localStorage.getItem('floinvite_account');
       if (floinviteAccount) {
         const parsedAccount = JSON.parse(floinviteAccount);
-        if (parsedAccount?.email) {
-          return parsedAccount.email;
+        if (parsedAccount?.email && parsedAccount.email.trim()) {
+          return parsedAccount.email.trim();
         }
       }
 
       const userAccount = localStorage.getItem('user_account');
       if (userAccount) {
         const parsedAccount = JSON.parse(userAccount);
-        if (parsedAccount?.email) {
-          return parsedAccount.email;
+        if (parsedAccount?.email && parsedAccount.email.trim()) {
+          return parsedAccount.email.trim();
         }
       }
 
       const settings = localStorage.getItem('floinvite_settings');
       if (settings) {
         const parsed = JSON.parse(settings);
-        return parsed.notificationEmail || '';
+        const notificationEmail = parsed.notificationEmail?.trim();
+        if (notificationEmail) {
+          return notificationEmail;
+        }
       }
-      return '';
+
+      // Fallback to default notification email
+      return import.meta.env.VITE_NOTIFICATION_EMAIL || 'admin@floinvite.com';
     } catch {
-      return '';
+      // If all else fails, use default notification email
+      return import.meta.env.VITE_NOTIFICATION_EMAIL || 'admin@floinvite.com';
     }
   }
 }
