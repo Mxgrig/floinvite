@@ -23,6 +23,9 @@ if (ob_get_level()) {
     ob_clean();
 }
 
+// Load environment variables from .env file
+require_once __DIR__ . '/env.php';
+
 header('Content-Type: application/json; charset=utf-8');
 
 // ═══════════════════════════════════════════════════════════════════════════
