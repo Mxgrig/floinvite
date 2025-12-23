@@ -106,6 +106,64 @@
     <!-- Language -->
     <link rel="alternate" hreflang="en" href="https://floinvite.com/" />
 
+    <!-- Breadcrumb Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://floinvite.com"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Marketing",
+          "item": "https://floinvite.com/marketing"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Pricing",
+          "item": "https://floinvite.com/pricing"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Organization Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Floinvite",
+      "url": "https://floinvite.com",
+      "logo": "https://floinvite.com/logo.png",
+      "description": "Modern visitor management system for SME offices",
+      "sameAs": [
+        "https://twitter.com/floinvite",
+        "https://linkedin.com/company/floinvite"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "Customer Support",
+        "email": "admin@floinvite.com",
+        "telephone": "+44-20-4529-5067"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "307 Goldfinger Court",
+        "addressLocality": "London",
+        "addressRegion": "London",
+        "postalCode": "E16 6UN",
+        "addressCountry": "GB"
+      }
+    }
+    </script>
+
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
     {
@@ -153,22 +211,25 @@
       },
       "inLanguage": "en-US",
       "datePublished": "2024-01-15",
-      "dateModified": "2024-12-07"
+      "dateModified": "2024-12-23"
     }
     </script>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Analytics & Tracking (Optional) -->
+    <!-- Analytics & Tracking -->
     <!-- ═══════════════════════════════════════════════════ -->
     
-    <!-- Google Analytics (if needed, uncomment and add your ID) -->
-    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'GA_MEASUREMENT_ID');
-    </script> -->
+      gtag('config', 'GA_MEASUREMENT_ID', {
+        'page_path': window.location.pathname,
+        'page_title': document.title
+      });
+    </script>
 
     <!-- ═══════════════════════════════════════════════════ -->
     <!-- Preload Critical Resources -->
@@ -223,17 +284,16 @@
     </script>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Performance Monitoring (Optional) -->
+    <!-- Performance Monitoring -->
     <!-- ═══════════════════════════════════════════════════ -->
     
     <script>
-      // Web Vitals monitoring (optional)
+      // Web Vitals monitoring
       if ('web-vital' in window) {
-        // Track Core Web Vitals for performance monitoring
         const vitals = window['web-vital'];
-        vitals.onCLS(metric => console.log('CLS:', metric));
-        vitals.onFID(metric => console.log('FID:', metric));
-        vitals.onFCP(metric => console.log('FCP:', metric));
+        vitals.onCLS(metric => gtag('event', 'page_view', { 'value': metric.value, 'metric_id': metric.id, 'metric_value': metric.value }));
+        vitals.onFID(metric => gtag('event', 'page_view', { 'value': metric.value, 'metric_id': metric.id, 'metric_value': metric.value }));
+        vitals.onFCP(metric => gtag('event', 'page_view', { 'value': metric.value, 'metric_id': metric.id, 'metric_value': metric.value }));
       }
     </script>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { PRICING_TIERS } from '../services/pricingService';
 import { PaymentService } from '../services/paymentService';
@@ -13,6 +13,39 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Inject pricing schema markup for SEO
+  useEffect(() => {
+    const offers = PRICING_TIERS.map((tier) => ({
+      '@type': 'Offer',
+      'name': tier.name,
+      'description': tier.description,
+      'price': tier.id === 'enterprise' ? '0' : tier.price.toString(),
+      'priceCurrency': 'USD',
+      'url': 'https://floinvite.com/pricing'
+    }));
+
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'AggregateOffer',
+      'name': 'Floinvite Pricing Plans',
+      'description': 'Flexible pricing plans for visitor management software',
+      'url': 'https://floinvite.com/pricing',
+      'priceCurrency': 'USD',
+      'offers': offers
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, []);
 
   const handleUpgrade = async (tierId: string) => {
     if (tierId === 'starter') {
