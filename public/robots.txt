@@ -1,19 +1,38 @@
+# floinvite.com SEO Rules
+# Generated for optimal search engine indexing
+
+# Allow all bots to crawl the site
 User-agent: *
 Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /*.json$
-Disallow: /*?*
+Disallow: /admin
+Disallow: /api
+Disallow: /*.php
+Disallow: /node_modules
+Disallow: /build
+Disallow: /dist
 
-# Specific rules for common crawlers
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
-
-# Sitemaps
+# Sitemap location
 Sitemap: https://floinvite.com/sitemap.xml
-Sitemap: https://floinvite.com/sitemap-pages.xml
+
+# Crawl delay (seconds) - be respectful
+Crawl-delay: 0
+Request-rate: 30/60
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Media files
+User-agent: *
+Allow: *.jpg
+Allow: *.jpeg
+Allow: *.png
+Allow: *.gif
+Allow: *.svg
+Allow: *.webp

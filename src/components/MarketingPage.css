@@ -65,7 +65,91 @@
 .hero-section p {
   font-size: 1.1rem;
   color: #6b7280;
-  max-width: 600px;
+  max-width: 100%;
+}
+
+.hero-copy {
+  max-width: 680px;
+}
+
+.hero-copy p {
+  max-width: 100%;
+}
+
+.hero-cta-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.hero-cta-row .btn {
+  flex: 1 1 220px;
+}
+
+.hero-panel {
+  background: white;
+  border-radius: 18px;
+  padding: 2rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hero-panel-header {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.hero-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hero-panel-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.hero-panel-item h6 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.hero-panel-item p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.hero-panel-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(67, 56, 202, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-blue, #4338ca);
+  flex-shrink: 0;
+}
+
+.hero-panel-footer {
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  font-weight: 600;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Stats Section */
@@ -122,32 +206,47 @@
   background: white;
 }
 
+.feature-card .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.75rem;
+}
+
 .feature-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
 }
 
+.feature-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .feature-icon {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   background: rgba(67, 56, 202, 0.1);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--brand-blue, #4338ca);
-  font-size: 1.5rem;
+  flex-shrink: 0;
 }
 
 .feature-card .card-title {
   color: #111827;
   font-size: 1.25rem;
-  margin-bottom: 0.75rem;
+  margin: 0;
 }
 
 .feature-card .card-text {
   color: #6b7280;
   line-height: 1.6;
+  margin: 0;
 }
 
 /* Use Cases Section */
@@ -169,32 +268,47 @@
   transition: all 0.3s ease;
 }
 
+.usecase-card .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.75rem;
+}
+
 .usecase-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
 }
 
+.usecase-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .usecase-icon {
-  width: 48px;
-  height: 48px;
-  background: rgba(16, 185, 129, 0.1);
+  width: 40px;
+  height: 40px;
+  background: rgba(16, 185, 129, 0.12);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--brand-green, #10b981);
-  font-size: 1.5rem;
+  flex-shrink: 0;
 }
 
 .usecase-card .card-title {
   color: #111827;
   font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .usecase-card .card-text {
   color: #6b7280;
   font-size: 0.95rem;
+  margin: 0;
 }
 
 /* How It Works Section */
@@ -210,11 +324,15 @@
 }
 
 .steps-card {
-  padding: 2.5rem;
-  border-radius: 12px;
+  padding: 2.25rem;
+  border-radius: 16px;
   background: white;
   transition: all 0.3s ease;
   min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid #e5e7eb;
 }
 
 .steps-card:hover {
@@ -223,29 +341,35 @@
 }
 
 .step-number {
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   background: var(--brand-blue, #4338ca);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 1.1rem;
-  top: -20px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  box-shadow: 0 10px 18px rgba(67, 56, 202, 0.3);
+  flex-shrink: 0;
+}
+
+.step-content {
+  margin-top: 1rem;
 }
 
 .steps-card .card-title {
-  margin-top: 1rem;
+  margin: 0;
   color: #111827;
-  font-size: 1.1rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.15rem;
+  letter-spacing: -0.2px;
 }
 
 .steps-card .card-text {
   color: #6b7280;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
+  margin: 0;
 }
 
 /* Trust & Compliance Section */
@@ -318,6 +442,38 @@
   margin-bottom: 3rem;
 }
 
+.pricing-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.price-value {
+  font-size: clamp(2.8rem, 4.2vw, 3.6rem);
+  letter-spacing: -0.6px;
+  line-height: 1;
+}
+
+.price-period {
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.price-yearly {
+  margin-top: 0.5rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.pricing-price-alt {
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-weight: 800;
+  color: #111827;
+}
+
 .btn-group {
   display: flex;
   gap: 1rem;
@@ -383,6 +539,25 @@
 .contact-form .form-control:focus {
   border-color: var(--brand-blue, #4338ca);
   box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+}
+
+.contact-status {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.contact-status-success {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.contact-status-error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
 }
 
 /* CTA Section */
@@ -516,6 +691,19 @@
   .btn-group {
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  .hero-panel {
+    padding: 1.5rem;
+  }
+
+  .hero-panel-header {
+    font-size: 1rem;
+  }
+
+  .hero-cta-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .row g-4 {
