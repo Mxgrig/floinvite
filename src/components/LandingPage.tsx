@@ -1,6 +1,7 @@
 /**
  * LandingPage Component
  * Main landing page with Sign In and Create Account navigation
+ * Uses `<a>` href links for SEO crawlability
  */
 
 import { LoopingVideo } from './LoopingVideo';
@@ -12,6 +13,11 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, page: string) => {
+    e.preventDefault();
+    onNavigate(page);
+  };
+
   // Keep check-in handler available for future CTA wiring
   void onStartCheckIn;
 
@@ -41,26 +47,29 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
           </p>
 
           <div className="landing-buttons">
-            <button
+            <a
+              href="/signin"
               className="landing-button landing-button-primary"
-              onClick={() => onNavigate('signin')}
+              onClick={(e) => handleNavClick(e, 'signin')}
             >
               Sign In
-            </button>
-            <button
+            </a>
+            <a
+              href="/register"
               className="landing-button landing-button-secondary"
-              onClick={() => onNavigate('createaccount')}
+              onClick={(e) => handleNavClick(e, 'createaccount')}
             >
               Create Account
-            </button>
+            </a>
           </div>
 
-          <button
+          <a
+            href="/features"
             className="landing-link"
-            onClick={() => onNavigate('marketing')}
+            onClick={(e) => handleNavClick(e, 'marketing')}
           >
             Learn how this works <span className="arrow">→</span>
-          </button>
+          </a>
         </div>
       </div>
     </div>
