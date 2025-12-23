@@ -1,7 +1,7 @@
 /**
  * Footer Component
  * Consistent footer with branding, links, and copyright across all pages
- * Optimized for SEO with semantic structure and descriptive links
+ * Optimized for SEO with semantic structure and real `<a>` href links for crawlability
  */
 
 import { Mail, Phone, MapPin } from 'lucide-react';
@@ -12,53 +12,63 @@ export interface FooterProps {
 }
 
 export function Footer({ onNavigate }: FooterProps) {
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, page: string) => {
+    e.preventDefault();
+    onNavigate?.(page);
+  };
+
   return (
     <footer className="footer" role="contentinfo">
       <div className="footer-content">
         <div className="footer-section footer-nav">
           <h3 className="footer-section-title">Navigation</h3>
           <nav className="footer-links" aria-label="Footer navigation">
-            <button
-              onClick={() => onNavigate?.('landing')}
+            <a
+              href="/"
+              onClick={(e) => handleNavClick(e, 'landing')}
               className="footer-link"
               aria-label="Return to home page"
             >
               Home
-            </button>
-            <button
-              onClick={() => onNavigate?.('marketing')}
+            </a>
+            <a
+              href="/features"
+              onClick={(e) => handleNavClick(e, 'marketing')}
               className="footer-link"
               aria-label="View features and benefits"
             >
               Features
-            </button>
-            <button
-              onClick={() => onNavigate?.('pricing')}
+            </a>
+            <a
+              href="/pricing"
+              onClick={(e) => handleNavClick(e, 'pricing')}
               className="footer-link"
               aria-label="View pricing plans"
             >
               Pricing
-            </button>
+            </a>
           </nav>
         </div>
 
         <div className="footer-section footer-legal">
           <h3 className="footer-section-title">Legal</h3>
           <nav className="footer-links" aria-label="Legal and policies">
-            <button
-              onClick={() => onNavigate?.('privacy')}
+            <a
+              href="/privacy"
+              onClick={(e) => handleNavClick(e, 'privacy')}
               className="footer-link"
               aria-label="Read privacy policy"
             >
               Privacy Policy
-            </button>
-            <button
-              onClick={() => onNavigate?.('terms')}
+            </a>
+            <a
+              href="/terms"
+              onClick={(e) => handleNavClick(e, 'terms')}
               className="footer-link"
               aria-label="Read terms of service"
             >
               Terms of Service
-            </button>
+            </a>
           </nav>
         </div>
 

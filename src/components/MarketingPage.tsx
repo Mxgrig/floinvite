@@ -211,23 +211,22 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <header className="marketing-header">
         <div className="container">
-          <button
-            onClick={() => onNavigate('landing')}
+          <a
+            href="/"
+            onClick={(e) => { e.preventDefault(); onNavigate('landing'); }}
             className="marketing-brand-button"
             title="Back to home"
             aria-label="Floinvite home"
             style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0
+              textDecoration: 'none',
+              display: 'inline-block'
             }}
           >
             <h1 className="marketing-brand-text brand-wordmark">
               <span className="brand-wordmark-flo">flo</span>
               <span className="brand-wordmark-invite">invite</span>
             </h1>
-          </button>
+          </a>
         </div>
       </header>
 

@@ -25,6 +25,7 @@ import { MigrationService } from './services/migrationService';
 import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { UsageTracker } from './utils/usageTracker';
 import { STORAGE_KEYS } from './utils/constants';
+import { getPageHref, handleNavigationClick } from './utils/navigationHelper';
 import './App.css';
 
 type AppPage = 'landing' | 'signin' | 'createaccount' | 'tier-selection' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'privacy' | 'terms';
@@ -228,29 +229,29 @@ export function App() {
       {isAuthenticated && (
         <header className="branding-header">
           <div className="branding-content">
-            <button className="branding-logo" onClick={() => setCurrentPage('landing')} title="Back to home">
+            <a href="/" className="branding-logo" onClick={(e) => handleNavigationClick(e, setCurrentPage, 'landing')} title="Back to home">
               <img src="/xmas-logo.png" alt="floinvite" />
               <span className="brand-wordmark">
                 <span className="brand-wordmark-flo">flo</span>
                 <span className="brand-wordmark-invite">invite</span>
               </span>
-            </button>
-            <nav className="branding-nav">
-              <button onClick={() => setCurrentPage('logbook')} className={currentPage === 'logbook' ? 'active' : ''}>
+            </a>
+            <nav className="branding-nav" role="navigation" aria-label="Main navigation">
+              <a href={getPageHref('logbook')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'logbook')} className={currentPage === 'logbook' ? 'active' : ''}>
                 Logbook
-              </button>
-              <button onClick={() => setCurrentPage('check-in')} className={currentPage === 'check-in' ? 'active' : ''}>
+              </a>
+              <a href={getPageHref('check-in')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'check-in')} className={currentPage === 'check-in' ? 'active' : ''}>
                 Check-In
-              </button>
-              <button onClick={() => setCurrentPage('hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
+              </a>
+              <a href={getPageHref('hosts')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
                 Hosts
-              </button>
-              <button onClick={() => setCurrentPage('settings')} className={currentPage === 'settings' ? 'active' : ''}>
+              </a>
+              <a href={getPageHref('settings')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'settings')} className={currentPage === 'settings' ? 'active' : ''}>
                 Settings
-              </button>
-              <button onClick={handleLogout} className="logout-btn">
+              </a>
+              <a href="/" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="logout-btn">
                 Logout
-              </button>
+              </a>
             </nav>
           </div>
         </header>
