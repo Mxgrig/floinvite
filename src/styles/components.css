@@ -10,7 +10,7 @@
 .brand-wordmark {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.2em;
+  gap: 0;
   font-weight: 700;
   letter-spacing: -0.3px;
   line-height: 1;

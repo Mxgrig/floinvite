@@ -178,8 +178,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
                 <img src="/xmas-logo.png" alt="floinvite" />
               </div>
               <span className="brand-wordmark">
-                <span className="brand-wordmark-flo">flo</span>
-                <span className="brand-wordmark-invite">invite</span>
+                <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
               </span>
             </button>
 
@@ -256,8 +255,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
 
               {/* Title */}
               <h1 className="login-title brand-wordmark">
-                <span className="brand-wordmark-flo">flo</span>
-                <span className="brand-wordmark-invite">invite</span>
+                <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
               </h1>
               <p className="login-subtitle">Visitor Management</p>
 
@@ -348,8 +346,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
 
               {/* Title */}
               <h1 className="login-title brand-wordmark">
-                <span className="brand-wordmark-flo">flo</span>
-                <span className="brand-wordmark-invite">invite</span>
+                <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
               </h1>
             </div>
             <p className="login-subtitle">Visitor Management</p>

@@ -5,7 +5,8 @@
 .footer {
   background: #f9fafb;
   border-top: 1px solid #e5e7eb;
-  padding: 3rem 2rem 2rem;
+  padding: 0.25rem 0;
+  text-align: justify;
   position: relative;
   z-index: 10;
   margin-top: auto;

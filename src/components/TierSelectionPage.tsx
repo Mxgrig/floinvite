@@ -67,8 +67,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
           >
             <img src="/xmas-logo.png" alt="floinvite" className="tier-logo" />
             <span className="tier-brand-name brand-wordmark">
-              <span className="brand-wordmark-flo">flo</span>
-              <span className="brand-wordmark-invite">invite</span>
+              <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>
           </button>
 

@@ -75,8 +75,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
               <img src="/xmas-logo.png" alt="floinvite" />
             </div>
             <span className="brand-wordmark">
-              <span className="brand-wordmark-flo">flo</span>
-              <span className="brand-wordmark-invite">invite</span>
+              <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>
           </button>
 

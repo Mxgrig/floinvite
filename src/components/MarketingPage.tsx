@@ -223,8 +223,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
             }}
           >
             <h1 className="marketing-brand-text brand-wordmark">
-              <span className="brand-wordmark-flo">flo</span>
-              <span className="brand-wordmark-invite">invite</span>
+              <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </h1>
           </a>
         </div>
