@@ -67,8 +67,7 @@ export function SignInPage({
           >
             <img src="/xmas-logo.png" alt="floinvite" className="auth-logo" />
             <span className="auth-brand-name brand-wordmark">
-              <span className="brand-wordmark-flo">flo</span>
-              <span className="brand-wordmark-invite">invite</span>
+              <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>
           </button>
 

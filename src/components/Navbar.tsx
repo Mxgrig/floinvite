@@ -57,8 +57,7 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
             <img src="/xmas-logo.png" alt="floinvite" />
           </div>
           <div className="navbar-brand-text brand-wordmark">
-            <span className="brand-wordmark-flo">flo</span>
-            <span className="brand-wordmark-invite">invite</span>
+            <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
           </div>
         </button>
 

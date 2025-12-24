@@ -21,8 +21,7 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
               <img src="/xmas-logo.png" alt="floinvite" />
             </div>
             <span className="brand-wordmark">
-              <span className="brand-wordmark-flo">flo</span>
-              <span className="brand-wordmark-invite">invite</span>
+              <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>
           </button>
 
@@ -51,8 +50,7 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
             <div className="legal-brand">
               <img src="/xmas-logo.png" alt="floinvite" className="legal-logo" />
               <span className="legal-brand-text brand-wordmark">
-                <span className="brand-wordmark-flo">flo</span>
-                <span className="brand-wordmark-invite">invite</span>
+                <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
               </span>
             </div>
           </button>

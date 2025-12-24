@@ -4,6 +4,8 @@
  * Uses `<a>` href links for SEO crawlability
  */
 
+import { useState } from 'react';
+import { Mail, MapPin, Menu, Phone, X } from 'lucide-react';
 import { LoopingVideo } from './LoopingVideo';
 import './LandingPage.css';
 
@@ -13,9 +15,12 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, page: string) => {
     e.preventDefault();
     onNavigate(page);
+    setMobileMenuOpen(false);
   };
 
   // Keep check-in handler available for future CTA wiring
@@ -27,13 +32,87 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
 
       <div className="landing-overlay"></div>
 
+      {/* Hamburger Navigation */}
+      <div className="landing-navbar">
+        <div className="landing-navbar-content">
+          <button
+            className="hamburger-button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <nav className="landing-mobile-menu">
+            <div className="mobile-menu-section">
+              <span className="mobile-menu-title">Navigation</span>
+              <a
+                href="/features"
+                onClick={(e) => handleNavClick(e, 'marketing')}
+                className="mobile-menu-link"
+              >
+                Features
+              </a>
+              <a
+                href="/pricing"
+                onClick={(e) => handleNavClick(e, 'pricing')}
+                className="mobile-menu-link"
+              >
+                Pricing
+              </a>
+            </div>
+
+            <div className="mobile-menu-section">
+              <span className="mobile-menu-title">Legal</span>
+              <a
+                href="/privacy"
+                onClick={(e) => handleNavClick(e, 'privacy')}
+                className="mobile-menu-link"
+              >
+                Privacy
+              </a>
+              <a
+                href="/terms"
+                onClick={(e) => handleNavClick(e, 'terms')}
+                className="mobile-menu-link"
+              >
+                Terms
+              </a>
+            </div>
+
+            <div className="mobile-menu-section">
+              <span className="mobile-menu-title">Contact</span>
+              <a className="mobile-menu-link mobile-menu-contact-item" href="mailto:admin@floinvite.com">
+                <Mail size={16} aria-hidden="true" />
+                admin@floinvite.com
+              </a>
+              <a className="mobile-menu-link mobile-menu-contact-item" href="tel:+442045295067">
+                <Phone size={16} aria-hidden="true" />
+                +44 20 4529 5067
+              </a>
+              <span className="mobile-menu-contact-item mobile-menu-contact">
+                <MapPin size={16} aria-hidden="true" />
+                <span>
+                  307 Goldfinger Court<br />
+                  London, E16 6UN<br />
+                  United Kingdom
+                </span>
+              </span>
+            </div>
+          </nav>
+        )}
+      </div>
+
       <div className="landing-container">
         <div className="landing-card">
           <div className="landing-brand">
             <img src="/xmas-logo.png" alt="floinvite" className="landing-logo" />
             <span className="landing-brand-name brand-wordmark">
-              <span className="brand-wordmark-flo">flo</span>
-              <span className="brand-wordmark-invite">invite</span>
+              <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>
           </div>
 

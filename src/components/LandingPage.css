@@ -30,6 +30,148 @@
   z-index: 1;
 }
 
+/* Hamburger Navigation Bar */
+.landing-navbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 20;
+  padding: 1rem 1.5rem;
+}
+
+.landing-navbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.landing-navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.navbar-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.navbar-brand-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  display: none;
+}
+
+.brand-wordmark-flo {
+  color: #4f46e5;
+}
+
+.brand-wordmark-invite {
+  color: #16a34a;
+}
+
+/* Hamburger Button */
+.hamburger-button {
+  background: none;
+  border: none;
+  color: #1f2937;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.hamburger-button:hover {
+  color: #4b5563;
+}
+
+/* Mobile Menu */
+.landing-mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: start;
+  padding: 1rem;
+  gap: 1rem;
+  animation: slideDown 0.3s ease;
+}
+
+.mobile-menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mobile-menu-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+  padding: 0 1rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-menu-link {
+  color: #374151;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  display: block;
+}
+
+.mobile-menu-link:hover {
+  background: #eef2f7;
+  color: #111827;
+}
+
+.mobile-menu-contact {
+  color: #6b7280;
+  font-size: 0.9rem;
+  padding: 0.15rem 1rem;
+}
+
+.mobile-menu-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mobile-menu-contact-item svg {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+/* Main Container - adjusted for navbar */
 .landing-container {
   position: absolute;
   top: 0;
@@ -41,6 +183,7 @@
   justify-content: center;
   z-index: 2;
   padding: 2rem;
+  padding-top: 4rem;
 }
 
 .landing-card {
@@ -113,6 +256,8 @@
   transition: all 0.2s ease;
   letter-spacing: -0.2px;
   width: 100%;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .landing-button-primary {
@@ -160,6 +305,7 @@
   align-items: center;
   gap: 0.4rem;
   letter-spacing: -0.2px;
+  text-decoration: none;
 }
 
 .landing-link:hover {
@@ -177,6 +323,18 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .navbar-brand-name {
+    display: inline;
+  }
+
+  .landing-navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .landing-container {
+    padding-top: 3.5rem;
+  }
+
   .landing-card {
     padding: 2.5rem 2rem;
   }
@@ -198,6 +356,7 @@
 @media (max-width: 480px) {
   .landing-container {
     padding: 1rem;
+    padding-top: 3.5rem;
   }
 
   .landing-card {
