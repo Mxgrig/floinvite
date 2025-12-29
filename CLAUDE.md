@@ -97,6 +97,7 @@ Rule: `grep -r "\.png\|\.jpg\|<img.*chart" src/ → MUST BE EMPTY`
 2. ✅ Returning visitor lookup (30-day window)
 3. ✅ Email sending integration (real notifications)
 4. ✅ Auto-cleanup for archived guests
+5. ✅ Evacuation list generation (emergency accountability)
 
 ## Phase 3: Polish (Week 5)
 1. ✅ Mobile responsive optimization
@@ -112,6 +113,45 @@ Rule: `grep -r "\.png\|\.jpg\|<img.*chart" src/ → MUST BE EMPTY`
 - ❌ Badge printing (not needed)
 - ❌ Visitor photos (privacy + hardware)
 - ❌ Access control integration (enterprise only)
+
+# ═══════════════════════════════════════════════════
+# Feature Descriptions
+# ═══════════════════════════════════════════════════
+
+## Evacuation List (Phase 2)
+**Purpose:** Generate real-time accountability lists for emergency evacuation procedures.
+
+**What It Does:**
+- Displays all currently **checked-in guests** (GuestStatus = 'Checked In')
+- Groups guests by their assigned **hosts** for accountability tracking
+- Shows host contact information (email, phone)
+- Displays guest check-in time for verification
+- Provides print-friendly PDF output
+- Exports to CSV and JSON formats
+
+**Access:** Settings → Backup & Data → "Create Evacuation List" button (available for all tiers)
+
+**Typical Workflow (Emergency):**
+1. Fire alarm or emergency triggered
+2. Incident commander accesses evacuation list (printed or phone)
+3. Hosts use list to verify their assigned guests are accounted for
+4. Host reports: "I have 5 guests, all accounted for" or "Missing 1 guest"
+5. Missing guests reported to search & rescue teams
+
+**Data Included:**
+- Guest name
+- Guest company
+- Guest contact (email, phone)
+- Check-in time
+- Assigned host
+- Host contact info
+
+**Future Enhancements (Phase 3+):**
+- Special needs indicators (mobility, medical, language)
+- Host location status (On-Site / Remote)
+- Interactive checklist mode (tap to verify)
+- Assembly point information
+- Real-time updates if guests check out
 
 # ═══════════════════════════════════════════════════
 # Data Structures & Interfaces
