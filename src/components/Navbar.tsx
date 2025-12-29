@@ -40,6 +40,7 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
         { label: 'Check-In', page: 'check-in' },
         { label: 'Logbook', page: 'logbook' },
         { label: 'Hosts', page: 'hosts' },
+        { label: 'Evacuation', page: 'evacuation-list' },
         { label: 'Settings', page: 'settings' },
       ]
     : [
@@ -83,6 +84,12 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
                 onClick={() => handleNavClick('hosts')}
               >
                 Hosts
+              </button>
+              <button
+                className={`navbar-link ${currentPage === 'evacuation-list' ? 'active' : ''}`}
+                onClick={() => handleNavClick('evacuation-list')}
+              >
+                Evacuation
               </button>
               <button
                 className={`navbar-link ${currentPage === 'settings' ? 'active' : ''}`}
