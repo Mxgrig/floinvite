@@ -346,7 +346,6 @@ export function Settings({ onNavigate }: SettingsProps) {
 
                 <button
                   onClick={() => onNavigate?.('evacuation-list')}
-                  className="btn"
                   style={{
                     background: '#dc2626',
                     color: 'white',
