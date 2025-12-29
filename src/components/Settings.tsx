@@ -345,6 +345,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                 <p className="help-text">Restore from a previously exported JSON file</p>
 
                 <button
+                  type="button"
                   onClick={() => onNavigate?.('evacuation-list')}
                   style={{
                     background: '#dc2626',
@@ -358,8 +359,10 @@ export function Settings({ onNavigate }: SettingsProps) {
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    transition: 'background 0.2s',
-                    marginTop: '1rem'
+                    transition: 'all 0.2s',
+                    marginTop: '1rem',
+                    textDecoration: 'none',
+                    textAlign: 'center'
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
@@ -412,6 +415,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                 <h3 style={{ color: '#1f2937', marginBottom: '12px', fontSize: '16px' }}>Emergency & Safety</h3>
                 <p style={{ color: '#6b7280', marginBottom: '16px' }}>Available on all tiers:</p>
                 <button
+                  type="button"
                   onClick={() => onNavigate?.('evacuation-list')}
                   style={{
                     background: '#dc2626',
@@ -425,7 +429,9 @@ export function Settings({ onNavigate }: SettingsProps) {
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    transition: 'background 0.2s'
+                    transition: 'all 0.2s',
+                    textDecoration: 'none',
+                    textAlign: 'center'
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
