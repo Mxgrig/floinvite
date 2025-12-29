@@ -80,14 +80,14 @@ body {
 .branding-nav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   margin-left: auto;
 }
 
 .branding-nav button {
   background: none;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.25rem;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;

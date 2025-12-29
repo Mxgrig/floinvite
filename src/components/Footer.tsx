@@ -8,9 +8,11 @@ import './Footer.css';
 
 export interface FooterProps {
   onNavigate?: (page: string) => void;
+  hidden?: boolean;
 }
 
-export function Footer({ onNavigate }: FooterProps) {
+export function Footer({ onNavigate, hidden = false }: FooterProps) {
+  if (hidden) return null;
   void onNavigate;
 
   return (
