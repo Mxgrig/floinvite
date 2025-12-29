@@ -355,9 +355,9 @@ export function Settings({ onNavigate }: SettingsProps) {
                     gap: '0.5rem',
                     padding: '0.625rem 1rem',
                     fontSize: '14px',
-                    fontWeight: '600',
+                    fontWeight: '700',
                     border: 'none',
-                    borderRadius: '6px',
+                    borderRadius: '999px',
                     cursor: 'pointer',
                     transition: 'background 0.2s',
                     marginTop: '1rem'
@@ -422,9 +422,9 @@ export function Settings({ onNavigate }: SettingsProps) {
                     gap: '0.5rem',
                     padding: '0.625rem 1rem',
                     fontSize: '14px',
-                    fontWeight: '600',
+                    fontWeight: '700',
                     border: 'none',
-                    borderRadius: '6px',
+                    borderRadius: '999px',
                     cursor: 'pointer',
                     transition: 'background 0.2s'
                   }}
