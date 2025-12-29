@@ -14,6 +14,7 @@ import { VisitorCheckIn } from './components/VisitorCheckIn';
 import { Logbook } from './components/Logbook';
 import { HostManagement } from './components/HostManagement';
 import { Settings } from './components/Settings';
+import { EvacuationList } from './components/EvacuationList';
 import { Footer } from './components/Footer';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
@@ -28,7 +29,7 @@ import { STORAGE_KEYS } from './utils/constants';
 import { getPageHref, handleNavigationClick } from './utils/navigationHelper';
 import './App.css';
 
-type AppPage = 'landing' | 'signin' | 'createaccount' | 'tier-selection' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'privacy' | 'terms';
+type AppPage = 'landing' | 'signin' | 'createaccount' | 'tier-selection' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'evacuation-list' | 'privacy' | 'terms';
 
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
@@ -169,6 +170,8 @@ export function App() {
         return <Logbook onNavigate={setCurrentPage} />;
       case 'hosts':
         return <HostManagement />;
+      case 'evacuation-list':
+        return <EvacuationList onNavigate={setCurrentPage} />;
       case 'settings':
         return <Settings onNavigate={setCurrentPage} />;
       case 'privacy':
@@ -246,6 +249,9 @@ export function App() {
               <a href={getPageHref('hosts')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
                 Hosts
               </a>
+              <a href={getPageHref('evacuation-list')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'evacuation-list')} className={`evacuation-nav ${currentPage === 'evacuation-list' ? 'active' : ''}`} title="Emergency evacuation accountability list - for emergency use only">
+                Evacuation
+              </a>
               <a href={getPageHref('settings')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'settings')} className={currentPage === 'settings' ? 'active' : ''}>
                 Settings
               </a>
@@ -286,8 +292,8 @@ export function App() {
         )}
       </main>
 
-      {/* Footer - Show on all pages */}
-      <Footer onNavigate={setCurrentPage} />
+      {/* Footer - Hidden on landing page */}
+      <Footer onNavigate={setCurrentPage} hidden={currentPage === 'landing'} />
     </div>
   );
 }

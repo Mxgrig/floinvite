@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { Users, Clock, Settings as SettingsIcon, Database, Info, Upload, Download, AlertTriangle, CheckCircle, Lock } from 'lucide-react';
+import { Users, Clock, Settings as SettingsIcon, Database, Info, Upload, Download, AlertTriangle, CheckCircle, Lock, Shield } from 'lucide-react';
 import { AppSettings, Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { usePersistedState } from '../utils/hooks';
@@ -313,7 +313,7 @@ export function Settings({ onNavigate }: SettingsProps) {
               </div>
 
               <div className="backup-actions">
-                <h3>Backup & Restore</h3>
+                <h3>Backup, Restore & Emergency</h3>
 
                 <button onClick={handleExportData} className="btn btn-secondary">
                   <Download size={18} />
@@ -343,6 +343,32 @@ export function Settings({ onNavigate }: SettingsProps) {
                   Import Data
                 </button>
                 <p className="help-text">Restore from a previously exported JSON file</p>
+
+                <button
+                  onClick={() => onNavigate?.('evacuation-list')}
+                  className="btn"
+                  style={{
+                    background: '#dc2626',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.625rem 1rem',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                    marginTop: '1rem'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
+                >
+                  <AlertTriangle size={16} />
+                  Create Evacuation List
+                </button>
+                <p className="help-text">Generate emergency evacuation accountability list with all checked-in guests</p>
               </div>
 
               <div className="danger-zone">
@@ -381,6 +407,33 @@ export function Settings({ onNavigate }: SettingsProps) {
               <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #d1d5db' }}>
                 <strong>Starter tier:</strong> All data is stored locally in your browser<br />
                 <strong>Professional tier:</strong> Enable cloud backup and export capabilities
+              </div>
+
+              <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #d1d5db', textAlign: 'center' }}>
+                <h3 style={{ color: '#1f2937', marginBottom: '12px', fontSize: '16px' }}>Emergency & Safety</h3>
+                <p style={{ color: '#6b7280', marginBottom: '16px' }}>Available on all tiers:</p>
+                <button
+                  onClick={() => onNavigate?.('evacuation-list')}
+                  style={{
+                    background: '#dc2626',
+                    color: 'white',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.625rem 1rem',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
+                >
+                  <AlertTriangle size={16} />
+                  Create Evacuation List
+                </button>
               </div>
               {onNavigate && (
                 <button
