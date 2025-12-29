@@ -356,7 +356,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                     fontSize: '14px',
                     fontWeight: '700',
                     border: 'none',
-                    borderRadius: '999px',
+                    borderRadius: '6px',
                     cursor: 'pointer',
                     transition: 'background 0.2s',
                     marginTop: '1rem'
@@ -423,7 +423,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                     fontSize: '14px',
                     fontWeight: '700',
                     border: 'none',
-                    borderRadius: '999px',
+                    borderRadius: '6px',
                     cursor: 'pointer',
                     transition: 'background 0.2s'
                   }}
