@@ -15,6 +15,8 @@ import { Logbook } from './components/Logbook';
 import { HostManagement } from './components/HostManagement';
 import { Settings } from './components/Settings';
 import { EvacuationList } from './components/EvacuationList';
+import { EmailMarketing } from './components/EmailMarketing';
+import { EmailMarketingLoginPage } from './components/EmailMarketingLoginPage';
 import { Footer } from './components/Footer';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
@@ -29,10 +31,11 @@ import { STORAGE_KEYS } from './utils/constants';
 import { getPageHref, handleNavigationClick } from './utils/navigationHelper';
 import './App.css';
 
-type AppPage = 'landing' | 'signin' | 'createaccount' | 'tier-selection' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'evacuation-list' | 'privacy' | 'terms';
+type AppPage = 'landing' | 'signin' | 'createaccount' | 'tier-selection' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'evacuation-list' | 'email-marketing' | 'email-marketing-login' | 'privacy' | 'terms';
 
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
+  const [isEmailMarketingAuthenticated, setIsEmailMarketingAuthenticated] = usePersistedState('floinvite_email_marketing_authenticated', false);
   const [currentPage, setCurrentPage] = useState<AppPage>('landing');
   const [userTier, setUserTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +74,70 @@ export function App() {
     handleLogout();
     console.log('Session logged out due to inactivity');
   }, 15);
+
+  // Update URL when page changes
+  const handlePageChange = (page: AppPage) => {
+    setCurrentPage(page);
+    const pathMap: Record<AppPage, string> = {
+      'landing': '/',
+      'signin': '/signin',
+      'createaccount': '/createaccount',
+      'tier-selection': '/tier-selection',
+      'pricing': '/pricing',
+      'marketing': '/marketing',
+      'check-in': '/check-in',
+      'logbook': '/logbook',
+      'hosts': '/hosts',
+      'settings': '/settings',
+      'evacuation-list': '/evacuation-list',
+      'email-marketing': '/email-marketing',
+      'email-marketing-login': '/email-marketing-login',
+      'privacy': '/privacy',
+      'terms': '/terms'
+    };
+    const newPath = pathMap[page];
+    if (newPath) {
+      window.history.pushState({}, '', newPath);
+    }
+  };
+
+  // Handle URL-based navigation
+  useEffect(() => {
+    const handleRouting = () => {
+      const pathname = window.location.pathname;
+
+      // Map URL paths to page names
+      if (pathname.includes('/check-in')) {
+        setCurrentPage('check-in');
+      } else if (pathname.includes('/logbook')) {
+        setCurrentPage('logbook');
+      } else if (pathname.includes('/hosts')) {
+        setCurrentPage('hosts');
+      } else if (pathname.includes('/evacuation-list')) {
+        setCurrentPage('evacuation-list');
+      } else if (pathname.includes('/settings')) {
+        setCurrentPage('settings');
+      } else if (pathname.includes('/email-marketing-login')) {
+        setCurrentPage('email-marketing-login');
+      } else if (pathname.includes('/email-marketing')) {
+        setCurrentPage('email-marketing');
+      } else if (pathname.includes('/marketing')) {
+        setCurrentPage('marketing');
+      } else if (pathname.includes('/pricing')) {
+        setCurrentPage('pricing');
+      } else if (pathname.includes('/signin')) {
+        setCurrentPage('signin');
+      } else if (pathname.includes('/privacy')) {
+        setCurrentPage('privacy');
+      } else if (pathname.includes('/terms')) {
+        setCurrentPage('terms');
+      }
+    };
+
+    handleRouting();
+    window.addEventListener('popstate', handleRouting);
+    return () => window.removeEventListener('popstate', handleRouting);
+  }, []);
 
   // Run migration from localStorage to IndexedDB on app start
   useEffect(() => {
@@ -172,6 +239,10 @@ export function App() {
         return <HostManagement />;
       case 'evacuation-list':
         return <EvacuationList onNavigate={setCurrentPage} />;
+      case 'email-marketing-login':
+        return <EmailMarketingLoginPage onLoginSuccess={() => setIsEmailMarketingAuthenticated(true)} onNavigate={setCurrentPage} />;
+      case 'email-marketing':
+        return isEmailMarketingAuthenticated ? <EmailMarketing onNavigate={setCurrentPage} /> : (() => { setCurrentPage('email-marketing-login'); return <EmailMarketingLoginPage onLoginSuccess={() => setIsEmailMarketingAuthenticated(true)} onNavigate={setCurrentPage} />; })();
       case 'settings':
         return <Settings onNavigate={setCurrentPage} />;
       case 'privacy':
@@ -185,7 +256,7 @@ export function App() {
   };
 
   // Redirect to landing if not authenticated and trying to access protected pages
-  const publicPages = ['pricing', 'marketing', 'privacy', 'terms', 'signin', 'createaccount', 'tier-selection', 'landing'];
+  const publicPages = ['pricing', 'marketing', 'privacy', 'terms', 'signin', 'createaccount', 'tier-selection', 'landing', 'email-marketing-login'];
   if (!isAuthenticated && !publicPages.includes(currentPage)) {
     setCurrentPage('landing');
     return renderPage();
@@ -229,7 +300,7 @@ export function App() {
       {/* Session Video Background - Removed from all pages */}
 
       {/* Branding Header - Simple navigation */}
-      {isAuthenticated && (
+      {isAuthenticated && currentPage !== 'email-marketing-login' && (
         <header className="branding-header">
           <div className="branding-content">
             <a href="/" className="branding-logo" onClick={(e) => handleNavigationClick(e, setCurrentPage, 'landing')} title="Back to home">
@@ -249,8 +320,11 @@ export function App() {
               <a href={getPageHref('hosts')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
                 Hosts
               </a>
-              <a href={getPageHref('evacuation-list')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'evacuation-list')} className={`evacuation-nav ${currentPage === 'evacuation-list' ? 'active' : ''}`} title="Emergency evacuation accountability list - for emergency use only">
+              <button onClick={() => setCurrentPage('evacuation-list')} className={`evacuation-btn ${currentPage === 'evacuation-list' ? 'active' : ''}`} title="Emergency evacuation accountability list - for emergency use only" style={{background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem'}}>
                 Evacuation
+              </button>
+              <a href={getPageHref('email-marketing')} onClick={(e) => { handleNavigationClick(e, setCurrentPage, isEmailMarketingAuthenticated ? 'email-marketing' : 'email-marketing-login'); }} className={currentPage === 'email-marketing' || currentPage === 'email-marketing-login' ? 'active' : ''}>
+                Email
               </a>
               <a href={getPageHref('settings')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'settings')} className={currentPage === 'settings' ? 'active' : ''}>
                 Settings
@@ -292,8 +366,8 @@ export function App() {
         )}
       </main>
 
-      {/* Footer - Hidden on landing page */}
-      <Footer onNavigate={setCurrentPage} hidden={currentPage === 'landing'} />
+      {/* Footer - Hidden on landing page and email marketing login */}
+      <Footer onNavigate={setCurrentPage} hidden={currentPage === 'landing' || currentPage === 'email-marketing-login'} />
     </div>
   );
 }
