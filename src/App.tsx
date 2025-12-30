@@ -240,9 +240,9 @@ export function App() {
       case 'evacuation-list':
         return <EvacuationList onNavigate={setCurrentPage} />;
       case 'email-marketing-login':
-        return <EmailMarketingLoginPage onLoginSuccess={() => setIsEmailMarketingAuthenticated(true)} onNavigate={setCurrentPage} />;
+        return <EmailMarketingLoginPage onLoginSuccess={() => { setIsEmailMarketingAuthenticated(true); setCurrentPage('email-marketing'); }} onNavigate={setCurrentPage} />;
       case 'email-marketing':
-        return isEmailMarketingAuthenticated ? <EmailMarketing onNavigate={setCurrentPage} /> : (() => { setCurrentPage('email-marketing-login'); return <EmailMarketingLoginPage onLoginSuccess={() => setIsEmailMarketingAuthenticated(true)} onNavigate={setCurrentPage} />; })();
+        return isEmailMarketingAuthenticated ? <EmailMarketing onNavigate={setCurrentPage} /> : (() => { setCurrentPage('email-marketing-login'); return <EmailMarketingLoginPage onLoginSuccess={() => { setIsEmailMarketingAuthenticated(true); setCurrentPage('email-marketing'); }} onNavigate={setCurrentPage} />; })();
       case 'settings':
         return <Settings onNavigate={setCurrentPage} />;
       case 'privacy':
