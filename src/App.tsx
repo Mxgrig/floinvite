@@ -256,7 +256,7 @@ export function App() {
   };
 
   // Redirect to landing if not authenticated and trying to access protected pages
-  const publicPages = ['pricing', 'marketing', 'privacy', 'terms', 'signin', 'createaccount', 'tier-selection', 'landing', 'email-marketing-login'];
+  const publicPages = ['pricing', 'marketing', 'privacy', 'terms', 'signin', 'createaccount', 'tier-selection', 'landing', 'email-marketing-login', 'email-marketing'];
   if (!isAuthenticated && !publicPages.includes(currentPage)) {
     setCurrentPage('landing');
     return renderPage();
