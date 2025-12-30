@@ -300,7 +300,7 @@ export function App() {
       {/* Session Video Background - Removed from all pages */}
 
       {/* Branding Header - Simple navigation */}
-      {isAuthenticated && currentPage !== 'email-marketing-login' && (
+      {(isAuthenticated || currentPage === 'email-marketing' || currentPage === 'email-marketing-login') && currentPage !== 'email-marketing-login' && (
         <header className="branding-header">
           <div className="branding-content">
             <a href="/" className="branding-logo" onClick={(e) => handleNavigationClick(e, setCurrentPage, 'landing')} title="Back to home">
