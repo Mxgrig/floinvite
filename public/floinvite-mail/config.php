@@ -113,28 +113,6 @@ function generate_tracking_id() {
     return bin2hex(random_bytes(16));
 }
 
-// Logo Helpers
-function is_yuletide_season() {
-    $month = (int) date('n'); // 1-12
-    $day = (int) date('j'); // 1-31
-
-    if ($month === 11 && $day >= 15) {
-        return true;
-    }
-    if ($month === 12) {
-        return true;
-    }
-    if ($month === 1 && $day <= 6) {
-        return true;
-    }
-
-    return false;
-}
-
-function get_logo_path() {
-    return is_yuletide_season() ? '../xmas-logo.png' : '../mainflologo.png';
-}
-
 // Generate Unsubscribe Token
 function generate_unsubscribe_token() {
     return bin2hex(random_bytes(32));

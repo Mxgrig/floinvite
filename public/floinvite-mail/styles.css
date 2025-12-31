@@ -16,9 +16,14 @@
   --text-primary: #111827;
   --text-secondary: #374151;
   --text-tertiary: #6b7280;
+  --text-muted: #9ca3af;
   --border-color: #e5e7eb;
+  --border-muted: #d1d5db;
   --gradient-page: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
   --shadow-card: 0 10px 24px rgba(17, 24, 39, 0.08);
+  --shadow-primary-focus: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  --shadow-primary-hover: 0 4px 12px rgba(79, 70, 229, 0.3);
+  --shadow-danger-hover: 0 4px 12px rgba(239, 68, 68, 0.3);
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
@@ -264,7 +269,7 @@ nav a.active {
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .form-group input:focus,
@@ -272,7 +277,7 @@ nav a.active {
 .form-group select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  box-shadow: var(--shadow-primary-focus);
 }
 
 .form-group textarea {
@@ -320,7 +325,7 @@ button, a.btn, input[type="button"], input[type="submit"] {
 
 .btn-primary:hover, button:not([class]):hover {
   background: var(--primary-dark);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  box-shadow: var(--shadow-primary-hover);
   transform: translateY(-2px);
 }
 
@@ -343,7 +348,7 @@ button, a.btn, input[type="button"], input[type="submit"] {
 
 .btn-danger:hover {
   background: var(--danger-dark);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: var(--shadow-danger-hover);
 }
 
 button:disabled {
@@ -521,7 +526,7 @@ tbody tr:hover {
   align-items: center;
   gap: 1rem;
   padding: 2rem;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed var(--border-muted);
   border-radius: var(--radius-lg);
   background: var(--bg-secondary);
   transition: all 0.2s;
