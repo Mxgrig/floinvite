@@ -210,6 +210,20 @@ export const dbUtils = {
   },
 
   /**
+   * Clear all settings
+   */
+  async clearSettings(): Promise<void> {
+    await db.settings.clear();
+  },
+
+  /**
+   * Clear sync log
+   */
+  async clearSyncLog(): Promise<void> {
+    await db.syncLog.clear();
+  },
+
+  /**
    * Get settings
    */
   async getSettings(): Promise<StoredSettings | undefined> {
