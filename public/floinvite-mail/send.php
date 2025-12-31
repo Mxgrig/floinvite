@@ -533,6 +533,29 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
             margin-top: 0.5rem;
         }
 
+        .invalid-list {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            color: #991b1b;
+            font-size: 0.85rem;
+        }
+
+        .invalid-count {
+            display: block;
+            margin-top: 0.35rem;
+            color: #7f1d1d;
+            font-size: 0.8rem;
+        }
+
+        .disabled-message {
+            margin-top: 0.5rem;
+            color: #991b1b;
+            font-size: 0.85rem;
+        }
+
         .preview-box {
             background: #f3f4f6;
             border: 1px solid #e5e7eb;
@@ -711,9 +734,15 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
                             <textarea class="custom-emails" name="custom_emails" placeholder="name@company.com, another@domain.com&#10;one@more.com"><?php echo htmlspecialchars($custom_emails_display); ?></textarea>
                             <div class="helper-text">Comma, space, or newline separated.</div>
                             <?php if ($preview && $preview['mode'] === 'custom' && $preview['counts']['invalid'] > 0): ?>
-                                <div class="helper-text">
+                                <div class="invalid-list">
                                     Invalid entries (first <?php echo count($preview['invalid_samples']); ?>):
                                     <?php echo htmlspecialchars(implode(', ', $preview['invalid_samples'])); ?>
+                                    <?php
+                                        $remaining_invalid = $preview['counts']['invalid'] - count($preview['invalid_samples']);
+                                        if ($remaining_invalid > 0):
+                                    ?>
+                                        <span class="invalid-count">And <?php echo $remaining_invalid; ?> more.</span>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                             <label class="send-option" style="margin-top: 0.75rem;">
@@ -731,16 +760,20 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
                             Preview Recipients
                         </button>
                         <?php
-                            $disable_send = false;
+                            $disable_send_reason = '';
                             if ($preview_error) {
-                                $disable_send = true;
+                                $disable_send_reason = 'Fix preview errors before sending.';
                             } elseif ($preview && $preview['mode'] === 'custom' && $preview['counts']['valid'] === 0) {
-                                $disable_send = true;
+                                $disable_send_reason = 'No valid recipients to send.';
                             }
+                            $disable_send = $disable_send_reason !== '';
                         ?>
                         <button type="submit" name="action" value="start" class="btn-primary" <?php echo $disable_send ? 'disabled' : ''; ?> onclick="return confirm('Start sending this campaign to the selected recipients? This cannot be undone.')">
                             Start Sending Campaign
                         </button>
+                        <?php if ($disable_send): ?>
+                            <div class="disabled-message"><?php echo htmlspecialchars($disable_send_reason); ?></div>
+                        <?php endif; ?>
                     </div>
                 </form>
             </div>
