@@ -26,7 +26,16 @@ export class StorageService {
     try {
       localStorage.setItem(STORAGE_KEYS.hosts, JSON.stringify(hosts));
       // Sync to IndexedDB asynchronously (non-blocking)
-      dbUtils.bulkUpsertHosts(hosts).catch(error => {
+      dbUtils.getAllHosts().then(existingHosts => {
+        const existingIds = new Set(existingHosts.map(host => host.id));
+        const newIds = new Set(hosts.map(host => host.id));
+        const deletions = Array.from(existingIds).filter(id => !newIds.has(id));
+        const ops = [
+          dbUtils.bulkUpsertHosts(hosts),
+          ...deletions.map(id => dbUtils.deleteHost(id))
+        ];
+        return Promise.all(ops);
+      }).catch(error => {
         console.warn('Failed to sync hosts to IndexedDB:', error);
       });
     } catch (error) {
@@ -53,6 +62,9 @@ export class StorageService {
   static deleteHost(id: string): void {
     const hosts = this.getHosts().filter(h => h.id !== id);
     this.saveHosts(hosts);
+    dbUtils.deleteHost(id).catch(error => {
+      console.warn('Failed to delete host from IndexedDB:', error);
+    });
   }
 
   static getHost(id: string): Host | null {
@@ -112,7 +124,16 @@ export class StorageService {
     try {
       localStorage.setItem(STORAGE_KEYS.guests, JSON.stringify(guests));
       // Sync to IndexedDB asynchronously (non-blocking)
-      dbUtils.bulkUpsertGuests(guests).catch(error => {
+      dbUtils.getAllGuests().then(existingGuests => {
+        const existingIds = new Set(existingGuests.map(guest => guest.id));
+        const newIds = new Set(guests.map(guest => guest.id));
+        const deletions = Array.from(existingIds).filter(id => !newIds.has(id));
+        const ops = [
+          dbUtils.bulkUpsertGuests(guests),
+          ...deletions.map(id => dbUtils.deleteGuest(id))
+        ];
+        return Promise.all(ops);
+      }).catch(error => {
         console.warn('Failed to sync guests to IndexedDB:', error);
       });
     } catch (error) {
@@ -288,7 +309,9 @@ export class StorageService {
       // Also clear IndexedDB
       Promise.all([
         dbUtils.clearHosts(),
-        dbUtils.clearGuests()
+        dbUtils.clearGuests(),
+        dbUtils.clearSettings(),
+        dbUtils.clearSyncLog()
       ]).catch(error => {
         console.warn('Failed to clear IndexedDB:', error);
       });
