@@ -63,467 +63,180 @@ if (!empty($_GET['api'])) {
     exit;
 }
 
+// Handle logout
+if (!empty($_GET['logout'])) {
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Floinvite Mail Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Email Marketing Dashboard - Floinvite</title>
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Dark Mode Config -->
+    <script>
+      if (localStorage.getItem('theme') === 'dark' || 
+          (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+
     <style>
-        :root {
-            --text-color: rgba(255, 255, 255, 0.95);
-            --subtitle-color: rgba(255, 255, 255, 0.75);
-            --label-color: rgba(255, 255, 255, 0.85);
-            --card-bg: rgba(15, 23, 42, 0.8);
-            --card-blur: 16px;
-            --card-border: 1px solid rgba(255, 255, 255, 0.1);
-            --button-bg: linear-gradient(135deg, #4f46e5 0%, #667eea 100%);
-            --button-bg-hover: linear-gradient(135deg, #4338ca 0%, #5a67d8 100%);
-            --button-text: white;
-            --input-bg: rgba(255, 255, 255, 0.08);
-            --input-focus-bg: rgba(255, 255, 255, 0.12);
-            --input-border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0b1220;
-            color: var(--text-color);
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        header {
-            background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 2rem;
-            padding: 2rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .header-branding {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .header-branding img {
-            width: 32px;
-            height: 32px;
-        }
-
-        .brand-name {
-            font-size: 1.25rem;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-        }
-
-        .brand-name-flo {
-            color: var(--text-color);
-        }
-
-        .brand-name-invite {
-            color: #4f46e5;
-        }
-
-        header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .nav {
-            display: flex;
-            gap: 2rem;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            flex-wrap: wrap;
-        }
-
-        .nav a {
-            color: var(--subtitle-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-            position: relative;
-        }
-
-        .nav a:hover {
-            color: #4f46e5;
-        }
-
-        .nav a.active {
-            color: #4f46e5;
-        }
-
-        .nav a.active::after {
-            content: '';
-            position: absolute;
-            bottom: -0.5rem;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #4f46e5;
-        }
-
-        .logout {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            padding: 0.625rem 1.25rem;
-            border-radius: 6px;
-            text-decoration: none;
-            display: inline-block;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .logout:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(var(--card-blur));
-            border: var(--card-border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.2s;
-        }
-
-        .stat-card:hover {
-            background: rgba(15, 23, 42, 0.95);
-            border-color: rgba(79, 70, 229, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .stat-card h3 {
-            font-size: 0.75rem;
-            color: var(--subtitle-color);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        .stat-card .value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #4f46e5;
-            margin-bottom: 0.5rem;
-        }
-
-        .section {
-            background: var(--card-bg);
-            backdrop-filter: blur(var(--card-blur));
-            border: var(--card-border);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            overflow-x: auto;
-        }
-
-        .section h2 {
-            margin-bottom: 1.5rem;
-            font-size: 1.25rem;
-            color: var(--text-color);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        th {
-            padding: 1rem 0.75rem;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.875rem;
-            color: var(--label-color);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        td {
-            padding: 1rem 0.75rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: var(--text-color);
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 0.375rem 0.875rem;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .status-draft {
-            background: rgba(107, 114, 128, 0.2);
-            color: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(107, 114, 128, 0.3);
-        }
-
-        .status-sending {
-            background: rgba(79, 70, 229, 0.2);
-            color: #a5b4fc;
-            border: 1px solid rgba(79, 70, 229, 0.3);
-        }
-
-        .status-scheduled {
-            background: rgba(217, 119, 6, 0.2);
-            color: #fed7aa;
-            border: 1px solid rgba(217, 119, 6, 0.3);
-        }
-
-        .status-completed {
-            background: rgba(34, 197, 94, 0.2);
-            color: #86efac;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        button, a.btn-primary {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.95rem;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background: var(--button-bg);
-            color: var(--button-text);
-        }
-
-        .btn-primary:hover {
-            background: var(--button-bg-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--subtitle-color);
-        }
-
-        .empty-state p {
-            margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            header {
-                padding: 1rem 0;
-                margin-bottom: 1rem;
-            }
-
-            .header-top {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .nav {
-                gap: 1rem;
-                margin-top: 1rem;
-                padding-top: 1rem;
-            }
-
-            .stats {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 0.75rem;
-            }
-
-            .stat-card {
-                padding: 1rem;
-            }
-
-            .stat-card .value {
-                font-size: 1.75rem;
-            }
-
-            .section {
-                padding: 1rem;
-            }
-
-            .button-group {
-                gap: 0.5rem;
-            }
-
-            button, a.btn-primary {
-                padding: 0.625rem 1rem;
-                font-size: 0.9rem;
-            }
-
-            table {
-                font-size: 0.9rem;
-            }
-
-            th, td {
-                padding: 0.5rem;
-            }
-        }
+      body {
+        background: #0b1220;
+        color: rgba(255, 255, 255, 0.95);
+      }
     </style>
 </head>
-<body>
-    <header>
-        <div class="container">
-            <div class="header-top">
-                <div class="header-branding">
-                    <img src="../xmas-logo.png" alt="floinvite">
-                    <span class="brand-name">
-                        <span class="brand-name-flo">flo</span><span class="brand-name-invite">invite</span>
-                    </span>
+<body class="bg-slate-950 text-white">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Top Row: Logo & Logout -->
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center gap-3">
+                    <img src="../xmas-logo.png" alt="floinvite" class="w-8 h-8">
+                    <span class="text-lg font-bold">flo<span class="text-indigo-500">invite</span></span>
                 </div>
-                <a href="?logout=1" class="logout">Logout</a>
+                <a href="?logout=1" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
+                    Logout
+                </a>
             </div>
-            <nav class="nav">
-                <a href="index.php" class="active">Dashboard</a>
-                <a href="subscribers.php">Subscribers</a>
-                <a href="compose.php">New Campaign</a>
-                <a href="?api=1">API</a>
+
+            <!-- Navigation -->
+            <nav class="flex gap-6 border-t border-slate-800 pt-4 pb-4 flex-wrap">
+                <a href="index.php" class="text-indigo-500 border-b-2 border-indigo-500 pb-2 font-semibold">Dashboard</a>
+                <a href="subscribers.php" class="text-slate-400 hover:text-white transition-colors">Subscribers</a>
+                <a href="compose.php" class="text-slate-400 hover:text-white transition-colors">New Campaign</a>
             </nav>
         </div>
     </header>
 
-    <div class="container">
-        <!-- Statistics -->
-        <div class="stats">
-            <div class="stat-card">
-                <h3>Active Subscribers</h3>
-                <div class="value"><?php echo number_format($stats['total_subscribers']); ?></div>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Statistics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:bg-slate-900/70 transition-colors">
+                <h3 class="text-sm uppercase font-semibold text-slate-400 tracking-wider mb-2">Active Subscribers</h3>
+                <div class="text-4xl font-bold text-indigo-500 mb-2"><?php echo number_format($stats['total_subscribers']); ?></div>
+                <p class="text-xs text-slate-500">Subscribed and active</p>
             </div>
-            <div class="stat-card">
-                <h3>Active Campaigns</h3>
-                <div class="value"><?php echo $stats['active_campaigns']; ?></div>
+
+            <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:bg-slate-900/70 transition-colors">
+                <h3 class="text-sm uppercase font-semibold text-slate-400 tracking-wider mb-2">Active Campaigns</h3>
+                <div class="text-4xl font-bold text-indigo-500 mb-2"><?php echo $stats['active_campaigns']; ?></div>
+                <p class="text-xs text-slate-500">Draft, scheduled, or sending</p>
             </div>
-            <div class="stat-card">
-                <h3>Emails This Week</h3>
-                <div class="value"><?php echo number_format($stats['emails_sent_week']); ?></div>
+
+            <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:bg-slate-900/70 transition-colors">
+                <h3 class="text-sm uppercase font-semibold text-slate-400 tracking-wider mb-2">Emails This Week</h3>
+                <div class="text-4xl font-bold text-indigo-500 mb-2"><?php echo number_format($stats['emails_sent_week']); ?></div>
+                <p class="text-xs text-slate-500">Successfully sent</p>
             </div>
-            <div class="stat-card">
-                <h3>Average Open Rate</h3>
-                <div class="value"><?php echo $stats['open_rate']; ?>%</div>
+
+            <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:bg-slate-900/70 transition-colors">
+                <h3 class="text-sm uppercase font-semibold text-slate-400 tracking-wider mb-2">Open Rate</h3>
+                <div class="text-4xl font-bold text-indigo-500 mb-2"><?php echo $stats['open_rate']; ?>%</div>
+                <p class="text-xs text-slate-500">Average across campaigns</p>
             </div>
         </div>
 
-        <!-- Recent Campaigns -->
-        <div class="section">
-            <h2>Recent Campaigns</h2>
+        <!-- Recent Campaigns Section -->
+        <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden mb-8">
+            <div class="p-6 border-b border-slate-800">
+                <h2 class="text-xl font-bold">Recent Campaigns</h2>
+            </div>
+
             <?php if (count($recent_campaigns) > 0): ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Campaign</th>
-                            <th>Status</th>
-                            <th>Recipients</th>
-                            <th>Sent</th>
-                            <th>Opens</th>
-                            <th>Created</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($recent_campaigns as $campaign): ?>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="border-b border-slate-800 bg-slate-800/50">
                             <tr>
-                                <td><strong><?php echo htmlspecialchars($campaign['name']); ?></strong></td>
-                                <td>
-                                    <span class="status-badge status-<?php echo $campaign['status']; ?>">
-                                        <?php echo ucfirst($campaign['status']); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo $campaign['recipient_count']; ?></td>
-                                <td><?php echo $campaign['sent_count']; ?></td>
-                                <td><?php echo $campaign['opened_count']; ?></td>
-                                <td><?php echo date('M d, Y', strtotime($campaign['created_at'])); ?></td>
+                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Campaign</th>
+                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Status</th>
+                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Recipients</th>
+                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Sent</th>
+                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Opens</th>
+                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Created</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recent_campaigns as $campaign): ?>
+                                <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+                                    <td class="px-6 py-3 font-medium"><?php echo htmlspecialchars($campaign['name']); ?></td>
+                                    <td class="px-6 py-3">
+                                        <?php
+                                        $status = $campaign['status'];
+                                        $status_styles = [
+                                            'draft' => 'bg-slate-700 text-slate-100',
+                                            'scheduled' => 'bg-amber-900 text-amber-200',
+                                            'sending' => 'bg-blue-900 text-blue-200',
+                                            'completed' => 'bg-green-900 text-green-200'
+                                        ];
+                                        $style = $status_styles[$status] ?? 'bg-slate-700 text-slate-100';
+                                        ?>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold <?php echo $style; ?>">
+                                            <?php echo ucfirst($status); ?>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-3"><?php echo $campaign['recipient_count']; ?></td>
+                                    <td class="px-6 py-3"><?php echo $campaign['sent_count']; ?></td>
+                                    <td class="px-6 py-3"><?php echo $campaign['opened_count']; ?></td>
+                                    <td class="px-6 py-3 text-slate-400"><?php echo date('M d, Y', strtotime($campaign['created_at'])); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             <?php else: ?>
-                <div class="empty-state">
-                    <p>No campaigns yet</p>
-                    <a href="compose.php" class="btn-primary">Create Your First Campaign</a>
+                <div class="p-12 text-center">
+                    <p class="text-slate-400 mb-4">No campaigns yet</p>
+                    <a href="compose.php" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors">
+                        Create Your First Campaign
+                    </a>
                 </div>
             <?php endif; ?>
         </div>
 
         <!-- Quick Actions -->
-        <div class="section">
-            <h2>Quick Actions</h2>
-            <div class="button-group">
-                <a href="compose.php" class="btn-primary">New Campaign</a>
-                <a href="subscribers.php" class="btn-primary">Manage Subscribers</a>
-                <a href="subscribers.php?action=import" class="btn-primary">Import List</a>
+        <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
+            <div class="flex flex-wrap gap-3">
+                <a href="compose.php" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors">
+                    New Campaign
+                </a>
+                <a href="subscribers.php" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors">
+                    Manage Subscribers
+                </a>
+                <a href="subscribers.php?action=import" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors">
+                    Import List
+                </a>
             </div>
         </div>
-    </div>
+    </main>
 
     <script>
         // Mark current page in nav
         const currentPath = window.location.pathname;
-        document.querySelectorAll('.nav a').forEach(link => {
-            if (link.href.includes(currentPath.split('/').pop())) {
-                link.classList.add('active');
+        document.querySelectorAll('nav a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (currentPath.includes(href.split('?')[0])) {
+                link.classList.add('text-indigo-500');
+                link.classList.add('border-b-2');
+                link.classList.add('border-indigo-500');
+                link.classList.add('pb-2');
             }
         });
     </script>

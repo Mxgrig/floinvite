@@ -10,8 +10,8 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/logs/error_log');
 
-// Load environment variables
-require_once dirname(dirname(__DIR__)) . '/public/api/env.php';
+// Load environment variables - use relative path from floinvite-mail to api
+require_once __DIR__ . '/../api/env.php';
 
 // Database Configuration (Email Marketing System)
 define('DB_HOST', getenv('DB_HOST_MAIL') ?: getenv('DB_HOST') ?: 'localhost');

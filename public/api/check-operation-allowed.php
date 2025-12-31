@@ -18,6 +18,8 @@
 
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/error.log');
 
 if (ob_get_level()) {
     ob_clean();
@@ -96,9 +98,14 @@ $db_name = getenv('DB_NAME') ?: 'u958180753_floinvite';
 $db_user = getenv('DB_USER') ?: 'u958180753_floinvite';
 $db_pass = getenv('DB_PASS') ?: '';
 
+// Debug logging
+$debug_log = __DIR__ . '/connection_debug.log';
+file_put_contents($debug_log, date('Y-m-d H:i:s') . " | Attempting connection with: Host=$db_host, User=$db_user, DB=$db_name" . PHP_EOL, FILE_APPEND);
+
 if (!$db_pass) {
     http_response_code(500);
     echo json_encode(['error' => 'Database password not configured']);
+    file_put_contents($debug_log, date('Y-m-d H:i:s') . " | ERROR: DB_PASS not set" . PHP_EOL, FILE_APPEND);
     exit;
 }
 
@@ -109,14 +116,19 @@ try {
         $db_pass,
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
+    
+    file_put_contents($debug_log, date('Y-m-d H:i:s') . " | SUCCESS: Connected to database" . PHP_EOL, FILE_APPEND);
 } catch (PDOException $e) {
     http_response_code(500);
     $error_msg = 'Database connection failed';
     
-    // Log detailed error for debugging (only in development)
+    // Always log the detailed error
+    $detailed_error = $e->getMessage();
+    file_put_contents($debug_log, date('Y-m-d H:i:s') . " | ERROR: " . $detailed_error . PHP_EOL, FILE_APPEND);
+    
+    // Show detailed error in development mode
     if (getenv('APP_ENV') === 'development' || getenv('DEBUG') === 'true') {
-        $error_msg = 'Database error: ' . $e->getMessage();
-        error_log("DB Connection Error: Host=$db_host, User=$db_user, DB=$db_name, Error: " . $e->getMessage());
+        $error_msg = 'Database error: ' . $detailed_error;
     }
     
     echo json_encode([
@@ -253,8 +265,9 @@ try {
 
 } catch (Exception $e) {
     http_response_code(500);
+    file_put_contents($debug_log, date('Y-m-d H:i:s') . " | QUERY ERROR: " . $e->getMessage() . PHP_EOL, FILE_APPEND);
     echo json_encode([
-        'error' => 'Server error: ' . $e->getMessage(),
+        'error' => 'Server error',
         'allowed' => false
     ]);
 }
