@@ -8,7 +8,7 @@
  */
 
 export interface ServerSubscriptionStatus {
-  tier: 'starter' | 'professional' | 'enterprise';
+  tier: 'starter' | 'compliance' | 'enterprise';
   status: 'active' | 'past_due' | 'canceled' | 'unpaid';
   currentPeriodStart: number | null;
   currentPeriodEnd: number | null;
@@ -19,7 +19,7 @@ export interface ServerSubscriptionStatus {
 export interface CheckInAllowedResponse {
   allowed: boolean;
   reason: 'ok' | 'limit_reached' | 'payment_required';
-  tier: 'starter' | 'professional' | 'enterprise';
+  tier: 'starter' | 'compliance' | 'enterprise';
   subscriptionActive: boolean;
   usage: {
     hosts: number;
@@ -37,7 +37,7 @@ export interface OperationCheckResponse {
   allowed: boolean;
   reason: 'ok' | 'limit_reached' | 'payment_required';
   operation: string;
-  tier: 'starter' | 'professional' | 'enterprise';
+  tier: 'starter' | 'compliance' | 'enterprise';
   message: string;
 }
 
@@ -67,7 +67,7 @@ export class ServerPaymentService {
     currentGuestCount: number
   ): Promise<OperationCheckResponse> {
     try {
-      const response = await fetch(`${this.API_URL}/check-operation-allowed`, {
+      const response = await fetch(`${this.API_URL}/check-operation-allowed.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -113,7 +113,7 @@ export class ServerPaymentService {
    */
   static async getSubscriptionStatus(email: string): Promise<ServerSubscriptionStatus | null> {
     try {
-      const url = new URL(`${this.API_URL}/subscription-status`, window.location.origin);
+      const url = new URL(`${this.API_URL}/subscription-status.php`, window.location.origin);
       url.searchParams.append('email', email);
 
       const response = await fetch(url.toString(), {
@@ -162,7 +162,7 @@ export class ServerPaymentService {
     currentGuestCount: number
   ): Promise<CheckInAllowedResponse> {
     try {
-      const response = await fetch(`${this.API_URL}/check-checkin-allowed`, {
+      const response = await fetch(`${this.API_URL}/check-checkin-allowed.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -223,13 +223,13 @@ export class ServerPaymentService {
    * Check if user is subscribed to a tier
    * Returns true only if server confirms active subscription
    */
-  static async isSubscribedTo(email: string, tier: 'professional' | 'enterprise'): Promise<boolean> {
+  static async isSubscribedTo(email: string, tier: 'compliance' | 'enterprise'): Promise<boolean> {
     try {
       const status = await this.getSubscriptionStatus(email);
       if (!status) return false;
 
       // Check if user's tier is equal or higher than requested tier
-      const tierHierarchy = ['starter', 'professional', 'enterprise'];
+      const tierHierarchy = ['starter', 'compliance', 'enterprise'];
       const userTierIndex = tierHierarchy.indexOf(status.tier);
       const requiredTierIndex = tierHierarchy.indexOf(tier);
 
@@ -243,7 +243,7 @@ export class ServerPaymentService {
    * Get current tier from server
    * Cannot be spoofed via localStorage
    */
-  static async getCurrentTier(email: string): Promise<'starter' | 'professional' | 'enterprise'> {
+  static async getCurrentTier(email: string): Promise<'starter' | 'compliance' | 'enterprise'> {
     try {
       const status = await this.getSubscriptionStatus(email);
       return status?.tier ?? 'starter';

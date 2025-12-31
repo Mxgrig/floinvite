@@ -128,6 +128,9 @@ try {
 
     if ($user) {
         $tier = $user['tier'];
+        if ($tier === 'professional') {
+            $tier = 'compliance';
+        }
         if ($user['subscription_status'] === 'active' && $user['current_period_end'] && time() <= $user['current_period_end']) {
             $subscription_active = true;
         }
@@ -172,7 +175,7 @@ try {
         // Define limits
         $limits = [
             'starter' => 20,
-            'professional' => 999999,
+            'compliance' => 999999,
             'enterprise' => 999999
         ];
 
@@ -183,7 +186,7 @@ try {
         if ($totalCount >= $tierLimit) {
             $allowed = false;
             $reason = 'limit_reached';
-        } elseif (!$subscription_active && $tier === 'professional') {
+        } elseif (!$subscription_active && $tier === 'compliance') {
             $allowed = false;
             $reason = 'payment_required';
         } else {
@@ -222,8 +225,8 @@ try {
         'message' => $allowed
             ? "Operation allowed"
             : ($reason === 'limit_reached'
-                ? "You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional."
-                : "Payment required. Continue on Starter for $5/month, or upgrade to Professional.")
+                ? "You have reached the free tier limit. Continue on Starter for $29/month, or upgrade to Compliance+."
+                : "Payment required. Continue on Starter for $29/month, or upgrade to Compliance+.")
     ]);
 
 } catch (Exception $e) {

@@ -8,7 +8,7 @@
 
 import { useState, useEffect, type ReactNode } from 'react';
 import { UserCheck, Calendar, Mail, Phone, CheckCircle, AlertCircle, Lock } from 'lucide-react';
-import { Guest, Host, GuestStatus } from '../types';
+import { Guest, Host, GuestStatus, AppSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
 import { ServerPaymentService } from '../services/serverPaymentService';
@@ -36,7 +36,14 @@ interface NotificationStatus {
 export function VisitorCheckIn() {
   const [step, setStep] = useState<TriageStep>('welcome');
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
-  const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
+  const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
+    businessName: 'My Company',
+    notificationEmail: 'admin@floinvite.com',
+    kioskMode: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+  const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const guests = StorageService.getGuests();
   const [notificationStatus, setNotificationStatus] = useState<NotificationStatus | null>(null);
 
@@ -157,7 +164,12 @@ export function VisitorCheckIn() {
 
     // Check payment enforcement server-side - prevents exceeding 20-item free tier limit
     // This is enforced by backend and cannot be bypassed
-    const userEmail = localStorage.getItem('floinvite_user_email') || '';
+    const userEmail = localStorage.getItem('floinvite_user_email') || settings.notificationEmail || '';
+    if (!userEmail) {
+      newErrors.push('Account email required to verify subscription status.');
+      setErrors(newErrors);
+      return;
+    }
     if (userEmail) {
       const currentHosts = hosts.length;
       const currentGuests = StorageService.getGuests().length;
@@ -171,7 +183,7 @@ export function VisitorCheckIn() {
 
       if (!operationCheck.allowed) {
         newErrors.push(
-          operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional.'
+          operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $29/month, or upgrade to Compliance+.'
         );
         setErrors(newErrors);
         return;
@@ -220,7 +232,7 @@ export function VisitorCheckIn() {
       console.log('📧 Triggering email notification...');
       const emailNotification = generateVisitorArrivalNotification(guest, host, {
         includeCompany: true,
-        tone: 'professional'
+        tone: 'compliance'
       });
       console.log('📧 Email notification object:', emailNotification);
       await sendEmailNotification(emailNotification);
@@ -296,7 +308,11 @@ export function VisitorCheckIn() {
 
   const handleCheckInExpected = async (guestId: string) => {
     // Check payment enforcement server-side - prevents exceeding 20-item free tier limit
-    const userEmail = localStorage.getItem('floinvite_user_email') || '';
+    const userEmail = localStorage.getItem('floinvite_user_email') || settings.notificationEmail || '';
+    if (!userEmail) {
+      setErrors(['Account email required to verify subscription status.']);
+      return;
+    }
     if (userEmail) {
       const currentHosts = hosts.length;
       const currentGuests = StorageService.getGuests().length;
@@ -310,7 +326,7 @@ export function VisitorCheckIn() {
 
       if (!operationCheck.allowed) {
         setErrors([
-          operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional.'
+          operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $29/month, or upgrade to Compliance+.'
         ]);
         return;
       }
@@ -423,7 +439,7 @@ function WelcomeStep({
   onWalkIn: () => void;
   onExpected: () => void;
   canUseExpected: boolean;
-  userTier: 'starter' | 'professional' | 'enterprise';
+  userTier: 'starter' | 'compliance' | 'enterprise';
 }) {
   return (
     <div className="triage-panel">
@@ -478,7 +494,7 @@ function WelcomeStep({
         }}>
           <strong>Expected Guest Lookup - Upgrade to Unlock</strong>
           <p style={{ fontSize: '0.9rem', marginTop: '8px', marginBottom: 0 }}>
-            Unlock expected guest lookup with Starter tier ($5/month after 20 items) or upgrade to Professional ($10/month) for returning visitor tracking and advanced features.
+            Unlock expected guest lookup with Starter tier ($29/month after 20 items) or upgrade to Compliance+ ($49/month) for returning visitor tracking and advanced features.
           </p>
         </div>
       )}

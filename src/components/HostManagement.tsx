@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { Lock, Mail } from 'lucide-react';
-import { Host } from '../types';
+import { AppSettings, Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { ServerPaymentService } from '../services/serverPaymentService';
 import { usePersistedState } from '../utils/hooks';
@@ -20,7 +20,14 @@ type HostStep = 'list' | 'add' | 'import';
 
 export function HostManagement() {
   const [hosts, setHosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
-  const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
+  const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
+    businessName: 'My Company',
+    notificationEmail: 'admin@floinvite.com',
+    kioskMode: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+  const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [step, setStep] = useState<HostStep>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -77,7 +84,12 @@ export function HostManagement() {
     // Check payment enforcement server-side - prevents exceeding 20-item free tier limit
     // Only check when adding new host, not when editing
     if (!editingId) {
-      const userEmail = localStorage.getItem('floinvite_user_email') || '';
+      const userEmail = localStorage.getItem('floinvite_user_email') || settings.notificationEmail || '';
+      if (!userEmail) {
+        newErrors.push('Account email required to verify subscription status.');
+        setErrors(newErrors);
+        return;
+      }
       if (userEmail) {
         const currentHosts = hosts.length;
         const currentGuests = StorageService.getGuests().length;
@@ -91,7 +103,7 @@ export function HostManagement() {
 
         if (!operationCheck.allowed) {
           newErrors.push(
-            operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional.'
+            operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $29/month, or upgrade to Compliance+.'
           );
           setErrors(newErrors);
           return;
@@ -150,7 +162,11 @@ export function HostManagement() {
         }
 
         // Check payment enforcement server-side - prevents exceeding 20-item free tier limit
-        const userEmail = localStorage.getItem('floinvite_user_email') || '';
+        const userEmail = localStorage.getItem('floinvite_user_email') || settings.notificationEmail || '';
+        if (!userEmail) {
+          setErrors(['Account email required to verify subscription status.']);
+          return;
+        }
         if (userEmail) {
           const currentHosts = hosts.length;
           const currentGuests = StorageService.getGuests().length;
@@ -164,7 +180,7 @@ export function HostManagement() {
 
           if (!operationCheck.allowed) {
             setErrors([
-              operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $5/month, or upgrade to Professional.'
+              operationCheck.message || 'You have reached the free tier limit. Continue on Starter for $29/month, or upgrade to Compliance+.'
             ]);
             return;
           }

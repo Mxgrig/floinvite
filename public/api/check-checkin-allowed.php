@@ -115,7 +115,7 @@ $limits = [
         'guests' => 20,
         'total' => 20  // hosts + guests combined
     ],
-    'professional' => [
+    'compliance' => [
         'hosts' => 999999,
         'guests' => 999999,
         'total' => 999999
@@ -147,6 +147,9 @@ try {
 
     if ($user) {
         $tier = $user['tier'];
+        if ($tier === 'professional') {
+            $tier = 'compliance';
+        }
         // Validate subscription is actually active
         if ($user['subscription_status'] === 'active' && $user['current_period_end'] && time() <= $user['current_period_end']) {
             $subscription_active = true;

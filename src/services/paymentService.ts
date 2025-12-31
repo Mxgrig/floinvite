@@ -9,7 +9,7 @@ export interface CheckoutSession {
 }
 
 export interface SubscriptionStatus {
-  tier: 'starter' | 'professional' | 'enterprise';
+  tier: 'starter' | 'compliance' | 'enterprise';
   status: 'active' | 'past_due' | 'canceled' | 'unpaid';
   currentPeriodStart: string;
   currentPeriodEnd: string;
@@ -19,14 +19,14 @@ export interface SubscriptionStatus {
 export class PaymentService {
   private static STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   // Payment integration is Phase 3 - no local API needed for MVP
-  private static API_BASE_URL = import.meta.env.VITE_API_URL || '';
+  private static API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
   /**
    * Create a Stripe Checkout Session
    * Redirects user to Stripe hosted checkout
    */
   static async createCheckoutSession(
-    tierId: 'starter' | 'professional' | 'enterprise',
+    tierId: 'starter' | 'compliance' | 'enterprise',
     billingCycle: 'month' | 'year',
     customerEmail?: string,
     customAmount?: number
@@ -45,8 +45,8 @@ export class PaymentService {
 
       if (!priceId && !resolvedCustomAmount) {
         const defaultAmounts: Record<string, { month: number; year: number }> = {
-          starter: { month: 500, year: 4800 },
-          professional: { month: 1000, year: 14400 }
+          starter: { month: 2900, year: 34800 },
+          compliance: { month: 4900, year: 58800 }
         };
         const fallback = defaultAmounts[tierId];
         if (fallback) {
@@ -132,11 +132,16 @@ export class PaymentService {
    */
   static async getSubscriptionStatus(): Promise<SubscriptionStatus | null> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/subscription-status`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.getAuthToken()}`
-        }
+      const email = this.getCustomerEmail();
+      if (!email) {
+        return null;
+      }
+
+      const url = new URL(`${this.API_BASE_URL}/subscription-status.php`, window.location.origin);
+      url.searchParams.append('email', email);
+
+      const response = await fetch(url.toString(), {
+        method: 'GET'
       });
 
       if (!response.ok) {
@@ -206,7 +211,7 @@ export class PaymentService {
    * Update subscription tier (upgrade/downgrade)
    */
   static async updateSubscriptionTier(
-    newTierId: 'starter' | 'professional' | 'enterprise',
+    newTierId: 'starter' | 'compliance' | 'enterprise',
     billingCycle: 'month' | 'year'
   ): Promise<boolean> {
     try {
@@ -287,7 +292,7 @@ export class PaymentService {
    * Get the correct Stripe price ID environment variable key
    */
   private static getPriceIdKey(
-    tierId: 'starter' | 'professional' | 'enterprise',
+    tierId: 'starter' | 'compliance' | 'enterprise',
     billingCycle: 'month' | 'year'
   ): string {
     const cycle = billingCycle === 'month' ? 'MONTHLY' : 'YEARLY';
@@ -349,7 +354,7 @@ export class PaymentService {
   /**
    * Check if user has active subscription
    */
-  static isSubscribed(tier: 'professional' | 'enterprise'): boolean {
+  static isSubscribed(tier: 'compliance' | 'enterprise'): boolean {
     // This would typically check the subscription status
     // For MVP, you might check localStorage or session
     try {
@@ -357,8 +362,8 @@ export class PaymentService {
       if (!subscription) return false;
 
       const sub = JSON.parse(subscription);
-      const allowedTiers = tier === 'professional'
-        ? ['professional', 'enterprise']
+      const allowedTiers = tier === 'compliance'
+        ? ['compliance', 'enterprise']
         : ['enterprise'];
 
       return allowedTiers.includes(sub.tier) && sub.status === 'active';
@@ -370,7 +375,7 @@ export class PaymentService {
   /**
    * Get user's current tier
    */
-  static getCurrentTier(): 'starter' | 'professional' | 'enterprise' {
+  static getCurrentTier(): 'starter' | 'compliance' | 'enterprise' {
     try {
       const subscription = localStorage.getItem('floinvite_subscription');
       if (!subscription) return 'starter';
@@ -436,7 +441,7 @@ export class PaymentService {
  * Use this to conditionally show features based on subscription tier
  */
 export const hasFeature = (
-  tier: 'starter' | 'professional' | 'enterprise',
+  tier: 'starter' | 'compliance' | 'enterprise',
   feature: string
 ): boolean => {
   const features = {
