@@ -5,10 +5,26 @@
  */
 
 import { useState, useRef } from 'react';
-import { Mail, Upload, Eye, Send, AlertCircle, CheckCircle, Loader, Trash2 } from 'lucide-react';
+import { Mail, Upload, Eye, Send, AlertCircle, CheckCircle, Loader, Trash2, BarChart3 } from 'lucide-react';
 import { MarketingEmailRecipient, EmailSendResult } from '../types';
+import { getLogoUrl } from '../utils/logoHelper';
 import PageLayout from './PageLayout';
 import './EmailMarketing.css';
+
+// Stats Card Component
+function StatsCard({ icon: Icon, value, label }: { icon: any; value: string; label: string }) {
+  return (
+    <div className="email-stat-card">
+      <div className="email-stat-icon">
+        <Icon size={20} />
+      </div>
+      <div className="email-stat-info">
+        <div className="email-stat-value">{value}</div>
+        <div className="email-stat-label">{label}</div>
+      </div>
+    </div>
+  );
+}
 
 interface SendLog {
   id: string;
@@ -26,58 +42,179 @@ interface Subscriber {
   company?: string;
 }
 
-const DEFAULT_TEMPLATE = `<!DOCTYPE html>
+function getDefaultTemplate(): string {
+  const logoUrl = getLogoUrl();
+  const currentYear = new Date().getFullYear();
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; margin: 0; padding: 0; background: #f9fafb; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: #4f46e5; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-    .content { background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; }
-    .footer { background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; border-radius: 0 0 8px 8px; }
-    .cta-button { display: inline-block; background: #4f46e5; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600; }
-    h1, h2 { margin: 0 0 1rem 0; }
-    p { margin: 0 0 1rem 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: #f9fafb;
+      color: #111827;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 60px 20px;
+      background: #ffffff;
+    }
+    .logo-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo-img {
+      height: 60px;
+      margin-bottom: 20px;
+    }
+    .logo {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .logo .flo {
+      color: #4338ca;
+    }
+    .logo .invite {
+      color: #10b981;
+      font-weight: 600;
+    }
+    .logo-divider {
+      height: 2px;
+      background: #f0f0f0;
+      margin: 30px 0 0 0;
+    }
+    .content {
+      line-height: 1.8;
+      padding: 0 20px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 20px 0;
+      color: #111827;
+      text-align: center;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 30px 0 15px 0;
+      color: #111827;
+    }
+    p {
+      margin: 0 0 16px 0;
+      color: #374151;
+      font-size: 15px;
+    }
+    ul {
+      margin: 0 0 20px 0;
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 12px;
+      color: #374151;
+      font-size: 15px;
+    }
+    strong { color: #111827; }
+    .cta-button {
+      display: inline-block;
+      background: #4f46e5;
+      color: white;
+      padding: 16px 40px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 25px 0 35px 0;
+    }
+    .cta-button:hover {
+      background: #4338ca;
+    }
+    .divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 35px 0;
+    }
+    .footer {
+      padding-top: 30px;
+      border-top: 1px solid #e5e7eb;
+      text-align: center;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .footer-link {
+      color: #4f46e5;
+      text-decoration: none;
+    }
+    .footer-link:hover {
+      text-decoration: underline;
+    }
+    .brand-flo {
+      color: #4338ca;
+      font-weight: 700;
+    }
+    .brand-invite {
+      color: #10b981;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>Floinvite</h1>
-      <p>Visitor Management Made Simple</p>
+    <div class="logo-section">
+      <img src="${logoUrl}" alt="Floinvite" class="logo-img" />
+      <div class="logo">
+        <span class="flo">flo</span><span class="invite">invite</span>
+      </div>
+      <div class="logo-divider"></div>
     </div>
 
     <div class="content">
-      <h2>Welcome to Floinvite</h2>
+      <h1>Streamline Your Visitor Management</h1>
 
-      <p>We help modern offices streamline visitor check-in and keep everyone safe.</p>
+      <p>Hello,</p>
 
-      <h3>Key Features:</h3>
+      <p>Managing office visitors doesn't have to be complicated. Floinvite makes check-in fast, secure, and effortless—keeping your team informed and your office safe.</p>
+
+      <h2>How It Works:</h2>
       <ul>
-        <li><strong>30-Second Check-In:</strong> Fast, hassle-free visitor arrivals</li>
-        <li><strong>Host Notifications:</strong> Instant email/SMS alerts when visitors arrive</li>
-        <li><strong>Visitor Records:</strong> Maintain detailed check-in history</li>
-        <li><strong>Emergency Evacuation Lists:</strong> Quick accountability for safety</li>
-        <li><strong>Returning Visitor Recognition:</strong> Remember frequent guests</li>
-        <li><strong>Mobile-Friendly:</strong> Works on any device</li>
+        <li><strong>30-Second Check-In:</strong> Visitors sign in via web or tablet—no apps to download</li>
+        <li><strong>Instant Host Alerts:</strong> Employees get email/SMS notifications when their visitors arrive</li>
+        <li><strong>Visitor History:</strong> Maintain complete records for compliance and accountability</li>
+        <li><strong>Emergency Ready:</strong> Generate evacuation lists instantly for safety drills or incidents</li>
       </ul>
 
-      <p style="text-align: center; margin: 30px 0;">
-        <a href="https://floinvite.com" class="cta-button">See How It Works</a>
-      </p>
+      <p>Whether you're a startup, enterprise, or everything in between, Floinvite scales to your needs.</p>
 
-      <p>Start your free trial today. No credit card required.</p>
+      <div style="text-align: center;">
+        <a href="https://floinvite.com" class="cta-button">Start Your Free Trial</a>
+      </div>
+
+      <p style="font-size: 14px; color: #6b7280; text-align: center;">No credit card required. Full access to all features.</p>
+
+      <div class="divider"></div>
+
+      <p style="font-size: 13px;">Questions? <a href="https://floinvite.com" style="color: #4f46e5; text-decoration: none;">Learn more</a> about Floinvite or reach out to our team.</p>
     </div>
 
     <div class="footer">
-      <p>Floinvite - Professional Visitor Management</p>
-      <p>&copy; 2024 Floinvite. All rights reserved.</p>
-      <p><a href="https://floinvite.com/privacy" style="color: #4f46e5; text-decoration: none;">Privacy Policy</a> | <a href="https://floinvite.com/terms" style="color: #4f46e5; text-decoration: none;">Terms of Service</a></p>
+      <p style="margin: 20px 0 12px 0;"><span class="brand-flo">flo</span><span class="brand-invite">invite</span></p>
+      <p style="margin: 8px 0;"><a href="https://floinvite.com/privacy" class="footer-link">Privacy Policy</a> &nbsp;•&nbsp; <a href="https://floinvite.com/terms" class="footer-link">Terms of Service</a></p>
+      <p style="margin: 16px 0 0 0; color: #9ca3af;">&copy; ${currentYear} <span class="brand-flo">flo</span><span class="brand-invite">invite</span>. All rights reserved.</p>
     </div>
   </div>
 </body>
 </html>`;
+}
+
+const DEFAULT_TEMPLATE = getDefaultTemplate();
 
 interface EmailMarketingProps {
   onNavigate?: (page: string) => void;
@@ -87,8 +224,8 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'subscribers' | 'compose'>('dashboard');
   const [recipients, setRecipients] = useState<Subscriber[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
-  const [subject, setSubject] = useState('Floinvite - Visitor Management Made Simple');
-  const [fromName, setFromName] = useState('Floinvite Team');
+  const [subject, setSubject] = useState('Streamline Your Visitor Management with Floinvite');
+  const [fromName, setFromName] = useState('Floinvite');
   const [template, setTemplate] = useState(DEFAULT_TEMPLATE);
   const [showPreview, setShowPreview] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -268,8 +405,7 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
     <PageLayout
       eyebrow="Communications"
       title="Email Marketing"
-      subtitle="Send campaigns to prospects and manage your subscriber list"
-      stats={stats}
+      subtitle="Manage campaigns and subscribers"
     >
       <div className="email-marketing-container">
         {/* Tabs */}

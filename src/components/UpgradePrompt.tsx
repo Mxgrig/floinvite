@@ -11,21 +11,21 @@ import './UpgradePrompt.css';
 
 interface UpgradePromptProps {
   onClose?: () => void;
-  onUpgrade?: (tier: 'starter' | 'professional') => void;
+  onUpgrade?: (tier: 'starter' | 'compliance') => void;
 }
 
 export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
   const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'professional' | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'compliance' | null>(null);
   const usage = UsageTracker.getUsage();
   const percentage = UsageTracker.getUsagePercentage();
 
-  const handleUpgrade = async (tier: 'starter' | 'professional') => {
+  const handleUpgrade = async (tier: 'starter' | 'compliance') => {
     setLoading(true);
     setSelectedPlan(tier);
 
     try {
-      // Both Starter and Professional require Stripe payment
+      // Both Starter and Compliance+ require Stripe payment
       // Redirect to Stripe checkout for payment processing
       await PaymentService.createCheckoutSession(tier, 'month');
       // Will redirect to Stripe checkout
@@ -66,7 +66,7 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
 
         {/* Message */}
         <p className="upgrade-prompt-message">
-          You've reached your free limit of {usage.hostsLimit} hosts/visitors. Continue on Starter for $5/month, or upgrade to Professional for unlimited access.
+          You've reached your free limit of {usage.hostsLimit} hosts/visitors. Continue on Starter for $29/month, or upgrade to Compliance+ for $49/month.
         </p>
 
         {/* Usage Bar */}
@@ -83,25 +83,25 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
         <div className="plan-comparison">
           <div className="plan-card current">
             <h3>Starter (Continue)</h3>
-            <p className="plan-price">$5<span>/month</span></p>
-            <p className="plan-subtitle">Keep going after 20 items</p>
+            <p className="plan-price">$29<span>/month</span></p>
+            <p className="plan-subtitle">Everything you need</p>
             <ul className="plan-features">
-              <li>✓ Up to 20 hosts/visitors</li>
+              <li>✓ Unlimited guest check-ins</li>
               <li>✓ Email notifications</li>
-              <li>✓ Guest logbook & search</li>
-              <li>✓ CSV import</li>
+              <li>✓ Visitor logbook & search</li>
+              <li>✓ 90-day data exports</li>
             </ul>
           </div>
 
           <div className="plan-card upgrade">
-            <h3>Professional (Optional)</h3>
-            <p className="plan-price">$10<span>/month</span></p>
-            <p className="plan-subtitle">Unlimited + advanced features</p>
+            <h3>Compliance+ (Optional)</h3>
+            <p className="plan-price">$49<span>/month</span></p>
+            <p className="plan-subtitle">Audit-ready + retention</p>
             <ul className="plan-features">
-              <li>✓ Unlimited hosts/visitors</li>
-              <li>✓ SMS notifications</li>
-              <li>✓ CSV export & backup</li>
-              <li>✓ Advanced filtering</li>
+              <li>✓ 7-year record retention</li>
+              <li>✓ Automatic daily backups</li>
+              <li>✓ Full history exports</li>
+              <li>✓ Audit-ready reports</li>
               <li>✓ Priority support</li>
             </ul>
           </div>
@@ -114,20 +114,20 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
             onClick={() => handleUpgrade('starter')}
             disabled={loading || selectedPlan !== null}
           >
-            {loading && selectedPlan === 'starter' ? 'Processing...' : 'Pay $5/mo (Starter)'}
+            {loading && selectedPlan === 'starter' ? 'Processing...' : 'Pay $29/mo (Starter)'}
           </button>
           <button
             className="btn-secondary"
-            onClick={() => handleUpgrade('professional')}
+            onClick={() => handleUpgrade('compliance')}
             disabled={loading || selectedPlan !== null}
           >
-            {loading && selectedPlan === 'professional' ? 'Processing...' : 'Pay $10/mo (Professional)'}
+            {loading && selectedPlan === 'compliance' ? 'Processing...' : 'Pay $49/mo (Compliance+)'}
           </button>
         </div>
 
         {/* Footer Note */}
         <p className="upgrade-prompt-note">
-          Select Starter ($5/mo) to continue, or Professional ($10/mo) for unlimited access and extra features. Cancel anytime.
+          Select Starter ($29/mo) to continue, or Compliance+ ($49/mo) for audit-ready features with 7-year retention. Cancel anytime.
         </p>
       </div>
     </div>

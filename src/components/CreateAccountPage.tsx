@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { getLogoPath } from '../utils/logoHelper';
 import { LoopingVideo } from './LoopingVideo';
 import './AuthPage.css';
 
@@ -11,8 +12,8 @@ interface CreateAccountPageProps {
   onLoginSuccess: () => void;
   onNavigate: (page: string) => void;
   onLoginSuccessNavigate?: (page: string) => void;
-  selectedTier?: 'starter' | 'professional' | null;
-  setUserTier?: (tier: 'starter' | 'professional' | 'enterprise') => void;
+  selectedTier?: 'starter' | 'compliance' | null;
+  setUserTier?: (tier: 'starter' | 'compliance' | 'enterprise') => void;
   currentPage?: string;
 }
 
@@ -76,7 +77,7 @@ export function CreateAccountPage({
 
       // Set user tier based on selection
       if (setUserTier) {
-        setUserTier(selectedTier as 'starter' | 'professional');
+        setUserTier(selectedTier as 'starter' | 'compliance');
       }
 
       onLoginSuccess();
@@ -99,7 +100,7 @@ export function CreateAccountPage({
             type="button"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <img src="/xmas-logo.png" alt="floinvite" className="auth-logo" />
+            <img src={getLogoPath()} alt="floinvite" className="auth-logo" />
             <span className="auth-brand-name brand-wordmark">
               <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>

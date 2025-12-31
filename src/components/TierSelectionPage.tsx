@@ -1,16 +1,17 @@
 /**
  * TierSelectionPage Component
- * Choose between Starter and Professional tier during signup
- * Professional tier redirects to Stripe checkout
+ * Choose between Starter and Compliance+ tier during signup
+ * Compliance+ tier redirects to Stripe checkout
  */
 
 import { useState } from 'react';
 import { Check, X, ArrowRight } from 'lucide-react';
 import { LoopingVideo } from './LoopingVideo';
+import { getLogoPath } from '../utils/logoHelper';
 import './TierSelectionPage.css';
 
 interface TierSelectionPageProps {
-  onTierSelected: (tier: 'starter' | 'professional') => void;
+  onTierSelected: (tier: 'starter' | 'compliance') => void;
   onNavigate: (page: string) => void;
 }
 
@@ -26,11 +27,11 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
     }, 300);
   };
 
-  const handleProfessionalSelect = () => {
+  const handleComplianceSelect = () => {
     setLoading(true);
     // Both tiers proceed to account creation - no payment required upfront
     setTimeout(() => {
-      onTierSelected('professional');
+      onTierSelected('compliance');
       setLoading(false);
     }, 300);
   };
@@ -65,7 +66,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
             type="button"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <img src="/xmas-logo.png" alt="floinvite" className="tier-logo" />
+            <img src={getLogoPath()} alt="floinvite" className="tier-logo" />
             <span className="tier-brand-name brand-wordmark">
               <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>
@@ -102,7 +103,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
                 ))}
               </ul>
 
-              <h3 className="features-title locked-title">Professional Only</h3>
+              <h3 className="features-title locked-title">Compliance+ Only</h3>
               <ul className="features-list locked">
                 {features.professional.map((feature, idx) => (
                   <li key={idx} className="feature-item locked">
@@ -115,7 +116,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
               <div className="tier-usage-limit">
                 <p className="usage-limit-text">
                   💡 <strong>Free for the first 20 items</strong><br />
-                  <small>Then $5/month after 20 items (includes expected guests)</small>
+                  <small>Then $29/month after 20 items (includes expected guests)</small>
                 </p>
               </div>
             </div>
@@ -130,12 +131,12 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
             </button>
           </div>
 
-          {/* Professional Tier Card */}
+          {/* Compliance+ Tier Card */}
           <div className="tier-card professional recommended">
             <div className="tier-badge">RECOMMENDED</div>
 
             <div className="tier-card-header">
-              <h2 className="tier-card-name">Professional</h2>
+              <h2 className="tier-card-name">Compliance+</h2>
               <div className="tier-card-price">
                 <span className="price-amount">$10</span>
                 <span className="price-period">/month</span>
@@ -173,13 +174,13 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
 
             <button
               className="tier-button tier-button-primary"
-              onClick={handleProfessionalSelect}
+              onClick={handleComplianceSelect}
               disabled={loading}
               type="button"
             >
               {loading ? 'Loading...' : (
                 <>
-                  Continue with Professional
+                  Continue with Compliance+
                   <ArrowRight size={18} style={{ marginLeft: '8px' }} />
                 </>
               )}
@@ -203,7 +204,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
             </button>
           </p>
           <p className="tier-footer-note">
-            Start free with Starter tier. Upgrade to Professional anytime when you need advanced features.
+            Start free with Starter tier. Upgrade to Compliance+ anytime when you need advanced features.
           </p>
         </div>
       </div>

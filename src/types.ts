@@ -64,6 +64,20 @@ export interface ExpectedGuest extends Guest {
 }
 
 // ═══════════════════════════════════════════════════
+// User Authentication & Roles
+// ═══════════════════════════════════════════════════
+
+export type UserRole = 'user' | 'admin' | 'webmaster';
+export type UserTier = 'starter' | 'compliance' | 'enterprise';
+
+export interface UserAuth {
+  isAuthenticated: boolean;
+  userTier: UserTier;
+  userRole: UserRole;
+  email?: string;
+}
+
+// ═══════════════════════════════════════════════════
 // Application Settings
 // ═══════════════════════════════════════════════════
 
@@ -78,6 +92,38 @@ export interface AppSettings {
   kioskMode: boolean; // Enable fullscreen kiosk mode
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
+}
+
+// ═══════════════════════════════════════════════════
+// Email Marketing Types
+// ═══════════════════════════════════════════════════
+
+export interface MarketingEmail {
+  id: string;
+  subject: string;
+  from: string;
+  recipientCount: number;
+  sentCount: number;
+  failedCount: number;
+  status: 'draft' | 'sending' | 'completed' | 'failed';
+  sentAt?: string; // ISO timestamp
+  completedAt?: string; // ISO timestamp
+  createdAt: string; // ISO timestamp
+}
+
+export interface MarketingEmailRecipient {
+  email: string;
+  name?: string;
+  company?: string;
+}
+
+export interface EmailSendResult {
+  success: number;
+  failed: number;
+  errors: Array<{
+    email: string;
+    error: string;
+  }>;
 }
 
 // ═══════════════════════════════════════════════════

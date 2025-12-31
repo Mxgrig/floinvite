@@ -26,11 +26,11 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 5,
+    price: 29,
     billingCycle: 'month',
-    description: 'Up to 20 hosts/visitors with email notification',
+    description: 'Everything a small organisation needs to know who is on site',
     highlighted: false,
-    stripePriceId: 'price_starter_monthly',
+    stripePriceId: 'price_1SkJhFIB0Mi9CiIRq7m1oZB6',
     buttonText: 'Get Started',
     buttonColor: 'slate',
     features: [
@@ -105,14 +105,14 @@ export const PRICING_TIERS: PricingTier[] = [
   },
 
   {
-    id: 'professional',
-    name: 'Professional',
-    price: 10,
+    id: 'compliance',
+    name: 'Compliance+',
+    price: 49,
     billingCycle: 'month',
-    description: 'Unlimited guests, email & SMS notifications, and data backup',
+    description: 'For estates and organisations that must retain records and stay audit-ready',
     highlighted: true,
-    stripePriceId: 'price_professional_monthly',
-    buttonText: 'Upgrade to Pro',
+    stripePriceId: 'price_1SkJhGIB0Mi9CiIRyZn3B9oB',
+    buttonText: 'Upgrade to Compliance+',
     buttonColor: 'indigo',
     features: [
       // Core Features
@@ -278,15 +278,15 @@ export const FEATURE_CATEGORIES = [
 
 // Comparison table
 export const COMPARISON_TABLE = [
-  { feature: 'Guest Check-in', starter: true, professional: true, enterprise: true },
-  { feature: 'Email Notifications', starter: true, professional: true, enterprise: true },
-  { feature: 'WhatsApp Notifications', starter: true, professional: true, enterprise: true },
-  { feature: 'Slack/Teams Integration', starter: false, professional: true, enterprise: true },
-  { feature: 'Custom Webhooks', starter: false, professional: false, enterprise: true },
-  { feature: 'Cloud Backup', starter: false, professional: true, enterprise: true },
-  { feature: 'Multi-device Sync', starter: false, professional: true, enterprise: true },
-  { feature: 'Advanced Analytics', starter: false, professional: true, enterprise: true },
-  { feature: 'Priority Support', starter: false, professional: false, enterprise: true }
+  { feature: 'Guest Check-in', starter: true, compliance: true, enterprise: true },
+  { feature: 'Email Notifications', starter: true, compliance: true, enterprise: true },
+  { feature: 'Visitor Logbook', starter: true, compliance: true, enterprise: true },
+  { feature: 'Data Export (90 days)', starter: true, compliance: true, enterprise: true },
+  { feature: 'Automatic Backups', starter: false, compliance: true, enterprise: true },
+  { feature: '7-Year Record Retention', starter: false, compliance: true, enterprise: true },
+  { feature: 'Audit-Ready Reports', starter: false, compliance: true, enterprise: true },
+  { feature: 'Priority Support', starter: false, compliance: true, enterprise: true },
+  { feature: 'Custom Integrations', starter: false, compliance: false, enterprise: true }
 ];
 
 export interface PaymentOption {
@@ -299,38 +299,32 @@ export interface PaymentOption {
 export const STRIPE_PRICES: PaymentOption[] = [
   {
     tier: 'starter',
-    priceId: import.meta.env.VITE_STRIPE_STARTER_MONTHLY || 'price_starter_monthly',
-    amount: 5,
+    priceId: import.meta.env.VITE_STRIPE_STARTER_MONTHLY || 'price_1SkJhFIB0Mi9CiIRq7m1oZB6',
+    amount: 2900,
     interval: 'month'
   },
   {
     tier: 'starter',
-    priceId: import.meta.env.VITE_STRIPE_STARTER_YEARLY || 'price_starter_yearly',
-    amount: 48,
+    priceId: import.meta.env.VITE_STRIPE_STARTER_YEARLY || 'price_1SkJhFIB0Mi9CiIRbhu1w0nX',
+    amount: 34800,
     interval: 'year'
   },
   {
-    tier: 'professional',
-    priceId: import.meta.env.VITE_STRIPE_PROFESSIONAL_MONTHLY || 'price_professional_monthly',
-    amount: 15,
+    tier: 'compliance',
+    priceId: import.meta.env.VITE_STRIPE_COMPLIANCE_MONTHLY || 'price_1SkJhGIB0Mi9CiIRyZn3B9oB',
+    amount: 4900,
     interval: 'month'
   },
   {
-    tier: 'professional',
-    priceId: import.meta.env.VITE_STRIPE_PROFESSIONAL_YEARLY || 'price_professional_yearly',
-    amount: 144,
+    tier: 'compliance',
+    priceId: import.meta.env.VITE_STRIPE_COMPLIANCE_YEARLY || 'price_1SkJhGIB0Mi9CiIRaSZNXzSh',
+    amount: 58800,
     interval: 'year'
   },
   {
     tier: 'enterprise',
-    priceId: import.meta.env.VITE_STRIPE_ENTERPRISE_MONTHLY || 'price_enterprise_monthly',
-    amount: 25,
+    priceId: import.meta.env.VITE_STRIPE_ENTERPRISE_MONTHLY || 'price_1Sd7TJIB0Mi9CiIRa2ZEiKNt',
+    amount: 0,
     interval: 'month'
-  },
-  {
-    tier: 'enterprise',
-    priceId: import.meta.env.VITE_STRIPE_ENTERPRISE_YEARLY || 'price_enterprise_yearly',
-    amount: 240,
-    interval: 'year'
   }
 ];

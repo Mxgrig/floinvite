@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { getLogoPath } from '../utils/logoHelper';
 import './Login.css';
 import { LoopingVideo } from './LoopingVideo';
 
@@ -175,7 +176,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
             {/* Logo & Brand */}
             <button className="login-navbar-brand" onClick={() => handleNavClick('landing')}>
               <div className="login-navbar-logo">
-                <img src="/xmas-logo.png" alt="floinvite" />
+                <img src={getLogoPath()} alt="floinvite" />
               </div>
               <span className="brand-wordmark">
                 <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
@@ -249,7 +250,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
                 }}
               >
                 <div className="login-logo">
-                  <img src="/xmas-logo.png" alt="floinvite" />
+                  <img src={getLogoPath()} alt="floinvite" />
                 </div>
               </button>
 
@@ -340,7 +341,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
                 title="Back to home"
               >
                 <div className="login-logo">
-                  <img src="/xmas-logo.png" alt="floinvite" />
+                  <img src={getLogoPath()} alt="floinvite" />
                 </div>
               </button>
 

@@ -3,7 +3,7 @@
  * Controls which features are available based on subscription tier
  */
 
-export type SubscriptionTier = 'starter' | 'professional' | 'enterprise';
+export type SubscriptionTier = 'starter' | 'compliance' | 'enterprise';
 
 export interface FeatureAccess {
   feature: string;
@@ -169,7 +169,7 @@ export function getFeatureStatus(tier: SubscriptionTier, feature: string): Featu
   let message = '';
   if (!available && tier === 'starter') {
     message = `Upgrade to Professional to unlock ${feature.replace(/_/g, ' ')}`;
-  } else if (!available && tier === 'professional') {
+  } else if (!available && tier === 'compliance') {
     message = `Contact sales for ${feature.replace(/_/g, ' ')} access`;
   }
 
@@ -196,7 +196,7 @@ export function getLockedFeatures(tier: SubscriptionTier): string[] {
 export function getUpgradeFeatures(tier: SubscriptionTier): string[] {
   if (tier === 'enterprise') return [];
 
-  const nextTier = tier === 'starter' ? 'professional' : 'enterprise';
+  const nextTier = tier === 'starter' ? 'compliance' : 'enterprise';
   const currentFeatures = new Set(getTierFeatures(tier));
   const nextFeatures = getTierFeatures(nextTier);
 
@@ -244,7 +244,7 @@ export function getUpgradeRecommendation(tier: SubscriptionTier, attemptedFeatur
     return 'Contact support for assistance';
   }
 
-  if (tier === 'professional') {
+  if (tier === 'compliance') {
     return 'Contact sales to enable this feature';
   }
 

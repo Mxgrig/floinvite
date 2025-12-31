@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { getLogoPath } from '../utils/logoHelper';
 import { LoopingVideo } from './LoopingVideo';
 import './AuthPage.css';
 
@@ -55,7 +56,7 @@ export function SessionResumePage({
             type="button"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <img src="/xmas-logo.png" alt="floinvite" className="auth-logo" />
+            <img src={getLogoPath()} alt="floinvite" className="auth-logo" />
             <span className="auth-brand-name brand-wordmark">
               <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>

@@ -39,7 +39,7 @@
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
   z-index: 20;
-  padding: 1rem 1.5rem;
+  padding: 0.15rem 1.5rem;
 }
 
 .landing-navbar-content {
@@ -85,7 +85,7 @@
   border: none;
   color: #1f2937;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;

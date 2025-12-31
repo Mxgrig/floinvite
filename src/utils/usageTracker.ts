@@ -51,7 +51,7 @@ export class UsageTracker {
 
   /**
    * Check if user should see upgrade prompt
-   * Returns true if over limit AND hasn't dismissed recently
+   * Returns true if over limit (no dismissal - always show when over limit)
    */
   static shouldShowUpgradePrompt(): boolean {
     const usage = this.getUsage();
@@ -59,16 +59,7 @@ export class UsageTracker {
       return false;
     }
 
-    // Check if user dismissed recently (last 24 hours)
-    const dismissed = localStorage.getItem('floinvite_upgrade_prompt_dismissed');
-    if (dismissed) {
-      const dismissedTime = parseInt(dismissed, 10);
-      const hoursSinceDismissal = (Date.now() - dismissedTime) / (1000 * 60 * 60);
-      if (hoursSinceDismissal < 24) {
-        return false;
-      }
-    }
-
+    // Always show upgrade prompt when over limit - cannot dismiss
     return true;
   }
 
@@ -124,11 +115,11 @@ export class UsageTracker {
     const usage = this.getUsage();
 
     if (usage.isOverLimit) {
-      return `You've reached the free tier limit! Continue on Starter for $5/month, or upgrade to Professional for unlimited access.`;
+      return `You've reached the free tier limit! Continue on Starter for $29/month, or upgrade to Compliance+ for $49/month with audit-ready features.`;
     }
 
     if (usage.totalHosts + usage.totalVisitors > this.HOSTS_LIMIT * 0.8) {
-      return `You're using ${this.getUsagePercentage()}% of your free tier limit. Starter continues at $5/month after 20 items.`;
+      return `You're using ${this.getUsagePercentage()}% of your free tier limit. Starter continues at $29/month after 20 items.`;
     }
 
     return null;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
+import { getLogoPath } from '../utils/logoHelper';
 import { PRICING_TIERS } from '../services/pricingService';
 import { PaymentService } from '../services/paymentService';
 import PageLayout from './PageLayout';
@@ -72,7 +73,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
           {/* Logo & Brand */}
           <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
             <div className="legal-navbar-logo">
-              <img src="/xmas-logo.png" alt="floinvite" />
+              <img src={getLogoPath()} alt="floinvite" />
             </div>
             <span className="brand-wordmark">
               <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>

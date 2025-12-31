@@ -19,7 +19,7 @@ interface NotificationMessage {
 interface NotificationOptions {
   includeCompany?: boolean;
   includeTime?: boolean;
-  tone?: 'professional' | 'friendly' | 'casual';
+  tone?: 'compliance' | 'friendly' | 'casual';
 }
 
 /**
@@ -105,7 +105,7 @@ export const generateReturningVisitorNotification = (
   previousVisitDate: Date,
   options: NotificationOptions = {}
 ): NotificationMessage => {
-  const { tone = 'professional' } = options;
+  const { tone = 'compliance' } = options;
   const daysAgo = Math.floor(
     (Date.now() - previousVisitDate.getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -113,7 +113,7 @@ export const generateReturningVisitorNotification = (
 
   let body = '';
 
-  if (tone === 'professional') {
+  if (tone === 'compliance') {
     body = `
 ${guest.name}${company} has arrived.
 
@@ -149,7 +149,7 @@ export const generateExpectedGuestNotification = (
   expectedTime: string | undefined,
   options: NotificationOptions = {}
 ): NotificationMessage => {
-  const { tone = 'professional' } = options;
+  const { tone = 'compliance' } = options;
   const actualTime = new Date(guest.checkInTime).toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit'
@@ -159,7 +159,7 @@ export const generateExpectedGuestNotification = (
 
   let body = '';
 
-  if (tone === 'professional') {
+  if (tone === 'compliance') {
     body = `
 ${guest.name} from ${guest.company || 'your guest list'} has arrived.
 

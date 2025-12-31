@@ -4,6 +4,7 @@
  */
 
 import { ClipboardList, Bell, BookOpen, Users, Clock, Zap, Lock, BarChart3, Download, Mail, Smartphone, Settings } from 'lucide-react';
+import { getLogoPath } from '../utils/logoHelper';
 import './Features.css';
 
 interface FeaturesPageProps {
@@ -19,7 +20,7 @@ export function Features({ onNavigate }: FeaturesPageProps) {
           {/* Logo & Brand */}
           <button className="legal-navbar-brand" onClick={() => onNavigate('landing')}>
             <div className="legal-navbar-logo">
-              <img src="/xmas-logo.png" alt="floinvite" />
+              <img src={getLogoPath()} alt="floinvite" />
             </div>
             <span className="brand-wordmark">
               <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
@@ -150,7 +151,7 @@ export function Features({ onNavigate }: FeaturesPageProps) {
               <ul className="feature-list">
                 <li>✓ Seamless email notifications</li>
                 <li>✓ Customizable email templates</li>
-                <li>✓ Professional visitor experience</li>
+                <li>✓ Compliance+ visitor experience</li>
               </ul>
             </div>
 
@@ -185,7 +186,7 @@ export function Features({ onNavigate }: FeaturesPageProps) {
                 <tr>
                   <th>Feature</th>
                   <th>Starter</th>
-                  <th>Professional</th>
+                  <th>Compliance+</th>
                   <th>Enterprise</th>
                 </tr>
               </thead>

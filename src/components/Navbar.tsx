@@ -4,13 +4,14 @@
  */
 
 import { Home, LogOut } from 'lucide-react';
+import { getLogoPath } from '../utils/logoHelper';
 import { MobileMenu } from './MobileMenu';
 import './Navbar.css';
 
 export interface NavbarProps {
   currentPage?: string;
   onNavigate?: (page: string) => void;
-  userTier?: 'starter' | 'professional' | 'enterprise';
+  userTier?: 'starter' | 'compliance' | 'enterprise';
   showAppNav?: boolean;
   onLogout?: () => void;
 }
@@ -55,7 +56,7 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
         {/* Logo & Branding */}
         <button className="navbar-brand" onClick={handleLogoClick} title="Back to home">
           <div className="navbar-logo-icon">
-            <img src="/xmas-logo.png" alt="floinvite" />
+            <img src={getLogoPath()} alt="floinvite" />
           </div>
           <div className="navbar-brand-text brand-wordmark">
             <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
@@ -134,7 +135,7 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
         <div className="navbar-right">
           {showAppNav && userTier && (
             <span className="navbar-tier-badge" title={`Subscription: ${userTier}`}>
-              {userTier === 'starter' ? 'Starter' : userTier === 'professional' ? 'Professional' : 'Enterprise'}
+              {userTier === 'starter' ? 'Starter' : userTier === 'compliance' ? 'Compliance+' : 'Enterprise'}
             </span>
           )}
 
