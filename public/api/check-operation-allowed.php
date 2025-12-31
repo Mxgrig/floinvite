@@ -94,7 +94,13 @@ if (!$operation) {
 $db_host = getenv('DB_HOST') ?: 'localhost';
 $db_name = getenv('DB_NAME') ?: 'u958180753_floinvite';
 $db_user = getenv('DB_USER') ?: 'u958180753_floinvite';
-$db_pass = getenv('DB_PASS') ?: 'Fl0invit3db!';
+$db_pass = getenv('DB_PASS') ?: '';
+
+if (!$db_pass) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database configuration missing']);
+    exit;
+}
 
 try {
     $pdo = new PDO(

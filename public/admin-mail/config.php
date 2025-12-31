@@ -7,7 +7,7 @@
 // Database Configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', getenv('DB_USER') ?: 'u958180753_mail');
-define('DB_PASS', getenv('DB_PASS') ?: 'floinvit3_Mail#');
+define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_NAME', getenv('DB_NAME') ?: 'u958180753_mail');
 
 // SMTP Configuration (Hostinger)

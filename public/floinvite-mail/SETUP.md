@@ -6,7 +6,7 @@
 ```
 Database Name: u958180753_mail
 Database User: u958180753_mail
-Password: Mail_pa55w0rd!
+Password: your-db-password
 Host: localhost (Hostinger shared hosting)
 ```
 
@@ -22,12 +22,12 @@ Host: localhost (Hostinger shared hosting)
 2. **Via Command Line** (if SSH access available):
    ```bash
    mysql -u u958180753_mail -p u958180753_mail < schema.sql
-   # When prompted, enter password: Mail_pa55w0rd!
+   # When prompted, enter password: your-db-password
    ```
 
 3. **Via MySQL Client**:
    ```bash
-   mysql -h localhost -u u958180753_mail -p 'Mail_pa55w0rd!' u958180753_mail < schema.sql
+   mysql -h localhost -u u958180753_mail -p 'your-db-password' u958180753_mail < schema.sql
    ```
 
 ## Step 2: Verify Database Tables
@@ -35,7 +35,7 @@ Host: localhost (Hostinger shared hosting)
 After import, verify all tables were created:
 
 ```bash
-mysql -u u958180753_mail -p 'Mail_pa55w0rd!' u958180753_mail -e "SHOW TABLES;"
+mysql -u u958180753_mail -p 'your-db-password' u958180753_mail -e "SHOW TABLES;"
 ```
 
 Expected tables:
@@ -57,7 +57,7 @@ Create or update `.env` file in project root:
 # Database Configuration
 DB_HOST=localhost
 DB_USER=u958180753_mail
-DB_PASS=Mail_pa55w0rd!
+DB_PASS=your-db-password
 DB_NAME=u958180753_mail
 
 # SMTP Configuration (Hostinger)
@@ -136,13 +136,13 @@ Important: Set environment variables in Hostinger cPanel
 2. Add:
    - `SMTP_USER=admin@floinvite.com`
    - `SMTP_PASS=your-hostinger-email-password`
-   - `DB_PASS=Mail_pa55w0rd!`
+   - `DB_PASS=your-db-password`
 
 Or update `.htaccess`:
 ```apache
 SetEnv SMTP_USER admin@floinvite.com
 SetEnv SMTP_PASS your-password
-SetEnv DB_PASS Mail_pa55w0rd!
+SetEnv DB_PASS your-db-password
 ```
 
 ## Step 7: File Permissions

@@ -98,7 +98,7 @@ Created comprehensive SQL schema with 9 tables:
 # Database (Hostinger)
 DB_HOST=localhost
 DB_USER=u958180753_mail
-DB_PASS=Mail_pa55w0rd!
+DB_PASS=your-db-password
 DB_NAME=u958180753_mail
 
 # SMTP (Hostinger)
@@ -158,7 +158,7 @@ From Hostinger (already confirmed):
 Host: localhost
 Database: u958180753_mail
 User: u958180753_mail
-Password: Mail_pa55w0rd!
+Password: your-db-password
 ```
 
 ---
@@ -296,7 +296,7 @@ floinvite/
 **Option B - Command Line**
 ```bash
 mysql -u u958180753_mail -p u958180753_mail < public/floinvite-mail/schema.sql
-# When prompted: Mail_pa55w0rd!
+# When prompted: your-db-password
 ```
 
 **Verify**:

@@ -9,7 +9,7 @@ DATABASE CREDENTIALS
 Host:     localhost
 Database: u958180753_mail
 User:     u958180753_mail
-Password: Mail_pa55w0rd!
+Password: your-db-password
 
 QUICK SETUP (15 MINUTES)
 ────────────────────────────────────────────────────────────────────
@@ -153,7 +153,7 @@ ENVIRONMENT VARIABLES NEEDED
 Required (must set):
   DB_HOST=localhost
   DB_USER=u958180753_mail
-  DB_PASS=Mail_pa55w0rd!
+  DB_PASS=your-db-password
   DB_NAME=u958180753_mail
   SMTP_USER=admin@floinvite.com
   SMTP_PASS=your-hostinger-email-password
