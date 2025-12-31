@@ -117,6 +117,10 @@ try {
         exit;
     }
 
+    if ($user['tier'] === 'professional') {
+        $user['tier'] = 'compliance';
+    }
+
     // Check if subscription is currently active
     $now = time();
     $isActive = $user['subscription_status'] === 'active';

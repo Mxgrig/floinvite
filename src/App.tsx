@@ -29,6 +29,7 @@ import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { UsageTracker } from './utils/usageTracker';
 import { STORAGE_KEYS } from './utils/constants';
 import { getPageHref, handleNavigationClick } from './utils/navigationHelper';
+import { getLogoPath } from './utils/logoHelper';
 import './App.css';
 
 type AppPage = 'landing' | 'signin' | 'createaccount' | 'tier-selection' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'evacuation-list' | 'email-marketing' | 'email-marketing-login' | 'privacy' | 'terms';
@@ -37,12 +38,12 @@ export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
   const [isEmailMarketingAuthenticated, setIsEmailMarketingAuthenticated] = usePersistedState('floinvite_email_marketing_authenticated', false);
   const [currentPage, setCurrentPage] = useState<AppPage>('landing');
-  const [userTier, setUserTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
+  const [userTier, setUserTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const [upgradeLoading, setUpgradeLoading] = useState<'starter' | 'professional' | null>(null);
-  const [selectedTierForSignup, setSelectedTierForSignup] = useState<'starter' | 'professional' | null>(null);
+  const [upgradeLoading, setUpgradeLoading] = useState<'starter' | 'compliance' | null>(null);
+  const [selectedTierForSignup, setSelectedTierForSignup] = useState<'starter' | 'compliance' | null>(null);
   const [settings] = usePersistedState<AppSettings>(
     STORAGE_KEYS.settings,
     {
@@ -61,7 +62,7 @@ export function App() {
   };
 
   // Handle tier selection during signup
-  const handleTierSelected = (tier: 'starter' | 'professional') => {
+  const handleTierSelected = (tier: 'starter' | 'compliance') => {
     setSelectedTierForSignup(tier);
     // Both starter and professional proceed to account creation
     // No payment prompt - users can upgrade anytime they want
@@ -105,6 +106,16 @@ export function App() {
   useEffect(() => {
     const handleRouting = () => {
       const pathname = window.location.pathname;
+      const searchParams = new URLSearchParams(window.location.search);
+
+      // Handle checkout success
+      if (searchParams.has('checkout') && searchParams.get('checkout') === 'success') {
+        setIsAuthenticated(true);
+        setCurrentPage('logbook');
+        // Update tier to paid
+        setUserTier('compliance');
+        return;
+      }
 
       // Map URL paths to page names
       if (pathname.includes('/check-in')) {
@@ -195,14 +206,14 @@ export function App() {
 
   // Route to check-in if user is on starter or paid tier
   const handleStartCheckIn = () => {
-    if (userTier === 'starter' || userTier === 'starter-paid' || PaymentService.isSubscribed('professional') || PaymentService.isSubscribed('enterprise')) {
+    if (userTier === 'starter' || userTier === 'starter-paid' || PaymentService.isSubscribed('compliance') || PaymentService.isSubscribed('enterprise')) {
       setCurrentPage('check-in');
     } else {
       setCurrentPage('pricing');
     }
   };
 
-  const handleUpgrade = async (tier: 'starter' | 'professional') => {
+  const handleUpgrade = async (tier: 'starter' | 'compliance') => {
     setUpgradeLoading(tier);
     try {
       await PaymentService.createCheckoutSession(tier, 'month');
@@ -211,11 +222,6 @@ export function App() {
       alert('Failed to initiate checkout. Please try again.');
       setUpgradeLoading(null);
     }
-  };
-
-  const handleUpgradeDismiss = () => {
-    UsageTracker.dismissUpgradePrompt();
-    setShowUpgradePrompt(false);
   };
 
   // Render current page
@@ -269,7 +275,7 @@ export function App() {
         <div className="upgrade-notice">
           <div className="upgrade-notice-content">
             <div className="upgrade-notice-text">
-              <strong>Free limit reached.</strong> Continue on Starter for $5/month, or upgrade to Professional for unlimited access.
+              <strong>Free limit reached.</strong> Continue on Starter for $29/month, or upgrade to Compliance+ for $49/month with audit-ready features.
             </div>
             <div className="upgrade-notice-actions">
               <button
@@ -277,20 +283,14 @@ export function App() {
                 onClick={() => handleUpgrade('starter')}
                 disabled={upgradeLoading !== null}
               >
-                {upgradeLoading === 'starter' ? 'Processing...' : 'Pay $5/mo'}
+                {upgradeLoading === 'starter' ? 'Processing...' : 'Pay $29/mo'}
               </button>
               <button
                 className="upgrade-notice-secondary"
-                onClick={() => handleUpgrade('professional')}
+                onClick={() => handleUpgrade('compliance')}
                 disabled={upgradeLoading !== null}
               >
-                {upgradeLoading === 'professional' ? 'Processing...' : 'Upgrade to $10'}
-              </button>
-              <button
-                className="upgrade-notice-dismiss"
-                onClick={handleUpgradeDismiss}
-              >
-                Dismiss
+                {upgradeLoading === 'compliance' ? 'Processing...' : 'Upgrade to $49/mo'}
               </button>
             </div>
           </div>
@@ -300,11 +300,11 @@ export function App() {
       {/* Session Video Background - Removed from all pages */}
 
       {/* Branding Header - Simple navigation */}
-      {(isAuthenticated || currentPage === 'email-marketing' || currentPage === 'email-marketing-login') && currentPage !== 'email-marketing-login' && (
+      {isAuthenticated && currentPage !== 'email-marketing-login' && currentPage !== 'email-marketing' && (
         <header className="branding-header">
           <div className="branding-content">
             <a href="/" className="branding-logo" onClick={(e) => handleNavigationClick(e, setCurrentPage, 'landing')} title="Back to home">
-              <img src="/xmas-logo.png" alt="floinvite" />
+              <img src={getLogoPath()} alt="floinvite" />
               <span className="brand-wordmark">
                 <span className="brand-wordmark-flo">flo</span>
                 <span className="brand-wordmark-invite">invite</span>
