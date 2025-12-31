@@ -8,15 +8,18 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
+// Load environment variables
+require_once dirname(dirname(__DIR__)) . '/public/api/env.php';
+
 // Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_USER', getenv('DB_USER') ?: 'u958180753_mail');
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER_MAIL') ?: getenv('DB_USER') ?: 'u958180753_mail');
 define('DB_PASS', getenv('DB_PASS_MAIL') ?: getenv('DB_PASS') ?: '');
-define('DB_NAME', getenv('DB_NAME') ?: 'u958180753_mail');
+define('DB_NAME', getenv('DB_NAME_MAIL') ?: getenv('DB_NAME') ?: 'u958180753_mail');
 
 // SMTP Configuration (Hostinger)
-define('SMTP_HOST', 'smtp.hostinger.com');
-define('SMTP_PORT', 465);
+define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.hostinger.com');
+define('SMTP_PORT', getenv('SMTP_PORT') ?: 465);
 define('SMTP_USER', getenv('SMTP_USER') ?: 'admin@floinvite.com');
 define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
 
@@ -25,8 +28,8 @@ define('RATE_LIMIT_PER_HOUR', 100);
 define('BATCH_SIZE', 50);
 
 // Base URLs
-define('BASE_URL', 'https://floinvite.com/floinvite-mail');
-define('PUBLIC_URL', 'https://floinvite.com');
+define('BASE_URL', getenv('BASE_URL') ?: 'https://floinvite.com/floinvite-mail');
+define('PUBLIC_URL', getenv('PUBLIC_URL') ?: 'https://floinvite.com');
 
 // Session Configuration
 session_start();
@@ -74,6 +77,8 @@ function get_db() {
                 ]
             );
         } catch (PDOException $e) {
+            // Log detailed error for debugging
+            error_log("Mail DB Connection Error: Host=" . DB_HOST . ", User=" . DB_USER . ", DB=" . DB_NAME . ", Error: " . $e->getMessage());
             handle_error('Database connection failed');
         }
     }
