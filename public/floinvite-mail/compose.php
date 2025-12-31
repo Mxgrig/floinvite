@@ -79,163 +79,17 @@ if ($campaign_id) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $campaign_id ? 'Edit Campaign' : 'Compose Campaign'; ?> - Floinvite Mail</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f3f4f6;
-            color: #1f2937;
-        }
-
         .container {
             max-width: 1000px;
-            margin: 0 auto;
-            padding: 2rem;
         }
 
-        header {
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            margin-bottom: 2rem;
-            padding: 2rem 0;
-        }
-
-        header h1 {
-            font-size: 1.875rem;
-        }
-
-        .nav {
-            display: flex;
-            gap: 2rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .nav a {
-            color: #6b7280;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .nav a:hover {
-            color: #4f46e5;
-        }
-
-        .section {
-            background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            border: 1px solid #e5e7eb;
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 300px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.875rem;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .form-row {
+        .stats {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #4338ca;
-        }
-
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
-            border: 1px solid #d1d5db;
-        }
-
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-
-        .message {
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-
-        .message.success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #6ee7b7;
-        }
-
-        .message.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-
-        .info-box {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            color: #1e40af;
-            font-size: 0.875rem;
+            margin-bottom: 2rem;
         }
 
         .template-btn {
@@ -249,41 +103,6 @@ if ($campaign_id) {
 
         .template-btn:hover {
             background: #e5e7eb;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1f2937;
-        }
-
-        .back-link {
-            color: #4f46e5;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
