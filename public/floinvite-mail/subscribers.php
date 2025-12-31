@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
             display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .tab-btn {
@@ -138,13 +138,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
             border-bottom: 2px solid transparent;
             cursor: pointer;
             font-weight: 600;
-            color: #6b7280;
+            color: var(--text-tertiary);
             transition: all 0.2s;
         }
 
         .tab-btn.active {
-            color: #4f46e5;
-            border-bottom-color: #4f46e5;
+            color: var(--primary);
+            border-bottom-color: var(--primary);
         }
 
         .stats {
@@ -155,21 +155,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
         }
 
         .stat-card {
-            background: #f9fafb;
+            background: var(--bg-secondary);
             padding: 1.5rem;
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
             text-align: center;
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #1f2937;
+            color: var(--text-primary);
         }
 
         .stat-label {
-            color: #6b7280;
+            color: var(--text-tertiary);
             font-size: 0.875rem;
             margin-top: 0.5rem;
         }
@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
         .file-input-label {
             display: inline-block;
             padding: 0.75rem 1.5rem;
-            background: #4f46e5;
+            background: var(--primary);
             color: white;
             border-radius: 6px;
             cursor: pointer;
@@ -198,11 +198,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
         }
 
         .file-input-label:hover {
-            background: #4338ca;
+            background: var(--primary-dark);
         }
 
         .help-text {
-            color: #6b7280;
+            color: var(--text-tertiary);
             font-size: 0.875rem;
             margin-top: 0.5rem;
         }
@@ -353,7 +353,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
                     <p class="help-text">CSV format: email, name (optional), company (optional)</p>
                 </div>
 
-                <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f3f4f6; border-radius: 6px; border-left: 4px solid #4f46e5;">
+                <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius-lg); border-left: 4px solid var(--primary);">
                     <strong>Format Example:</strong>
                     <pre style="margin-top: 0.5rem; overflow-x: auto;">email,name,company
 john@example.com,John Doe,ACME Corp

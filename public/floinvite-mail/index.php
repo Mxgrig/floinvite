@@ -5,6 +5,7 @@
  */
 
 require_once 'config.php';
+require_once 'logo.php';
 require_auth();
 
 $db = get_db();

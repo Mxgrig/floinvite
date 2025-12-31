@@ -28,17 +28,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'start') {
+        $send_mode = $_POST['send_mode'] ?? 'all';
+        $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
+
+        $custom_emails = [];
+        if ($custom_emails_raw !== '') {
+            $normalized = preg_replace('/[\\s,;]+/', "\n", $custom_emails_raw);
+            $parts = preg_split('/\\s+/', $normalized, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($parts as $email) {
+                $email = strtolower(trim($email));
+                if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $custom_emails[$email] = true;
+                }
+            }
+        }
+
         try {
             $db->beginTransaction();
 
-            // Get active subscribers
-            $stmt = $db->prepare("
-                SELECT id, email, name, company FROM subscribers
-                WHERE status = 'active'
-                ORDER BY id
-            ");
-            $stmt->execute();
-            $subscribers = $stmt->fetchAll();
+            $subscribers = [];
+            $skipped = [
+                'unsubscribed' => 0
+            ];
+
+            if ($send_mode === 'custom') {
+                if (empty($custom_emails)) {
+                    $db->rollBack();
+                    respond(false, null, 'Provide at least one valid email address.');
+                }
+
+                $find_stmt = $db->prepare("SELECT id, status FROM subscribers WHERE email = ?");
+                $insert_stmt = $db->prepare("
+                    INSERT INTO subscribers (email, status)
+                    VALUES (?, 'active')
+                ");
+                $activate_stmt = $db->prepare("
+                    UPDATE subscribers SET status = 'active'
+                    WHERE id = ?
+                ");
+
+                foreach (array_keys($custom_emails) as $email) {
+                    $find_stmt->execute([$email]);
+                    $existing = $find_stmt->fetch();
+
+                    if ($existing) {
+                        if ($existing['status'] === 'unsubscribed') {
+                            $skipped['unsubscribed']++;
+                            continue;
+                        }
+                        if ($existing['status'] !== 'active') {
+                            $activate_stmt->execute([$existing['id']]);
+                        }
+                        $subscribers[] = ['id' => $existing['id'], 'email' => $email];
+                        continue;
+                    }
+
+                    $insert_stmt->execute([$email]);
+                    $subscribers[] = ['id' => $db->lastInsertId(), 'email' => $email];
+                }
+            } else {
+                // Get active subscribers
+                $stmt = $db->prepare("
+                    SELECT id, email, name, company FROM subscribers
+                    WHERE status = 'active'
+                    ORDER BY id
+                ");
+                $stmt->execute();
+                $subscribers = $stmt->fetchAll();
+            }
 
             if (empty($subscribers)) {
                 $db->rollBack();
@@ -87,7 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $db->commit();
 
-            respond(true, ['queued' => $count], "Campaign queued for sending to $count subscribers");
+            $message = "Campaign queued for sending to $count subscribers";
+            if ($send_mode === 'custom' && $skipped['unsubscribed'] > 0) {
+                $message .= " ({$skipped['unsubscribed']} unsubscribed skipped)";
+            }
+            respond(true, ['queued' => $count], $message);
         } catch (Exception $e) {
             $db->rollBack();
             respond(false, null, 'Error starting campaign: ' . $e->getMessage());
@@ -300,6 +361,45 @@ if (!empty($_GET['api'])) {
             margin-top: 2rem;
         }
 
+        .send-mode {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .send-option {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .send-option label {
+            font-weight: 600;
+        }
+
+        .custom-emails {
+            width: 100%;
+            min-height: 120px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+
+        .custom-emails:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .helper-text {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
         .back-link {
             color: #4f46e5;
             text-decoration: none;
@@ -372,7 +472,7 @@ if (!empty($_GET['api'])) {
             <div class="section">
                 <h2>Ready to Send?</h2>
                 <p style="margin-bottom: 1rem; color: #6b7280;">
-                    This campaign will be sent to all active subscribers.
+                    Choose whether to send to all active subscribers or a custom list.
                 </p>
 
                 <div class="recipient-count">
@@ -386,7 +486,19 @@ if (!empty($_GET['api'])) {
 
                 <form method="POST">
                     <input type="hidden" name="action" value="start">
-                    <button type="submit" class="btn-primary" onclick="return confirm('Start sending to <?php echo number_format($count); ?> subscribers? This cannot be undone.')">
+                    <div class="send-mode">
+                        <div class="send-option">
+                            <input type="radio" id="send-all" name="send_mode" value="all" checked>
+                            <label for="send-all">Send to all active subscribers (<?php echo number_format($count); ?>)</label>
+                        </div>
+                        <div class="send-option">
+                            <input type="radio" id="send-custom" name="send_mode" value="custom">
+                            <label for="send-custom">Send to specific email addresses</label>
+                        </div>
+                        <textarea class="custom-emails" name="custom_emails" placeholder="name@company.com, another@domain.com&#10;one@more.com"></textarea>
+                        <div class="helper-text">Comma, space, or newline separated. Unsubscribed addresses are skipped.</div>
+                    </div>
+                    <button type="submit" class="btn-primary" onclick="return confirm('Start sending this campaign? This cannot be undone.')">
                         Start Sending Campaign
                     </button>
                 </form>
