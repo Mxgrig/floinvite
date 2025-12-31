@@ -21,9 +21,9 @@ $total = $result->fetch()['count'] ?? 0;
 $pages = ceil($total / $limit);
 
 $stmt = $db->prepare("
-    SELECT id, email, name, company, status, subscribed_at
+    SELECT id, email, name, company, status, created_at
     FROM subscribers
-    ORDER BY subscribed_at DESC
+    ORDER BY created_at DESC
     LIMIT ? OFFSET ?
 ");
 $stmt->bindValue(1, $limit, PDO::PARAM_INT);
@@ -122,55 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Subscribers - Floinvite Mail</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f3f4f6;
-            color: #1f2937;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        header {
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            margin-bottom: 2rem;
-            padding: 2rem 0;
-        }
-
-        header h1 {
-            font-size: 1.875rem;
-        }
-
-        .nav {
-            display: flex;
-            gap: 2rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .nav a {
-            color: #6b7280;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .nav a:hover,
-        .nav a.active {
-            color: #4f46e5;
-        }
-
         .tabs {
             display: flex;
             gap: 1rem;
@@ -192,152 +145,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
         .tab-btn.active {
             color: #4f46e5;
             border-bottom-color: #4f46e5;
-        }
-
-        .section {
-            background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            border: 1px solid #e5e7eb;
-            margin-bottom: 2rem;
-        }
-
-        .message {
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #6ee7b7;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-family: inherit;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #4338ca;
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #f9fafb;
-        }
-
-        th {
-            padding: 0.75rem;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        td {
-            padding: 0.75rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-badge.unsubscribed {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .pagination {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            margin-top: 2rem;
-        }
-
-        .pagination a,
-        .pagination span {
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            text-decoration: none;
-            color: #4f46e5;
-        }
-
-        .pagination a:hover {
-            background: #f3f4f6;
-        }
-
-        .pagination .current {
-            background: #4f46e5;
-            color: white;
-            border-color: #4f46e5;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #6b7280;
         }
 
         .stats {
@@ -398,12 +205,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
             color: #6b7280;
             font-size: 0.875rem;
             margin-top: 0.5rem;
-        }
-
-        .back-link {
-            color: #4f46e5;
-            text-decoration: none;
-            font-weight: 500;
         }
     </style>
 </head>
@@ -479,7 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
                                         <?php echo ucfirst($sub['status']); ?>
                                     </span>
                                 </td>
-                                <td><?php echo date('M d, Y', strtotime($sub['subscribed_at'])); ?></td>
+                                <td><?php echo date('M d, Y', strtotime($sub['created_at'])); ?></td>
                                 <td>
                                     <a href="?delete=<?php echo $sub['id']; ?>" class="btn-danger" onclick="return confirm('Delete this subscriber?')">Delete</a>
                                 </td>

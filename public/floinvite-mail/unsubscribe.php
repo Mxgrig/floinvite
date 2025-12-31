@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || !empty($token)) {
                 // Unsubscribe the subscriber
                 $stmt = $db->prepare("
                     UPDATE subscribers
-                    SET status = 'unsubscribed', unsubscribed_at = NOW()
+                    SET status = 'unsubscribed'
                     WHERE id = ?
                 ");
                 $stmt->execute([$record['subscriber_id']]);

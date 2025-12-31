@@ -77,62 +77,8 @@ if (!empty($_GET['logout'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Marketing Dashboard - Floinvite</title>
-
+    <link rel="stylesheet" href="styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f3f4f6;
-            color: #1f2937;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Header */
-        header {
-            background: white;
-            border-radius: 0.5rem;
-            padding: 1.25rem;
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-            margin-bottom: 1.5rem;
-        }
-
-        .header-branding {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .header-branding img {
-            width: 32px;
-            height: 32px;
-        }
-
-        .brand-name {
-            font-size: 1.25rem;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-            color: #111827;
-        }
-
-        .brand-name-invite {
-            color: #4f46e5;
-        }
-
         .logout-btn {
             background: #dc2626;
             color: white;
@@ -148,274 +94,43 @@ if (!empty($_GET['logout'])) {
             background: #991b1b;
         }
 
-        /* Navigation */
-        nav {
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            color: #111827;
+        }
+
+        .brand-name-invite {
+            color: #4f46e5;
+        }
+
+        .header-branding {
             display: flex;
-            gap: 1.5rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e5e7eb;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        nav a {
-            color: #6b7280;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        nav a:hover {
-            color: #4f46e5;
-        }
-
-        nav a.active {
-            color: #4f46e5;
-            font-weight: 600;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+        .header-branding img {
+            width: 32px;
+            height: 32px;
         }
 
         .stat-card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            transition: all 0.2s;
+            background: #f8fafc;
         }
 
         .stat-card:hover {
-            background: #f9fafb;
-            border-color: #4f46e5;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-label {
-            display: block;
-            font-size: 0.85rem;
-            color: #6b7280;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            display: block;
-            font-size: 2rem;
-            font-weight: 700;
-            color: #4f46e5;
-        }
-
-        /* Section */
-        .section {
-            background: white;
-            border-radius: 0.75rem;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-            overflow: hidden;
+            background: #f5f5ff;
         }
 
         .section-header {
-            padding: 1.5rem;
             border-bottom: 1px solid #e5e7eb;
-        }
-
-        .section h2 {
-            font-size: 1.25rem;
-            color: #111827;
-            margin: 0;
+            padding: 1.5rem;
         }
 
         .section-content {
             padding: 1.5rem;
-        }
-
-        /* Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #f9fafb;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.75rem;
-            color: #374151;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid #e5e7eb;
-            color: #1f2937;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover {
-            background-color: #f9fafb;
-        }
-
-        /* Status Badge */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.35rem 0.85rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            white-space: nowrap;
-            border: none;
-        }
-
-        .status-draft {
-            background: #f3f4f6;
-            color: #6b7280;
-        }
-
-        .status-scheduled {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        .status-sending {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .status-completed {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-
-        /* Buttons */
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        button, a.btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.95rem;
-            text-decoration: none;
-            display: inline-block;
-            font-family: inherit;
-        }
-
-        .btn-primary {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #4338ca;
-        }
-
-        .btn-secondary {
-            background: white;
-            border: 1px solid #d1d5db;
-            color: #1f2937;
-        }
-
-        .btn-secondary:hover {
-            background: #f9fafb;
-        }
-
-        /* Empty State */
-        .empty-state {
-            padding: 3rem 1.5rem;
-            text-align: center;
-            color: #6b7280;
-        }
-
-        .empty-state p {
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            color: #1f2937;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .logout-btn {
-                width: 100%;
-            }
-
-            nav {
-                gap: 1rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            }
-
-            .section-header,
-            .section-content {
-                padding: 1rem;
-            }
-
-            table {
-                font-size: 0.9rem;
-            }
-
-            th, td {
-                padding: 0.75rem;
-            }
-
-            .button-group {
-                gap: 0.5rem;
-            }
-
-            button, a.btn {
-                padding: 0.625rem 1rem;
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            button, a.btn {
-                width: 100%;
-            }
         }
     </style>
 </head>
