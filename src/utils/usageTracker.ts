@@ -13,6 +13,8 @@ export interface UsageData {
   remainingVisitors: number;
 }
 
+import { dbUtils } from '../db/floinviteDB';
+
 export class UsageTracker {
   private static STORAGE_KEY = 'floinvite_usage_tracking';
   private static HOSTS_LIMIT = parseInt(import.meta.env.VITE_FREE_HOSTS_LIMIT || '20', 10);
@@ -50,6 +52,39 @@ export class UsageTracker {
   }
 
   /**
+   * Get current usage from IndexedDB (authoritative store)
+   */
+  static async getUsageAsync(): Promise<UsageData> {
+    try {
+      const [hosts, visitors] = await Promise.all([
+        dbUtils.getAllHosts(),
+        dbUtils.getAllGuests()
+      ]);
+      const totalItems = hosts.length + visitors.length;
+
+      return {
+        totalHosts: hosts.length,
+        totalVisitors: visitors.length,
+        hostsLimit: this.HOSTS_LIMIT,
+        visitorsLimit: this.VISITORS_LIMIT,
+        isOverLimit: totalItems > this.HOSTS_LIMIT || visitors.length > this.VISITORS_LIMIT,
+        remainingHosts: Math.max(0, this.HOSTS_LIMIT - hosts.length),
+        remainingVisitors: Math.max(0, this.VISITORS_LIMIT - visitors.length)
+      };
+    } catch {
+      return {
+        totalHosts: 0,
+        totalVisitors: 0,
+        hostsLimit: this.HOSTS_LIMIT,
+        visitorsLimit: this.VISITORS_LIMIT,
+        isOverLimit: false,
+        remainingHosts: this.HOSTS_LIMIT,
+        remainingVisitors: this.VISITORS_LIMIT
+      };
+    }
+  }
+
+  /**
    * Check if user should see upgrade prompt
    * Returns true if over limit (no dismissal - always show when over limit)
    */
@@ -60,6 +95,18 @@ export class UsageTracker {
     }
 
     // Always show upgrade prompt when over limit - cannot dismiss
+    return true;
+  }
+
+  /**
+   * Async version that checks IndexedDB
+   */
+  static async shouldShowUpgradePromptAsync(): Promise<boolean> {
+    const usage = await this.getUsageAsync();
+    if (!usage.isOverLimit) {
+      return false;
+    }
+
     return true;
   }
 

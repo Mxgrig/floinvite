@@ -24,6 +24,7 @@ import { GUEST_STATUS, STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
 import { UsageTracker } from '../utils/usageTracker';
 import { FeatureLocked } from './FeatureLocked';
+import { dbUtils } from '../db/floinviteDB';
 import './VisitorCheckIn.css';
 
 type TriageStep = 'welcome' | 'walk-in' | 'expected' | 'success';
@@ -171,8 +172,10 @@ export function VisitorCheckIn() {
       return;
     }
     if (userEmail) {
-      const currentHosts = hosts.length;
-      const currentGuests = StorageService.getGuests().length;
+      const [currentHosts, currentGuests] = await Promise.all([
+        dbUtils.getAllHosts().then(result => result.length),
+        dbUtils.getAllGuests().then(result => result.length)
+      ]);
 
       const operationCheck = await ServerPaymentService.checkIfOperationAllowed(
         userEmail,
@@ -314,8 +317,10 @@ export function VisitorCheckIn() {
       return;
     }
     if (userEmail) {
-      const currentHosts = hosts.length;
-      const currentGuests = StorageService.getGuests().length;
+      const [currentHosts, currentGuests] = await Promise.all([
+        dbUtils.getAllHosts().then(result => result.length),
+        dbUtils.getAllGuests().then(result => result.length)
+      ]);
 
       const operationCheck = await ServerPaymentService.checkIfOperationAllowed(
         userEmail,

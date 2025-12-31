@@ -13,6 +13,7 @@ import { validateHostName, validateHostEmail, isValidCSVFile, parseCSVText } fro
 import { STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
 import { UsageTracker } from '../utils/usageTracker';
+import { dbUtils } from '../db/floinviteDB';
 import PageLayout from './PageLayout';
 import './HostManagement.css';
 
@@ -91,8 +92,10 @@ export function HostManagement() {
         return;
       }
       if (userEmail) {
-        const currentHosts = hosts.length;
-        const currentGuests = StorageService.getGuests().length;
+        const [currentHosts, currentGuests] = await Promise.all([
+          dbUtils.getAllHosts().then(result => result.length),
+          dbUtils.getAllGuests().then(result => result.length)
+        ]);
 
         const operationCheck = await ServerPaymentService.checkIfOperationAllowed(
           userEmail,
@@ -168,8 +171,10 @@ export function HostManagement() {
           return;
         }
         if (userEmail) {
-          const currentHosts = hosts.length;
-          const currentGuests = StorageService.getGuests().length;
+          const [currentHosts, currentGuests] = await Promise.all([
+            dbUtils.getAllHosts().then(result => result.length),
+            dbUtils.getAllGuests().then(result => result.length)
+          ]);
 
           const operationCheck = await ServerPaymentService.checkIfOperationAllowed(
             userEmail,
