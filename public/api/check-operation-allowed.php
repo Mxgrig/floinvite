@@ -183,7 +183,7 @@ try {
         $totalCount = $hostCount + $guestCount;
 
         // Check if over limit
-        if ($totalCount >= $tierLimit) {
+        if ($totalCount > $tierLimit) {
             $allowed = false;
             $reason = 'limit_reached';
         } elseif (!$subscription_active && $tier === 'compliance') {
