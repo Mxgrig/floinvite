@@ -210,12 +210,16 @@ try {
     // Log Operation Check
     // ═══════════════════════════════════════════════════════════════════════
 
-    if (!$allowed) {
-        $logStmt = $pdo->prepare('
-            INSERT INTO usage_tracking (user_email, action_type, count_after)
-            VALUES (?, ?, ?)
-        ');
-        $logStmt->execute([$email, $operation . '_blocked', $totalCount ?? 0]);
+    if (!$allowed && $user) {
+        try {
+            $logStmt = $pdo->prepare('
+                INSERT INTO usage_tracking (user_email, action_type, count_after)
+                VALUES (?, ?, ?)
+            ');
+            $logStmt->execute([$email, $operation . '_blocked', $totalCount ?? 0]);
+        } catch (Exception $log_e) {
+            // Silently skip logging if it fails (non-blocking)
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -237,6 +241,9 @@ try {
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Server error', 'allowed' => false]);
+    echo json_encode([
+        'error' => 'Server error: ' . $e->getMessage(),
+        'allowed' => false
+    ]);
 }
 ?>
