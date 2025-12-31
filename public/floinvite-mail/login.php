@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
@@ -332,7 +332,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="auth-container">
             <div class="auth-card">
                 <button class="auth-brand" type="button" style="background: none; border: none; cursor: pointer;">
-                    <img src="../xmas-logo.png" alt="floinvite" class="auth-logo" />
+                    <img src="<?php echo htmlspecialchars(get_logo_path()); ?>" alt="floinvite" class="auth-logo" />
                     <span class="auth-brand-name">
                         flo<span style="color: #4f46e5;">invite</span>
                     </span>

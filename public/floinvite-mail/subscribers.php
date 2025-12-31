@@ -209,13 +209,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
     </style>
 </head>
 <body>
-    <header>
+    <header class="mail-hero">
         <div class="container">
             <a href="index.php" class="back-link">← Back to Dashboard</a>
             <h1>Manage Subscribers</h1>
-            <nav class="nav">
+            <nav class="nav mail-nav">
                 <a href="index.php">Dashboard</a>
-                <a href="subscribers.php" style="color: #4f46e5; font-weight: 700;">Subscribers</a>
+                <a href="subscribers.php" class="active">Subscribers</a>
                 <a href="compose.php">New Campaign</a>
             </nav>
         </div>
