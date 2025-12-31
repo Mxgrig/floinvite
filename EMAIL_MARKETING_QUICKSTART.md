@@ -22,7 +22,7 @@
 
 # OR via command line:
 mysql -u REDACTED_USER_mail -p REDACTED_USER_mail < public/floinvite-mail/schema.sql
-# Password: Mail_pa55w0rd!
+# Password: your-db-password
 ```
 
 ### 2. Set Environment Variables (1 min)
@@ -33,7 +33,7 @@ cp .env.example .env
 # Edit .env and set:
 DB_HOST=localhost
 DB_USER=REDACTED_USER_mail
-DB_PASS=Mail_pa55w0rd!
+DB_PASS=your-db-password
 DB_NAME=REDACTED_USER_mail
 SMTP_USER=admin@floinvite.com
 SMTP_PASS=your-hostinger-email-password
@@ -62,7 +62,7 @@ https://floinvite.com/floinvite-mail/index.php
 Host: localhost
 Database: REDACTED_USER_mail
 User: REDACTED_USER_mail
-Password: Mail_pa55w0rd!
+Password: your-db-password
 ```
 
 ### Database Tables
@@ -248,7 +248,7 @@ case 'admin/email-marketing':
 // Database
 define('DB_HOST', 'localhost');
 define('DB_USER', getenv('DB_USER') ?: 'REDACTED_USER_mail');
-define('DB_PASS', getenv('DB_PASS') ?: 'Mail_pa55w0rd!');
+define('DB_PASS', getenv('DB_PASS') ?: 'your-db-password');
 define('DB_NAME', getenv('DB_NAME') ?: 'REDACTED_USER_mail');
 
 // SMTP
@@ -266,7 +266,7 @@ define('BATCH_SIZE', 50);
 ```env
 DB_HOST=localhost
 DB_USER=REDACTED_USER_mail
-DB_PASS=Mail_pa55w0rd!
+DB_PASS=your-db-password
 DB_NAME=REDACTED_USER_mail
 SMTP_USER=admin@floinvite.com
 SMTP_PASS=your-password
@@ -287,7 +287,7 @@ RATE_LIMIT_PER_HOUR=100
 ### Database Error
 - [ ] Database exists: REDACTED_USER_mail
 - [ ] User exists: REDACTED_USER_mail
-- [ ] Password correct: Mail_pa55w0rd!
+- [ ] Password correct: your-db-password
 - [ ] Tables created (run schema.sql)
 - [ ] User has permissions (check with phpMyAdmin)
 

@@ -11,7 +11,7 @@ ini_set('display_errors', 0);
 // Database Configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', getenv('DB_USER') ?: 'REDACTED_USER_mail');
-define('DB_PASS', getenv('DB_PASS') ?: 'floinvit3_Mail#');
+define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_NAME', getenv('DB_NAME') ?: 'REDACTED_USER_mail');
 
 // SMTP Configuration (Hostinger)

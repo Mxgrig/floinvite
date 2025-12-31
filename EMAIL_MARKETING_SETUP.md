@@ -29,7 +29,7 @@ Database credentials confirmed from Hostinger:
 ```
 Host: localhost
 User: REDACTED_USER_mail
-Password: Mail_pa55w0rd!
+Password: your-db-password
 Database: REDACTED_USER_mail
 ```
 
@@ -49,7 +49,7 @@ Create or update `.env` with these values:
 # Database
 DB_HOST=localhost
 DB_USER=REDACTED_USER_mail
-DB_PASS=Mail_pa55w0rd!
+DB_PASS=your-db-password
 DB_NAME=REDACTED_USER_mail
 
 # SMTP (Hostinger)
@@ -75,13 +75,13 @@ SESSION_TIMEOUT=3600
 1. Go to **cPanel** → **Advanced** → **Environment Variables**
 2. Add these variables:
    - `SMTP_PASS` = Your Hostinger email account password
-   - `DB_PASS` = Mail_pa55w0rd!
+   - `DB_PASS` = your-db-password
    - `SMTP_USER` = admin@floinvite.com
 
 OR update `.htaccess` in `public/floinvite-mail/`:
 ```apache
 SetEnv DB_USER REDACTED_USER_mail
-SetEnv DB_PASS Mail_pa55w0rd!
+SetEnv DB_PASS your-db-password
 SetEnv DB_NAME REDACTED_USER_mail
 SetEnv SMTP_USER admin@floinvite.com
 SetEnv SMTP_PASS your-email-password
