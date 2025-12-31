@@ -193,16 +193,28 @@ export function App() {
 
   // Check usage and show upgrade prompt when needed
   useEffect(() => {
-    if (isAuthenticated && userTier === 'starter') {
+    if (isAuthenticated) {
+      let cancelled = false;
+      const checkUsage = async () => {
+        const shouldShow = await UsageTracker.shouldShowUpgradePromptAsync();
+        if (!cancelled) {
+          setShowUpgradePrompt(shouldShow);
+        }
+      };
+
+      checkUsage();
+
       // Re-check usage periodically (every 2 seconds) to catch when user exceeds limit
       const interval = setInterval(() => {
-        const shouldShow = UsageTracker.shouldShowUpgradePrompt();
-        setShowUpgradePrompt(shouldShow);
+        checkUsage();
       }, 2000);
 
-      return () => clearInterval(interval);
+      return () => {
+        cancelled = true;
+        clearInterval(interval);
+      };
     }
-  }, [isAuthenticated, userTier]);
+  }, [isAuthenticated]);
 
   // Route to check-in if user is on starter or paid tier
   const handleStartCheckIn = () => {
