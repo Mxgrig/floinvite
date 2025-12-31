@@ -93,21 +93,21 @@ Suggested wording:
 
 Includes:
 
-* Visitor sign-in / sign-out
+* Unlimited visitor records
 * Live on-site & evacuation lists
+* On-site access during outages
 * Notifications (arrival, awareness)
-* Offline access (on-device availability)
-* Access current and recent visit records in-app
+* On-demand record exports (PDF / CSV for 90 days)
 * Email support
 
 Positioning:
 
-> "Everything a small organisation needs to know who is on site."
+> "Everything a small organisation needs to know who is on site—with evidence access when you need it."
 
-**Standard record access:**
-* View current and recent visitor records in-app
-* Suitable for day-to-day operations and short-term lookups
-* No long-term retention, exports, or automatic backups
+**What "evidence access" means:**
+* Export visitor records for a specific date range (PDF or CSV)
+* Useful for incident investigations, compliance inquiries, or routine reporting
+* Data available on-demand; no automatic backups or archival
 
 ---
 
@@ -117,27 +117,45 @@ Positioning:
 
 Includes:
 
-* Everything in Standard
-* Secure backups
-* Long-term record retention
-* Self-service exports (PDF / CSV)
-* Audit-ready wording
+* Unlimited visitor records
+* Live on-site & evacuation lists
+* On-site access during outages
+* Notifications (arrival, awareness)
+* **Automatic secure backups** (daily)
+* **Long-term record retention** (7 years)
+* Self-service exports (PDF / CSV for entire history)
+* Audit-ready compliance reports
 * Priority support
 
 Positioning:
 
-> "For estates and organisations that must retain records and stay audit-ready."
+> "For estates and organisations that must retain records and stay audit-ready—with automatic backups and 7-year retention built in."
 
 **What you gain vs. Standard:**
-* Secure backups and long-term retention
-* Self-service PDF/CSV exports
-* Audit-ready language and priority support
+* Automatic daily backups (no manual exports needed)
+* 7-year record retention (vs. 90-day rolling window)
+* Export entire record history anytime (compliance-ready reports)
+* Audit-friendly interface and terminology
 
 ---
 
-### Enterprise
+### Optional Setup Fee
 
-Setup and onboarding are handled case-by-case under Enterprise.
+**$49–$99 one-time (may be waived for early adopters)**
+
+Includes:
+
+* **Account configuration:** Site name, branding, timezone, notification preferences
+* **Staff/host setup:** Import initial host list (via CSV or manual entry)
+* **Data structure guidance:** Review visitor fields, archival strategy, naming conventions
+* **30-minute onboarding call:** Walk through sign-in workflow, settings, and first steps
+
+Purpose:
+
+* Signals seriousness and professionalism
+* Provides upfront cash and early customer commitment
+* Reassures non-technical buyers that setup is supported
+* Typically pays for itself if even one month's service continues
 
 ---
 
