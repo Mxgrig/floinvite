@@ -1,11 +1,12 @@
 /**
  * Storage Service
  * Higher-level data management for hosts, guests, and app state
- * Handles localStorage persistence and data integrity
+ * Handles localStorage persistence with async IndexedDB sync
  */
 
 import { Host, Guest, GuestStatus, AppSettings } from '../types';
 import { STORAGE_KEYS } from '../utils/constants';
+import { dbUtils } from '../db/floinviteDB';
 
 export class StorageService {
   /**
@@ -24,6 +25,10 @@ export class StorageService {
   static saveHosts(hosts: Host[]): void {
     try {
       localStorage.setItem(STORAGE_KEYS.hosts, JSON.stringify(hosts));
+      // Sync to IndexedDB asynchronously (non-blocking)
+      dbUtils.bulkUpsertHosts(hosts).catch(error => {
+        console.warn('Failed to sync hosts to IndexedDB:', error);
+      });
     } catch (error) {
       console.error('Failed to save hosts:', error);
       throw new Error('Failed to save hosts to device storage');
@@ -106,6 +111,10 @@ export class StorageService {
   static saveGuests(guests: Guest[]): void {
     try {
       localStorage.setItem(STORAGE_KEYS.guests, JSON.stringify(guests));
+      // Sync to IndexedDB asynchronously (non-blocking)
+      dbUtils.bulkUpsertGuests(guests).catch(error => {
+        console.warn('Failed to sync guests to IndexedDB:', error);
+      });
     } catch (error) {
       console.error('Failed to save guests:', error);
       throw new Error('Failed to save guests to device storage');
@@ -233,6 +242,16 @@ export class StorageService {
     }
 
     this.saveGuests(remaining);
+
+    // Also delete archived guests from IndexedDB
+    if (archived.length > 0) {
+      archived.forEach(guest => {
+        dbUtils.deleteGuest(guest.id).catch(error => {
+          console.warn('Failed to delete archived guest from IndexedDB:', error);
+        });
+      });
+    }
+
     return archived.length;
   }
 
@@ -265,6 +284,13 @@ export class StorageService {
     if (confirm('This will delete all data. Are you sure?')) {
       Object.values(STORAGE_KEYS).forEach(key => {
         localStorage.removeItem(key);
+      });
+      // Also clear IndexedDB
+      Promise.all([
+        dbUtils.clearHosts(),
+        dbUtils.clearGuests()
+      ]).catch(error => {
+        console.warn('Failed to clear IndexedDB:', error);
       });
     }
   }
@@ -334,6 +360,10 @@ export class StorageService {
   static saveAppSettings(settings: AppSettings): void {
     try {
       localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
+      // Sync to IndexedDB asynchronously (non-blocking)
+      dbUtils.upsertSettings(settings).catch(error => {
+        console.warn('Failed to sync settings to IndexedDB:', error);
+      });
     } catch (error) {
       console.error('Failed to save app settings:', error);
     }

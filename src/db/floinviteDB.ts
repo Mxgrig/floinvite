@@ -235,6 +235,13 @@ export const dbUtils = {
   },
 
   /**
+   * Upsert settings (alias for updateSettings)
+   */
+  async upsertSettings(settings: StoredSettings): Promise<void> {
+    return this.updateSettings(settings);
+  },
+
+  /**
    * Get sync log entries that haven't been synced yet
    */
   async getUnsyncedActions(): Promise<SyncLog[]> {
