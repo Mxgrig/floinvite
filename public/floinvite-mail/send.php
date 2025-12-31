@@ -23,36 +23,130 @@ if (!$campaign) {
     handle_error('Campaign not found', 404);
 }
 
+function parse_custom_emails($raw) {
+    $invalid = 0;
+    $emails = [];
+
+    $normalized = preg_replace('/[\\s,;]+/', "\n", $raw);
+    $parts = preg_split('/\\s+/', $normalized, -1, PREG_SPLIT_NO_EMPTY);
+
+    foreach ($parts as $email) {
+        $email = strtolower(trim($email));
+        if ($email === '') {
+            continue;
+        }
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $emails[$email] = true;
+        } else {
+            $invalid++;
+        }
+    }
+
+    return [
+        'emails' => array_keys($emails),
+        'invalid' => $invalid
+    ];
+}
+
+function fetch_subscriber_statuses($db, $emails) {
+    $found = [];
+    if (empty($emails)) {
+        return $found;
+    }
+
+    foreach (array_chunk($emails, 200) as $chunk) {
+        $placeholders = implode(',', array_fill(0, count($chunk), '?'));
+        $stmt = $db->prepare("SELECT id, email, status FROM subscribers WHERE email IN ($placeholders)");
+        $stmt->execute($chunk);
+        foreach ($stmt->fetchAll() as $row) {
+            $found[strtolower($row['email'])] = [
+                'id' => $row['id'],
+                'status' => $row['status']
+            ];
+        }
+    }
+
+    return $found;
+}
+
+$preview = null;
+$preview_error = null;
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    if ($action === 'start') {
-        $send_mode = $_POST['send_mode'] ?? 'all';
-        $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
+    $send_mode = $_POST['send_mode'] ?? 'all';
+    $allow_new = !empty($_POST['allow_new']);
+    $allow_reactivate = !empty($_POST['allow_reactivate']);
 
-        $custom_emails = [];
-        if ($custom_emails_raw !== '') {
-            $normalized = preg_replace('/[\\s,;]+/', "\n", $custom_emails_raw);
-            $parts = preg_split('/\\s+/', $normalized, -1, PREG_SPLIT_NO_EMPTY);
-            foreach ($parts as $email) {
-                $email = strtolower(trim($email));
-                if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $custom_emails[$email] = true;
+    if ($action === 'preview') {
+        if ($send_mode === 'custom') {
+            $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
+            $parsed = parse_custom_emails($custom_emails_raw);
+
+            if (empty($parsed['emails'])) {
+                $preview_error = 'Provide at least one valid email address to preview.';
+            } else {
+                $statuses = fetch_subscriber_statuses($db, $parsed['emails']);
+                $counts = [
+                    'valid' => count($parsed['emails']),
+                    'invalid' => $parsed['invalid'],
+                    'active' => 0,
+                    'inactive' => 0,
+                    'unsubscribed' => 0,
+                    'new' => 0
+                ];
+
+                foreach ($parsed['emails'] as $email) {
+                    if (isset($statuses[$email])) {
+                        if ($statuses[$email]['status'] === 'active') {
+                            $counts['active']++;
+                        } elseif ($statuses[$email]['status'] === 'unsubscribed') {
+                            $counts['unsubscribed']++;
+                        } else {
+                            $counts['inactive']++;
+                        }
+                    } else {
+                        $counts['new']++;
+                    }
                 }
+
+                $preview = [
+                    'mode' => 'custom',
+                    'counts' => $counts
+                ];
             }
+        } else {
+            $stmt = $db->prepare("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
+            $stmt->execute();
+            $count = $stmt->fetch()['count'] ?? 0;
+            $preview = [
+                'mode' => 'all',
+                'counts' => [
+                    'active' => (int) $count
+                ]
+            ];
         }
+    }
+
+    if ($action === 'start') {
+        $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
+        $parsed = parse_custom_emails($custom_emails_raw);
 
         try {
             $db->beginTransaction();
 
             $subscribers = [];
             $skipped = [
-                'unsubscribed' => 0
+                'unsubscribed' => 0,
+                'inactive' => 0,
+                'new' => 0,
+                'invalid' => $parsed['invalid']
             ];
 
             if ($send_mode === 'custom') {
-                if (empty($custom_emails)) {
+                if (empty($parsed['emails'])) {
                     $db->rollBack();
                     respond(false, null, 'Provide at least one valid email address.');
                 }
@@ -67,24 +161,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     WHERE id = ?
                 ");
 
-                foreach (array_keys($custom_emails) as $email) {
+                foreach ($parsed['emails'] as $email) {
                     $find_stmt->execute([$email]);
                     $existing = $find_stmt->fetch();
 
                     if ($existing) {
                         if ($existing['status'] === 'unsubscribed') {
-                            $skipped['unsubscribed']++;
+                            if ($allow_reactivate) {
+                                $activate_stmt->execute([$existing['id']]);
+                                $subscribers[] = ['id' => $existing['id'], 'email' => $email];
+                            } else {
+                                $skipped['unsubscribed']++;
+                            }
                             continue;
                         }
                         if ($existing['status'] !== 'active') {
+                            if (!$allow_reactivate) {
+                                $skipped['inactive']++;
+                                continue;
+                            }
                             $activate_stmt->execute([$existing['id']]);
                         }
                         $subscribers[] = ['id' => $existing['id'], 'email' => $email];
                         continue;
                     }
 
-                    $insert_stmt->execute([$email]);
-                    $subscribers[] = ['id' => $db->lastInsertId(), 'email' => $email];
+                    if ($allow_new) {
+                        $insert_stmt->execute([$email]);
+                        $subscribers[] = ['id' => $db->lastInsertId(), 'email' => $email];
+                    } else {
+                        $skipped['new']++;
+                    }
                 }
             } else {
                 // Get active subscribers
@@ -145,8 +252,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->commit();
 
             $message = "Campaign queued for sending to $count subscribers";
-            if ($send_mode === 'custom' && $skipped['unsubscribed'] > 0) {
-                $message .= " ({$skipped['unsubscribed']} unsubscribed skipped)";
+            if ($send_mode === 'custom') {
+                $details = [];
+                if ($skipped['invalid'] > 0) {
+                    $details[] = "{$skipped['invalid']} invalid ignored";
+                }
+                if ($skipped['unsubscribed'] > 0) {
+                    $details[] = "{$skipped['unsubscribed']} unsubscribed skipped";
+                }
+                if ($skipped['inactive'] > 0) {
+                    $details[] = "{$skipped['inactive']} inactive skipped";
+                }
+                if ($skipped['new'] > 0) {
+                    $details[] = "{$skipped['new']} new skipped";
+                }
+                if (!empty($details)) {
+                    $message .= ' (' . implode(', ', $details) . ')';
+                }
             }
             respond(true, ['queued' => $count], $message);
         } catch (Exception $e) {
@@ -178,6 +300,11 @@ if (!empty($_GET['api'])) {
     ]);
     exit;
 }
+
+$selected_send_mode = $_POST['send_mode'] ?? 'all';
+$custom_emails_display = $_POST['custom_emails'] ?? '';
+$allow_new_checked = !empty($_POST['allow_new']);
+$allow_reactivate_checked = !empty($_POST['allow_reactivate']);
 
 ?>
 <!DOCTYPE html>
@@ -400,6 +527,43 @@ if (!empty($_GET['api'])) {
             margin-top: 0.5rem;
         }
 
+        .preview-box {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #1f2937;
+        }
+
+        .preview-box strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .preview-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 0.75rem;
+        }
+
+        .preview-item span {
+            display: block;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .custom-only {
+            display: none;
+        }
+
         .back-link {
             color: #4f46e5;
             text-decoration: none;
@@ -484,23 +648,80 @@ if (!empty($_GET['api'])) {
                     ?> Recipients
                 </div>
 
+                <?php if ($preview_error): ?>
+                    <div class="message error"><?php echo htmlspecialchars($preview_error); ?></div>
+                <?php elseif ($preview): ?>
+                    <div class="preview-box">
+                        <strong>Recipient preview</strong>
+                        <?php if ($preview['mode'] === 'all'): ?>
+                            <div class="preview-grid">
+                                <div class="preview-item">
+                                    <?php echo number_format($preview['counts']['active']); ?>
+                                    <span>Active subscribers</span>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="preview-grid">
+                                <div class="preview-item">
+                                    <?php echo number_format($preview['counts']['valid']); ?>
+                                    <span>Valid emails</span>
+                                </div>
+                                <div class="preview-item">
+                                    <?php echo number_format($preview['counts']['invalid']); ?>
+                                    <span>Invalid entries</span>
+                                </div>
+                                <div class="preview-item">
+                                    <?php echo number_format($preview['counts']['active']); ?>
+                                    <span>Active subscribers</span>
+                                </div>
+                                <div class="preview-item">
+                                    <?php echo number_format($preview['counts']['inactive']); ?>
+                                    <span>Inactive subscribers</span>
+                                </div>
+                                <div class="preview-item">
+                                    <?php echo number_format($preview['counts']['unsubscribed']); ?>
+                                    <span>Unsubscribed</span>
+                                </div>
+                                <div class="preview-item">
+                                    <?php echo number_format($preview['counts']['new']); ?>
+                                    <span>New addresses</span>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
                 <form method="POST">
-                    <input type="hidden" name="action" value="start">
                     <div class="send-mode">
                         <div class="send-option">
-                            <input type="radio" id="send-all" name="send_mode" value="all" checked>
+                            <input type="radio" id="send-all" name="send_mode" value="all" <?php echo $selected_send_mode === 'all' ? 'checked' : ''; ?>>
                             <label for="send-all">Send to all active subscribers (<?php echo number_format($count); ?>)</label>
                         </div>
                         <div class="send-option">
-                            <input type="radio" id="send-custom" name="send_mode" value="custom">
+                            <input type="radio" id="send-custom" name="send_mode" value="custom" <?php echo $selected_send_mode === 'custom' ? 'checked' : ''; ?>>
                             <label for="send-custom">Send to specific email addresses</label>
                         </div>
-                        <textarea class="custom-emails" name="custom_emails" placeholder="name@company.com, another@domain.com&#10;one@more.com"></textarea>
-                        <div class="helper-text">Comma, space, or newline separated. Unsubscribed addresses are skipped.</div>
+                        <div class="custom-only">
+                            <textarea class="custom-emails" name="custom_emails" placeholder="name@company.com, another@domain.com&#10;one@more.com"><?php echo htmlspecialchars($custom_emails_display); ?></textarea>
+                            <div class="helper-text">Comma, space, or newline separated.</div>
+                            <label class="send-option" style="margin-top: 0.75rem;">
+                                <input type="checkbox" name="allow_new" <?php echo $allow_new_checked ? 'checked' : ''; ?>>
+                                Allow new addresses (create subscribers)
+                            </label>
+                            <label class="send-option">
+                                <input type="checkbox" name="allow_reactivate" <?php echo $allow_reactivate_checked ? 'checked' : ''; ?>>
+                                Allow reactivation of inactive or unsubscribed addresses
+                            </label>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary" onclick="return confirm('Start sending this campaign? This cannot be undone.')">
-                        Start Sending Campaign
-                    </button>
+                    <div class="button-group">
+                        <button type="submit" name="action" value="preview" class="btn-secondary">
+                            Preview Recipients
+                        </button>
+                        <button type="submit" name="action" value="start" class="btn-primary" onclick="return confirm('Start sending this campaign to the selected recipients? This cannot be undone.')">
+                            Start Sending Campaign
+                        </button>
+                    </div>
                 </form>
             </div>
         <?php else: ?>
@@ -554,5 +775,31 @@ if (!empty($_GET['api'])) {
             </div>
         <?php endif; ?>
     </div>
+    <script>
+        const sendAll = document.getElementById('send-all');
+        const sendCustom = document.getElementById('send-custom');
+        const customSection = document.querySelector('.custom-only');
+
+        function updateSendMode() {
+            if (!sendAll || !sendCustom || !customSection) {
+                return;
+            }
+            const isCustom = sendCustom.checked;
+            customSection.style.display = isCustom ? 'block' : 'none';
+            const textarea = customSection.querySelector('textarea');
+            if (textarea) {
+                textarea.disabled = !isCustom;
+            }
+            customSection.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                input.disabled = !isCustom;
+            });
+        }
+
+        if (sendAll && sendCustom && customSection) {
+            sendAll.addEventListener('change', updateSendMode);
+            sendCustom.addEventListener('change', updateSendMode);
+            updateSendMode();
+        }
+    </script>
 </body>
 </html>
