@@ -25,6 +25,7 @@ if (!$campaign) {
 
 function parse_custom_emails($raw) {
     $invalid = 0;
+    $invalid_samples = [];
     $emails = [];
 
     $normalized = preg_replace('/[\\s,;]+/', "\n", $raw);
@@ -39,12 +40,16 @@ function parse_custom_emails($raw) {
             $emails[$email] = true;
         } else {
             $invalid++;
+            if (count($invalid_samples) < 20) {
+                $invalid_samples[] = $email;
+            }
         }
     }
 
     return [
         'emails' => array_keys($emails),
-        'invalid' => $invalid
+        'invalid' => $invalid,
+        'invalid_samples' => $invalid_samples
     ];
 }
 
@@ -114,7 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $preview = [
                     'mode' => 'custom',
-                    'counts' => $counts
+                    'counts' => $counts,
+                    'invalid_samples' => $parsed['invalid_samples']
                 ];
             }
         } else {
@@ -704,6 +710,12 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
                         <div class="custom-only">
                             <textarea class="custom-emails" name="custom_emails" placeholder="name@company.com, another@domain.com&#10;one@more.com"><?php echo htmlspecialchars($custom_emails_display); ?></textarea>
                             <div class="helper-text">Comma, space, or newline separated.</div>
+                            <?php if ($preview && $preview['mode'] === 'custom' && $preview['counts']['invalid'] > 0): ?>
+                                <div class="helper-text">
+                                    Invalid entries (first <?php echo count($preview['invalid_samples']); ?>):
+                                    <?php echo htmlspecialchars(implode(', ', $preview['invalid_samples'])); ?>
+                                </div>
+                            <?php endif; ?>
                             <label class="send-option" style="margin-top: 0.75rem;">
                                 <input type="checkbox" name="allow_new" <?php echo $allow_new_checked ? 'checked' : ''; ?>>
                                 Allow new addresses (create subscribers)
@@ -718,7 +730,15 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
                         <button type="submit" name="action" value="preview" class="btn-secondary">
                             Preview Recipients
                         </button>
-                        <button type="submit" name="action" value="start" class="btn-primary" onclick="return confirm('Start sending this campaign to the selected recipients? This cannot be undone.')">
+                        <?php
+                            $disable_send = false;
+                            if ($preview_error) {
+                                $disable_send = true;
+                            } elseif ($preview && $preview['mode'] === 'custom' && $preview['counts']['valid'] === 0) {
+                                $disable_send = true;
+                            }
+                        ?>
+                        <button type="submit" name="action" value="start" class="btn-primary" <?php echo $disable_send ? 'disabled' : ''; ?> onclick="return confirm('Start sending this campaign to the selected recipients? This cannot be undone.')">
                             Start Sending Campaign
                         </button>
                     </div>
