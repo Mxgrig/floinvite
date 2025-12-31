@@ -75,168 +75,458 @@ if (!empty($_GET['logout'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Marketing Dashboard - Floinvite</title>
 
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Tailwind Dark Mode Config -->
-    <script>
-      if (localStorage.getItem('theme') === 'dark' || 
-          (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    </script>
-
     <style>
-      body {
-        background: #0b1220;
-        color: rgba(255, 255, 255, 0.95);
-      }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-branding {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-branding img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            color: #111827;
+        }
+
+        .brand-name-invite {
+            color: #4f46e5;
+        }
+
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #991b1b;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #6b7280;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            color: #4f46e5;
+        }
+
+        nav a.active {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            background: #f9fafb;
+            border-color: #4f46e5;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4f46e5;
+        }
+
+        /* Section */
+        .section {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section h2 {
+            font-size: 1.25rem;
+            color: #111827;
+            margin: 0;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            color: #1f2937;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border: none;
+        }
+
+        .status-draft {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-scheduled {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .status-sending {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button, a.btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            text-decoration: none;
+            display: inline-block;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #1f2937;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .logout-btn {
+                width: 100%;
+            }
+
+            nav {
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .section-header,
+            .section-content {
+                padding: 1rem;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 0.75rem;
+            }
+
+            .button-group {
+                gap: 0.5rem;
+            }
+
+            button, a.btn {
+                padding: 0.625rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button, a.btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-white">
+<body>
     <!-- Header -->
-    <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Top Row: Logo & Logout -->
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center gap-3">
-                    <img src="../xmas-logo.png" alt="floinvite" class="w-8 h-8">
-                    <span class="text-lg font-bold">flo<span class="text-indigo-500">invite</span></span>
-                </div>
-                <a href="?logout=1" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
-                    Logout
-                </a>
+    <div class="container">
+        <header>
+            <div class="header-branding">
+                <img src="../xmas-logo.png" alt="floinvite">
+                <span class="brand-name">flo<span class="brand-name-invite">invite</span></span>
             </div>
+            <a href="?logout=1" class="logout-btn">Logout</a>
+        </header>
 
-            <!-- Navigation -->
-            <nav class="flex gap-6 border-t border-slate-800 pt-4 pb-4 flex-wrap">
-                <a href="index.php" class="text-indigo-500 border-b-2 border-indigo-500 pb-2 font-semibold">Dashboard</a>
-                <a href="subscribers.php" class="text-slate-400 hover:text-white transition-colors">Subscribers</a>
-                <a href="compose.php" class="text-slate-400 hover:text-white transition-colors">New Campaign</a>
-            </nav>
-        </div>
-    </header>
+        <!-- Navigation -->
+        <nav>
+            <a href="index.php" class="active">Dashboard</a>
+            <a href="subscribers.php">Subscribers</a>
+            <a href="compose.php">New Campaign</a>
+        </nav>
+    </div>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Statistics Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:bg-slate-900/70 transition-colors">
-                <h3 class="text-sm uppercase font-semibold text-slate-400 tracking-wider mb-2">Active Subscribers</h3>
-                <div class="text-4xl font-bold text-indigo-500 mb-2"><?php echo number_format($stats['total_subscribers']); ?></div>
-                <p class="text-xs text-slate-500">Subscribed and active</p>
+    <div class="container">
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Active Subscribers</span>
+                <span class="stat-value"><?php echo number_format($stats['total_subscribers']); ?></span>
             </div>
-
-            <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:bg-slate-900/70 transition-colors">
-                <h3 class="text-sm uppercase font-semibold text-slate-400 tracking-wider mb-2">Active Campaigns</h3>
-                <div class="text-4xl font-bold text-indigo-500 mb-2"><?php echo $stats['active_campaigns']; ?></div>
-                <p class="text-xs text-slate-500">Draft, scheduled, or sending</p>
+            <div class="stat-card">
+                <span class="stat-label">Active Campaigns</span>
+                <span class="stat-value"><?php echo $stats['active_campaigns']; ?></span>
             </div>
-
-            <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:bg-slate-900/70 transition-colors">
-                <h3 class="text-sm uppercase font-semibold text-slate-400 tracking-wider mb-2">Emails This Week</h3>
-                <div class="text-4xl font-bold text-indigo-500 mb-2"><?php echo number_format($stats['emails_sent_week']); ?></div>
-                <p class="text-xs text-slate-500">Successfully sent</p>
+            <div class="stat-card">
+                <span class="stat-label">Emails This Week</span>
+                <span class="stat-value"><?php echo number_format($stats['emails_sent_week']); ?></span>
             </div>
-
-            <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:bg-slate-900/70 transition-colors">
-                <h3 class="text-sm uppercase font-semibold text-slate-400 tracking-wider mb-2">Open Rate</h3>
-                <div class="text-4xl font-bold text-indigo-500 mb-2"><?php echo $stats['open_rate']; ?>%</div>
-                <p class="text-xs text-slate-500">Average across campaigns</p>
+            <div class="stat-card">
+                <span class="stat-label">Average Open Rate</span>
+                <span class="stat-value"><?php echo $stats['open_rate']; ?>%</span>
             </div>
         </div>
 
-        <!-- Recent Campaigns Section -->
-        <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden mb-8">
-            <div class="p-6 border-b border-slate-800">
-                <h2 class="text-xl font-bold">Recent Campaigns</h2>
+        <!-- Recent Campaigns -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Recent Campaigns</h2>
             </div>
-
-            <?php if (count($recent_campaigns) > 0): ?>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="border-b border-slate-800 bg-slate-800/50">
+            <div class="section-content">
+                <?php if (count($recent_campaigns) > 0): ?>
+                    <table>
+                        <thead>
                             <tr>
-                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Campaign</th>
-                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Status</th>
-                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Recipients</th>
-                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Sent</th>
-                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Opens</th>
-                                <th class="px-6 py-3 text-left font-semibold text-slate-300">Created</th>
+                                <th>Campaign</th>
+                                <th>Status</th>
+                                <th>Recipients</th>
+                                <th>Sent</th>
+                                <th>Opens</th>
+                                <th>Created</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($recent_campaigns as $campaign): ?>
-                                <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
-                                    <td class="px-6 py-3 font-medium"><?php echo htmlspecialchars($campaign['name']); ?></td>
-                                    <td class="px-6 py-3">
-                                        <?php
-                                        $status = $campaign['status'];
-                                        $status_styles = [
-                                            'draft' => 'bg-slate-700 text-slate-100',
-                                            'scheduled' => 'bg-amber-900 text-amber-200',
-                                            'sending' => 'bg-blue-900 text-blue-200',
-                                            'completed' => 'bg-green-900 text-green-200'
-                                        ];
-                                        $style = $status_styles[$status] ?? 'bg-slate-700 text-slate-100';
-                                        ?>
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold <?php echo $style; ?>">
-                                            <?php echo ucfirst($status); ?>
+                                <tr>
+                                    <td><strong><?php echo htmlspecialchars($campaign['name']); ?></strong></td>
+                                    <td>
+                                        <span class="status-badge status-<?php echo $campaign['status']; ?>">
+                                            <?php echo ucfirst($campaign['status']); ?>
                                         </span>
                                     </td>
-                                    <td class="px-6 py-3"><?php echo $campaign['recipient_count']; ?></td>
-                                    <td class="px-6 py-3"><?php echo $campaign['sent_count']; ?></td>
-                                    <td class="px-6 py-3"><?php echo $campaign['opened_count']; ?></td>
-                                    <td class="px-6 py-3 text-slate-400"><?php echo date('M d, Y', strtotime($campaign['created_at'])); ?></td>
+                                    <td><?php echo $campaign['recipient_count']; ?></td>
+                                    <td><?php echo $campaign['sent_count']; ?></td>
+                                    <td><?php echo $campaign['opened_count']; ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($campaign['created_at'])); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                </div>
-            <?php else: ?>
-                <div class="p-12 text-center">
-                    <p class="text-slate-400 mb-4">No campaigns yet</p>
-                    <a href="compose.php" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors">
-                        Create Your First Campaign
-                    </a>
-                </div>
-            <?php endif; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <p>No campaigns yet</p>
+                        <a href="compose.php" class="btn btn-primary">Create Your First Campaign</a>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="backdrop-blur-xl bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
-            <div class="flex flex-wrap gap-3">
-                <a href="compose.php" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors">
-                    New Campaign
-                </a>
-                <a href="subscribers.php" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors">
-                    Manage Subscribers
-                </a>
-                <a href="subscribers.php?action=import" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors">
-                    Import List
-                </a>
+        <div class="section">
+            <div class="section-header">
+                <h2>Quick Actions</h2>
+            </div>
+            <div class="section-content">
+                <div class="button-group">
+                    <a href="compose.php" class="btn btn-primary">New Campaign</a>
+                    <a href="subscribers.php" class="btn btn-secondary">Manage Subscribers</a>
+                    <a href="subscribers.php?action=import" class="btn btn-secondary">Import List</a>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
-        // Mark current page in nav
+        // Mark current nav item
         const currentPath = window.location.pathname;
         document.querySelectorAll('nav a').forEach(link => {
-            const href = link.getAttribute('href');
-            if (currentPath.includes(href.split('?')[0])) {
-                link.classList.add('text-indigo-500');
-                link.classList.add('border-b-2');
-                link.classList.add('border-indigo-500');
-                link.classList.add('pb-2');
+            if (currentPath.includes(link.getAttribute('href').split('?')[0])) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
             }
         });
     </script>
