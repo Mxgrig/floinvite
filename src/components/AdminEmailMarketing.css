@@ -1,0 +1,331 @@
+/* Admin Email Marketing Component Styles */
+
+.admin-email-marketing {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4ff 0%, #f9f5ff 100%);
+  padding: 2rem;
+}
+
+.aem-header {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.aem-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.aem-header p {
+  margin: 0.5rem 0 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.aem-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.aem-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.aem-section h2 {
+  margin: 0 0 1rem 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.aem-section > p {
+  margin: 0 0 1.5rem 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Upload Section */
+.aem-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.aem-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.aem-upload-btn:hover {
+  background: #4338ca;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.aem-upload-success {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+}
+
+.aem-upload-success strong {
+  display: block;
+  color: #16a34a;
+  font-size: 14px;
+  margin: 0;
+}
+
+.aem-upload-success p {
+  margin: 0.25rem 0 0 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* Form Groups */
+.aem-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.aem-form-group label {
+  display: block;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+}
+
+.aem-form-group input,
+.aem-form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.aem-form-group input:focus,
+.aem-form-group textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.aem-form-group small {
+  display: block;
+  margin-top: 0.5rem;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* Buttons */
+.aem-btn-secondary {
+  padding: 0.625rem 1rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.aem-btn-secondary:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.aem-btn-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.aem-btn-preview:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.aem-btn-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 2rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.aem-btn-send:hover:not(:disabled) {
+  background: #b91c1c;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.aem-btn-send:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Preview */
+.aem-preview {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+/* Error Box */
+.aem-error {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #991b1b;
+  margin-bottom: 2rem;
+  font-size: 14px;
+}
+
+.aem-error svg {
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+/* Send Logs */
+.aem-logs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aem-log-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.aem-log-item strong {
+  display: block;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.aem-log-item p {
+  margin: 0.25rem 0 0 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.aem-log-success {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.aem-log-success strong {
+  color: #16a34a;
+}
+
+.aem-log-failed {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.aem-log-failed strong {
+  color: #991b1b;
+}
+
+.aem-log-partial {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.aem-log-partial strong {
+  color: #92400e;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-email-marketing {
+    padding: 1rem;
+  }
+
+  .aem-header {
+    padding: 1.5rem;
+  }
+
+  .aem-header h1 {
+    font-size: 20px;
+  }
+
+  .aem-section {
+    padding: 1.5rem;
+  }
+
+  .aem-log-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .aem-log-item > div:last-child {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

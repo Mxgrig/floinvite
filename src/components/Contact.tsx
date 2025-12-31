@@ -4,6 +4,7 @@
  */
 
 import { Mail, MapPin, Phone } from 'lucide-react';
+import { getLogoPath } from '../utils/logoHelper';
 import './LegalPages.css';
 
 export interface ContactProps {
@@ -19,7 +20,7 @@ export function Contact({ onNavigate }: ContactProps) {
           {/* Logo & Brand */}
           <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
             <div className="legal-navbar-logo">
-              <img src="/xmas-logo.png" alt="floinvite" />
+              <img src={getLogoPath()} alt="floinvite" />
             </div>
             <span className="brand-wordmark">
               <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
@@ -49,7 +50,7 @@ export function Contact({ onNavigate }: ContactProps) {
             title="Back to home"
           >
             <div className="legal-brand">
-              <img src="/xmas-logo.png" alt="floinvite" className="legal-logo" />
+              <img src={getLogoPath()} alt="floinvite" className="legal-logo" />
               <span className="legal-brand-text brand-wordmark">
                 <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
               </span>

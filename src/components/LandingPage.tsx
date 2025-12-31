@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { Mail, MapPin, Menu, Phone, X } from 'lucide-react';
+import { getLogoPath } from '../utils/logoHelper';
 import { LoopingVideo } from './LoopingVideo';
 import './LandingPage.css';
 
@@ -110,7 +111,7 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
       <div className="landing-container">
         <div className="landing-card">
           <div className="landing-brand">
-            <img src="/xmas-logo.png" alt="floinvite" className="landing-logo" />
+            <img src={getLogoPath()} alt="floinvite" className="landing-logo" />
             <span className="landing-brand-name brand-wordmark">
               <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
             </span>

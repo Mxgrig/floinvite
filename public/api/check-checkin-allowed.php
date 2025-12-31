@@ -31,6 +31,9 @@ if (ob_get_level()) {
 
 header('Content-Type: application/json; charset=utf-8');
 
+// Load environment variables from .env file
+require_once __DIR__ . '/env.php';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // CORS & Security
 // ═══════════════════════════════════════════════════════════════════════════
@@ -90,7 +93,7 @@ if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 $db_host = getenv('DB_HOST') ?: 'localhost';
 $db_name = getenv('DB_NAME') ?: 'u958180753_floinvite';
 $db_user = getenv('DB_USER') ?: 'u958180753_floinvite';
-$db_pass = getenv('DB_PASS') ?: '';
+$db_pass = getenv('DB_PASS') ?: 'Fl0invit3db!';
 
 try {
     $pdo = new PDO(
@@ -101,7 +104,7 @@ try {
     );
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
+    echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
     exit;
 }
 
@@ -176,14 +179,20 @@ try {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // Log the check for audit trail
+    // Log the check for audit trail (only if user exists)
     // ═══════════════════════════════════════════════════════════════════════
 
-    $logStmt = $pdo->prepare('
-        INSERT INTO usage_tracking (user_email, action_type, count_after)
-        VALUES (?, ?, ?)
-    ');
-    $logStmt->execute([$email, 'guest_checkin', $totalCount]);
+    if ($user) {
+        try {
+            $logStmt = $pdo->prepare('
+                INSERT INTO usage_tracking (user_email, action_type, count_after)
+                VALUES (?, ?, ?)
+            ');
+            $logStmt->execute([$email, 'guest_checkin', $totalCount]);
+        } catch (Exception $log_e) {
+            // Silently skip logging if it fails
+        }
+    }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Return Response
@@ -210,7 +219,7 @@ try {
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
-        'error' => 'Server error',
+        'error' => 'Server error: ' . $e->getMessage(),
         'allowed' => false
     ]);
 }

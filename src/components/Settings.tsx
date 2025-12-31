@@ -22,7 +22,7 @@ interface SettingsProps {
 
 export function Settings({ onNavigate }: SettingsProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('hosts');
-  const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
+  const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const now = new Date().toISOString();
   const [settings, setSettings] = usePersistedState<AppSettings>(
     STORAGE_KEYS.settings,
@@ -308,7 +308,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                 <Info size={18} />
                 <div>
                   <strong>Your data lives in this browser.</strong> Clearing site data or switching devices will remove your guests, hosts, and settings.
-                  Upgrade to Professional for cloud backup and safer retention.
+                  Upgrade to Compliance+ for cloud backup and safer retention.
                 </div>
               </div>
 
@@ -395,20 +395,20 @@ export function Settings({ onNavigate }: SettingsProps) {
               textAlign: 'center'
             }}>
               <Lock size={48} style={{ color: '#dc2626', marginBottom: '16px', opacity: 0.6 }} />
-              <h3 style={{ margin: '16px 0', color: '#1f2937' }}>Cloud Backup - Professional Feature</h3>
+              <h3 style={{ margin: '16px 0', color: '#1f2937' }}>Cloud Backup - Compliance+ Feature</h3>
               <p style={{ color: '#6b7280', marginBottom: '20px' }}>
-                Export and backup your data to protect against data loss. This feature is available in the Professional tier and above.
+                Export and backup your data to protect against data loss. This feature is available in the Compliance+ tier and above.
               </p>
               <div className="info-box" style={{ margin: '0 auto 16px', textAlign: 'left', maxWidth: '520px' }}>
                 <Info size={18} />
                 <div>
                   <strong>Your data lives in this browser.</strong> Clearing site data or switching devices will remove your guests, hosts, and settings.
-                  Upgrade to Professional for cloud backup and safer retention.
+                  Upgrade to Compliance+ for cloud backup and safer retention.
                 </div>
               </div>
               <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #d1d5db' }}>
                 <strong>Starter tier:</strong> All data is stored locally in your browser<br />
-                <strong>Professional tier:</strong> Enable cloud backup and export capabilities
+                <strong>Compliance+ tier:</strong> Enable cloud backup and export capabilities
               </div>
 
               <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #d1d5db', textAlign: 'center' }}>

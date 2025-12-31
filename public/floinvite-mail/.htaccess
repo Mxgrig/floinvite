@@ -1,0 +1,52 @@
+# Password protection for admin panel
+# Run: htpasswd -c .htpasswd username
+AuthType Basic
+AuthName "Floinvite Mail Admin"
+AuthUserFile /home/u958180753/public_html/floinvite-mail/.htpasswd
+Require valid-user
+
+# Allow unsubscribe.php to be accessed without authentication
+<Files "unsubscribe.php">
+    Require all granted
+</Files>
+
+# Allow tracking endpoints without authentication
+<Files "track.php">
+    Require all granted
+</Files>
+
+# Deny access to config files
+<Files "config.php">
+    Require all denied
+</Files>
+
+# Deny access to .env files
+<FilesMatch "\.env$">
+    Require all denied
+</FilesMatch>
+
+# Enable mod_rewrite for clean URLs
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /floinvite-mail/
+
+    # Redirect trailing slashes
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ $1 [L,R=301]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Enable gzip compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>

@@ -22,7 +22,7 @@ interface LogbookProps {
 export function Logbook({ onNavigate }: LogbookProps) {
   const [guests, setGuests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
-  const [userTier] = usePersistedState<'starter' | 'professional' | 'enterprise'>('floinvite_user_tier', 'starter');
+  const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -173,7 +173,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Lock size={18} />
-              <span><strong>Export features available in Professional tier.</strong> Upgrade to unlock CSV/JSON export and cloud backup.</span>
+              <span><strong>Export features available in Compliance+ tier.</strong> Upgrade to unlock CSV/JSON export and cloud backup.</span>
             </div>
             {onNavigate && (
               <button

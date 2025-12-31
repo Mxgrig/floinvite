@@ -20,7 +20,7 @@ export const FeatureLocked = ({ feature, tier, onUpgrade }: FeatureLockedProps) 
 
   const handleUpgrade = async () => {
     try {
-      await PaymentService.createCheckoutSession('professional', 'month');
+      await PaymentService.createCheckoutSession('compliance', 'month');
     } catch (error) {
       console.error('Upgrade failed:', error);
       alert('Failed to start checkout. Please try again.');
@@ -37,11 +37,11 @@ export const FeatureLocked = ({ feature, tier, onUpgrade }: FeatureLockedProps) 
 
         {tier === 'starter' && (
           <button className="feature-locked-upgrade" onClick={handleUpgrade}>
-            Upgrade to Professional
+            Upgrade to Compliance+
           </button>
         )}
 
-        {tier === 'professional' && (
+        {tier === 'compliance' && (
           <button className="feature-locked-contact" onClick={() => window.location.href = 'mailto:admin@floinvite.com'}>
             Contact Sales
           </button>

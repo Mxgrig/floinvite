@@ -3,6 +3,7 @@
  * Floinvite terms and conditions
  */
 
+import { getLogoPath } from '../utils/logoHelper';
 import './LegalPages.css';
 
 export interface TermsOfServiceProps {
@@ -18,7 +19,7 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
           {/* Logo & Brand */}
           <button className="legal-navbar-brand" onClick={() => onNavigate?.('landing')}>
             <div className="legal-navbar-logo">
-              <img src="/xmas-logo.png" alt="floinvite" />
+              <img src={getLogoPath()} alt="floinvite" />
             </div>
             <span className="brand-wordmark">
               <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
@@ -48,7 +49,7 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
             title="Back to home"
           >
             <div className="legal-brand">
-              <img src="/xmas-logo.png" alt="floinvite" className="legal-logo" />
+              <img src={getLogoPath()} alt="floinvite" className="legal-logo" />
               <span className="legal-brand-text brand-wordmark">
                 <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
               </span>

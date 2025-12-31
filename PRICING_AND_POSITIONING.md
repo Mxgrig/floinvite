@@ -39,7 +39,7 @@ Secondary outcomes:
 
 ## Feature Set (As Designed)
 
-### Core Features (All Users)
+### Core Features (All Paid Tiers)
 
 * Visitor sign-in / sign-out
 * Host / staff association
@@ -51,45 +51,20 @@ Secondary outcomes:
 ### Higher-Tier Features
 
 * Secure backups
-* Record retention
-* Self-service exports (PDF / CSV)
-* Audit convenience
+* Long-term record retention (7 years)
+* Self-service exports (PDF / CSV for entire history)
+* Audit-ready compliance reports
 * Priority support
 
 > No badges. No QR codes. This is a deliberate choice aligned to small organisations.
 
 ---
 
-## Data & Storage Positioning
+## Pricing Structure (Three Tiers)
 
-* Base experience prioritises **on-site availability and reliability**
-* Higher tier adds **convenience, retention, and peace of mind**
+### Tier 1: Starter
 
-**Important framing rule:**
-
-* Base tier must feel **defensible**, not provisional
-* Upgrade is about *not having to think about it*, not fixing a risk
-
-Suggested wording:
-
-> "Evidence access available when required." (Standard tier)
-
----
-
-## Pricing Structure (Two Tiers)
-
-### Starter Allowance
-
-* Free up to **20 active records** (combined visitors + hosts)
-* Designed for evaluation and light usage
-* Framed as a *starter allowance*, not a trial or trap
-* Clear tracking: "20 active" = 20 people across both categories (e.g., 15 visitors + 5 hosts = 20 total)
-
----
-
-### Tier 1: Standard (Recommended)
-
-**$29–$39 per site / month** *(initial test at $29 if risk-averse)*
+**$29 per site / month**
 
 Includes:
 
@@ -102,9 +77,9 @@ Includes:
 
 Positioning:
 
-> "Everything a small organisation needs to know who is on site—with evidence access when you need it."
+> "Everything a small organisation needs to know who is on site."
 
-**What "evidence access" means:**
+**What you get:**
 * Export visitor records for a specific date range (PDF or CSV)
 * Useful for incident investigations, compliance inquiries, or routine reporting
 * Data available on-demand; no automatic backups or archival
@@ -113,7 +88,7 @@ Positioning:
 
 ### Tier 2: Compliance+
 
-**$49–$59 per site / month**
+**$49 per site / month** (Recommended for regulated organisations)
 
 Includes:
 
@@ -129,33 +104,34 @@ Includes:
 
 Positioning:
 
-> "For estates and organisations that must retain records and stay audit-ready—with automatic backups and 7-year retention built in."
+> "For estates and organisations that must retain records and stay audit-ready."
 
-**What you gain vs. Standard:**
+**What you gain vs. Starter:**
 * Automatic daily backups (no manual exports needed)
 * 7-year record retention (vs. 90-day rolling window)
 * Export entire record history anytime (compliance-ready reports)
-* Audit-friendly interface and terminology
+* Audit-friendly interface and priority support
 
 ---
 
-### Optional Setup Fee
+### Tier 3: Enterprise
 
-**$49–$99 one-time (may be waived for early adopters)**
+**Custom pricing** (negotiated per deployment)
 
 Includes:
 
-* **Account configuration:** Site name, branding, timezone, notification preferences
-* **Staff/host setup:** Import initial host list (via CSV or manual entry)
-* **Data structure guidance:** Review visitor fields, archival strategy, naming conventions
-* **30-minute onboarding call:** Walk through sign-in workflow, settings, and first steps
+* Everything in Compliance+
+* Custom integration support
+* Dedicated onboarding and implementation
+* SLA and priority support
+* Custom branding and deployment options
+* Optional setup fee: $49–$99 one-time
 
-Purpose:
-
-* Signals seriousness and professionalism
-* Provides upfront cash and early customer commitment
-* Reassures non-technical buyers that setup is supported
-* Typically pays for itself if even one month's service continues
+**Setup fee includes (optional):**
+* Account configuration (site name, branding, timezone, notification preferences)
+* Staff/host setup (CSV import or manual entry)
+* Data structure guidance (fields, archival strategy, naming conventions)
+* 30-minute onboarding call (sign-in workflow, settings, first steps)
 
 ---
 
@@ -163,49 +139,48 @@ Purpose:
 
 ### What We DO
 
-* Price for **credibility**, not cheapness
+* Price for **credibility**, not cheapness ($29 minimum entry)
 * Sell **outcomes**, not tech
 * Use higher tier as peace-of-mind anchor
-* Keep choices simple (2 tiers only)
+* Keep choices simple (3 tiers: Starter, Compliance+, Enterprise)
 
 ### What We DO NOT Do
 
 * No "cup of coffee" messaging
 * No sub-$20 paid plans
 * No technical architecture explanations in marketing
+* No free tier (evaluation via trial or conversation)
 * No feature bloat to chase enterprises
 
 ---
 
-## Usage Enforcement Rules
+## Pricing Summary Table
 
-* Enforcement occurs at **20 active records** (combined visitors + hosts)
-* Soft warnings at 80% usage
-* Read-only access at limit (no data loss)
-* Clear, calm upgrade messaging
-
-Correct framing:
-
-> "Starter includes up to 20 active records (visitors + hosts combined) — upgrade to Standard when your team or visitor flow grows."
-
-**Example scenarios:**
-* 10 hosts + 10 visitors = 20 active (at limit)
-* 5 hosts + 15 visitors = 20 active (at limit)
-* Archived guests don't count toward the 20 limit
+| Tier | Price | Best For | Key Features |
+|------|-------|----------|------------------|
+| **Starter** | $29/mo | SMEs, small teams | Sign-in, live lists, 90-day exports, email support |
+| **Compliance+** | $49/mo | Estates, regulated orgs | 7-year retention, auto backups, audit reports, priority support |
+| **Enterprise** | Negotiated | Large deployments, integrations | Custom pricing, dedicated support, integration options |
 
 ---
 
 ## One-Line Positioning Statement
 
-> **Simple visitor records and evacuation lists for small organisations — without enterprise complexity.**
+> **Simple visitor records and evacuation lists for small organisations — from $29/month, without enterprise complexity.**
 
 ---
 
 ## Final Decision Summary
 
 * Feature set is correct for the target market
-* Pricing must signal seriousness and trust
-* Affordability is a benefit, not the headline
+* **Pricing confirmed:** Starter $29, Compliance+ $49, Enterprise negotiated
+* Minimum entry point ($29) signals seriousness and trust
+* No free tier — evaluation through trial or conversation
 * Execution now matters more than debate
 
-**Next focus:** selling, outreach, and first paying customers.
+**Next focus:** Stripe configuration, payment enforcement, and first paying customers.
+
+---
+
+**Last Updated:** December 31, 2024
+**Status:** Pricing finalized, ready for implementation

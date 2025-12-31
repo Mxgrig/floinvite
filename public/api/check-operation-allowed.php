@@ -94,7 +94,7 @@ if (!$operation) {
 $db_host = getenv('DB_HOST') ?: 'localhost';
 $db_name = getenv('DB_NAME') ?: 'u958180753_floinvite';
 $db_user = getenv('DB_USER') ?: 'u958180753_floinvite';
-$db_pass = getenv('DB_PASS') ?: '';
+$db_pass = getenv('DB_PASS') ?: 'Fl0invit3db!';
 
 try {
     $pdo = new PDO(
