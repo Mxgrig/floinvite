@@ -16,7 +16,7 @@
  * Response: { "allowed": true|false, "reason": "ok|limit_reached|payment_required" }
  */
 
-error_reporting(0);
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 if (ob_get_level()) {
@@ -98,7 +98,7 @@ $db_pass = getenv('DB_PASS') ?: '';
 
 if (!$db_pass) {
     http_response_code(500);
-    echo json_encode(['error' => 'Database configuration missing']);
+    echo json_encode(['error' => 'Database password not configured']);
     exit;
 }
 
@@ -111,7 +111,19 @@ try {
     );
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
+    $error_msg = 'Database connection failed';
+    
+    // Log detailed error for debugging (only in development)
+    if (getenv('APP_ENV') === 'development' || getenv('DEBUG') === 'true') {
+        $error_msg = 'Database error: ' . $e->getMessage();
+        error_log("DB Connection Error: Host=$db_host, User=$db_user, DB=$db_name, Error: " . $e->getMessage());
+    }
+    
+    echo json_encode([
+        'success' => false,
+        'error' => $error_msg,
+        'timestamp' => date('c')
+    ]);
     exit;
 }
 
