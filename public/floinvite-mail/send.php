@@ -341,11 +341,11 @@ if (!empty($_GET['api'])) {
     </style>
 </head>
 <body>
-    <header>
+    <header class="mail-hero">
         <div class="container">
             <a href="index.php" class="back-link">← Back to Dashboard</a>
             <h1>Send Campaign</h1>
-            <nav class="nav">
+            <nav class="nav mail-nav">
                 <a href="index.php">Dashboard</a>
                 <a href="subscribers.php">Subscribers</a>
                 <a href="compose.php">New Campaign</a>

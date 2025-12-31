@@ -78,75 +78,22 @@ if (!empty($_GET['logout'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Marketing Dashboard - Floinvite</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .logout-btn {
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: #991b1b;
-        }
-
-        .brand-name {
-            font-size: 1.25rem;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-            color: #111827;
-        }
-
-        .brand-name-invite {
-            color: #4f46e5;
-        }
-
-        .header-branding {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .header-branding img {
-            width: 32px;
-            height: 32px;
-        }
-
-        .stat-card {
-            background: #f8fafc;
-        }
-
-        .stat-card:hover {
-            background: #f5f5ff;
-        }
-
-        .section-header {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 1.5rem;
-        }
-
-        .section-content {
-            padding: 1.5rem;
-        }
-    </style>
 </head>
 <body>
     <!-- Header -->
     <div class="container">
-        <header>
-            <div class="header-branding">
-                <img src="../xmas-logo.png" alt="floinvite">
-                <span class="brand-name">flo<span class="brand-name-invite">invite</span></span>
+        <header class="mail-hero">
+            <div class="header-row">
+                <div class="header-branding">
+                    <img src="<?php echo htmlspecialchars(get_logo_path()); ?>" alt="floinvite">
+                    <span class="brand-name">flo<span class="brand-name-invite">invite</span></span>
+                </div>
+                <a href="?logout=1" class="logout-btn">Logout</a>
             </div>
-            <a href="?logout=1" class="logout-btn">Logout</a>
         </header>
 
         <!-- Navigation -->
-        <nav>
+        <nav class="mail-nav">
             <a href="index.php" class="active">Dashboard</a>
             <a href="subscribers.php">Subscribers</a>
             <a href="compose.php">New Campaign</a>
