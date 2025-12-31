@@ -12,10 +12,10 @@ ini_set('display_errors', 0);
 require_once dirname(dirname(__DIR__)) . '/public/api/env.php';
 
 // Database Configuration (Email Marketing System)
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_USER', getenv('DB_USER_MAIL') ?: 'u958180753_mail');
-define('DB_PASS', getenv('DB_PASS_MAIL') ?: 'floinvit3_Mail#');
-define('DB_NAME', getenv('DB_NAME_MAIL') ?: 'u958180753_mail');
+define('DB_HOST', getenv('DB_HOST_MAIL') ?: getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER_MAIL') ?: getenv('DB_USER') ?: 'u958180753_mail');
+define('DB_PASS', getenv('DB_PASS_MAIL') ?: getenv('DB_PASS') ?: 'floinvit3_Mail#');
+define('DB_NAME', getenv('DB_NAME_MAIL') ?: getenv('DB_NAME') ?: 'u958180753_mail');
 
 // SMTP Configuration (Hostinger)
 define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.hostinger.com');
