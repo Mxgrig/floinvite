@@ -97,11 +97,11 @@ header {
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.3px;
-  color: var(--text-primary);
+  color: var(--brand-blue);
 }
 
 .brand-name-invite {
-  color: var(--primary);
+  color: var(--brand-green);
 }
 
 .logout-btn {

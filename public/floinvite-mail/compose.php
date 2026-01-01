@@ -10,6 +10,7 @@ require_auth();
 
 $db = get_db();
 $message = '';
+$test_email = '';
 $campaign_id = $_GET['id'] ?? null;
 $campaign = null;
 
@@ -26,42 +27,67 @@ if ($campaign_id) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? 'save';
     $name = trim($_POST['name'] ?? '');
     $subject = trim($_POST['subject'] ?? '');
     $from_name = trim($_POST['from_name'] ?? '');
     $html_body = trim($_POST['html_body'] ?? '');
+    $test_email = trim($_POST['test_email'] ?? '');
 
-    // Validation
-    if (!$name || !$subject || !$html_body) {
-        $message = 'All fields are required';
-    } else {
-        try {
-            if ($campaign_id) {
-                // Update existing
-                $stmt = $db->prepare("
-                    UPDATE campaigns
-                    SET name = ?, subject = ?, from_name = ?, html_body = ?
-                    WHERE id = ?
-                ");
-                $stmt->execute([$name, $subject, $from_name, $html_body, $campaign_id]);
-                $message = 'Campaign updated successfully';
+    if ($action === 'test') {
+        if (!validate_email($test_email)) {
+            $message = 'Error: Provide a valid test email address';
+        } elseif (!$subject || !$from_name || !$html_body) {
+            $message = 'Error: Subject, From Name, and Email Content are required for test send';
+        } else {
+            $safe_subject = preg_replace('/[\r\n]+/', ' ', $subject);
+            $safe_from = preg_replace('/[\r\n]+/', ' ', $from_name);
+            $from_email = SMTP_USER ?: 'admin@floinvite.com';
+
+            $headers = "MIME-Version: 1.0\r\n";
+            $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+            $headers .= "From: {$safe_from} <{$from_email}>\r\n";
+            $headers .= "Reply-To: {$from_email}\r\n";
+
+            if (@mail($test_email, $safe_subject, $html_body, $headers)) {
+                $message = 'Test email sent successfully';
             } else {
-                // Create new
-                $stmt = $db->prepare("
-                    INSERT INTO campaigns (name, subject, from_name, html_body, status)
-                    VALUES (?, ?, ?, ?, 'draft')
-                ");
-                $stmt->execute([$name, $subject, $from_name, $html_body]);
-                $campaign_id = $db->lastInsertId();
-                $message = 'Campaign created successfully';
+                $message = 'Error: Test email failed to send';
             }
+        }
+    } else {
+        // Validation
+        if (!$name || !$subject || !$html_body) {
+            $message = 'All fields are required';
+        } else {
+            try {
+                if ($campaign_id) {
+                    // Update existing
+                    $stmt = $db->prepare("
+                        UPDATE campaigns
+                        SET name = ?, subject = ?, from_name = ?, html_body = ?
+                        WHERE id = ?
+                    ");
+                    $stmt->execute([$name, $subject, $from_name, $html_body, $campaign_id]);
+                    $message = 'Campaign updated successfully';
+                } else {
+                    // Create new
+                    $stmt = $db->prepare("
+                        INSERT INTO campaigns (name, subject, from_name, html_body, status)
+                        VALUES (?, ?, ?, ?, 'draft')
+                    ");
+                    $stmt->execute([$name, $subject, $from_name, $html_body]);
+                    $campaign_id = $db->lastInsertId();
+                    $message = 'Campaign created successfully';
+                }
 
-            // Reload campaign data
-            $stmt = $db->prepare("SELECT * FROM campaigns WHERE id = ?");
-            $stmt->execute([$campaign_id]);
-            $campaign = $stmt->fetch();
-        } catch (Exception $e) {
-            $message = 'Error: ' . $e->getMessage();
+                // Reload campaign data
+                $stmt = $db->prepare("SELECT * FROM campaigns WHERE id = ?");
+                $stmt->execute([$campaign_id]);
+                $campaign = $stmt->fetch();
+            } catch (Exception $e) {
+                $message = 'Error: ' . $e->getMessage();
+            }
         }
     }
 }
@@ -127,7 +153,8 @@ if ($campaign_id) {
             </div>
         <?php endif; ?>
 
-        <form method="POST" class="section">
+        <form method="POST" class="section" id="campaign-form">
+            <input type="hidden" name="action" id="form-action" value="save">
             <h2>Campaign Details</h2>
 
             <div class="form-row">
@@ -168,6 +195,19 @@ if ($campaign_id) {
                     <h3 style="margin: 0 0 1rem 0; font-size: 0.9rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Email Preview</h3>
                     <iframe id="email-preview" style="width: 100%; height: 600px; border: 1px solid #e5e7eb; border-radius: 4px; background: white; display: block;"></iframe>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label for="test_email">Send Test Email</label>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                    <input type="email" id="test_email" name="test_email"
+                        value="<?php echo htmlspecialchars($test_email); ?>"
+                        placeholder="you@example.com" style="flex: 1 1 260px;">
+                    <button type="button" class="btn-secondary" id="send-test-btn">Send Test Email</button>
+                </div>
+                <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
+                    Sends the current subject and HTML to the test address without saving changes.
+                </small>
             </div>
 
             <?php if ($campaign_id): ?>
@@ -569,6 +609,17 @@ if ($campaign_id) {
             document.addEventListener('DOMContentLoaded', initializePreview);
         } else {
             initializePreview();
+        }
+
+        const testBtn = document.getElementById('send-test-btn');
+        const formAction = document.getElementById('form-action');
+        const campaignForm = document.getElementById('campaign-form');
+
+        if (testBtn && formAction && campaignForm) {
+            testBtn.addEventListener('click', () => {
+                formAction.value = 'test';
+                campaignForm.submit();
+            });
         }
     </script>
 </body>
