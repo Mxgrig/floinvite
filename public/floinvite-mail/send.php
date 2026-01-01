@@ -5,6 +5,7 @@
  */
 
 require_once 'config.php';
+require_once 'logo.php';
 require_auth();
 
 $db = get_db();
@@ -349,6 +350,35 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
             font-size: 1.875rem;
         }
 
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-branding {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-branding img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            color: #4338ca;
+        }
+
+        .brand-name-invite {
+            color: #10b981;
+        }
+
         .nav {
             display: flex;
             gap: 2rem;
@@ -636,7 +666,13 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
 <body>
     <header class="mail-hero">
         <div class="container">
-            <a href="index.php" class="back-link">← Back to Dashboard</a>
+            <div class="header-row">
+                <div class="header-branding">
+                    <img src="<?php echo htmlspecialchars(get_logo_path()); ?>" alt="floinvite">
+                    <span class="brand-name">flo<span class="brand-name-invite">invite</span></span>
+                </div>
+                <a href="index.php" class="back-link">← Back to Dashboard</a>
+            </div>
             <h1>Send Campaign</h1>
             <nav class="nav mail-nav">
                 <a href="index.php">Dashboard</a>
