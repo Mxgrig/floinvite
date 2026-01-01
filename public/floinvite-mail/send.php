@@ -77,6 +77,9 @@ function fetch_subscriber_statuses($db, $emails) {
 
 $preview = null;
 $preview_error = null;
+$prefill = $_SESSION['send_prefill'][$campaign_id] ?? null;
+$prefill_mode = $prefill['mode'] ?? null;
+$prefill_custom = $prefill['custom_emails'] ?? '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -308,10 +311,14 @@ if (!empty($_GET['api'])) {
     exit;
 }
 
-$selected_send_mode = $_POST['send_mode'] ?? 'all';
-$custom_emails_display = $_POST['custom_emails'] ?? '';
+$selected_send_mode = $_POST['send_mode'] ?? ($prefill_mode ?: 'all');
+$custom_emails_display = $_POST['custom_emails'] ?? $prefill_custom;
 $allow_new_checked = !empty($_POST['allow_new']);
 $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
+
+if ($prefill) {
+    unset($_SESSION['send_prefill'][$campaign_id]);
+}
 
 ?>
 <!DOCTYPE html>
@@ -319,12 +326,17 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send Campaign - Floinvite Mail</title>
+    <title>Send Campaign - floinvite Mail</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        :root {
+            --brand-blue: #4338ca;
+            --brand-green: #10b981;
         }
 
         body {
@@ -363,9 +375,36 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
             gap: 0.75rem;
         }
 
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+
+        .brand-wordmark-flo {
+            color: var(--brand-blue);
+        }
+
+        .brand-wordmark-invite {
+            color: var(--brand-green);
+        }
+
         .header-branding img {
             width: 32px;
             height: 32px;
+        }
+
+        .mail-footer {
+            border-top: 1px solid #e5e7eb;
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
         }
 
         .brand-name {
@@ -669,7 +708,9 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
             <div class="header-row">
                 <div class="header-branding">
                     <img src="<?php echo htmlspecialchars(get_logo_path()); ?>" alt="floinvite">
-                    <span class="brand-name">flo<span class="brand-name-invite">invite</span></span>
+                    <span class="brand-wordmark">
+                        <span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span>
+                    </span>
                 </div>
                 <a href="index.php" class="back-link">← Back to Dashboard</a>
             </div>
@@ -864,6 +905,7 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
             </div>
         <?php endif; ?>
     </div>
+
     <script>
         const sendAll = document.getElementById('send-all');
         const sendCustom = document.getElementById('send-custom');
@@ -893,10 +935,9 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
 
     <!-- Footer -->
     <div class="container">
-        <div style="text-align: center; padding: 2rem 0; border-top: 1px solid #e5e7eb; margin-top: 2rem; color: #6b7280; font-size: 0.875rem;">
-            <p style="margin: 0;"><strong><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></strong> Email Marketing Platform</p>
-            <p style="margin: 0.25rem 0 0 0;"><?php echo date('M d, Y'); ?></p>
-        </div>
+        <footer class="mail-footer">
+            <p>© <?php echo date('Y'); ?> <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span>. All rights reserved.</p>
+        </footer>
     </div>
 </body>
 </html>

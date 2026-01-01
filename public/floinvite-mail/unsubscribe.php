@@ -84,12 +84,17 @@ if (!empty($_GET['api'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unsubscribe - Floinvite</title>
+    <title>Unsubscribe - floinvite</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        :root {
+            --brand-blue: #4338ca;
+            --brand-green: #10b981;
         }
 
         body {
@@ -116,6 +121,24 @@ if (!empty($_GET['api'])) {
             font-size: 1.875rem;
             margin-bottom: 1rem;
             color: #1f2937;
+        }
+
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+
+        .brand-wordmark-flo {
+            color: var(--brand-blue);
+        }
+
+        .brand-wordmark-invite {
+            color: var(--brand-green);
         }
 
         .message {
@@ -266,8 +289,8 @@ if (!empty($_GET['api'])) {
         <?php endif; ?>
 
         <div class="footer">
-            <p>Floinvite Email Marketing System</p>
-            <p><a href="<?php echo PUBLIC_URL; ?>">Back to Floinvite</a></p>
+            <p>© <?php echo date('Y'); ?> <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span>. All rights reserved.</p>
+            <p><a href="<?php echo PUBLIC_URL; ?>">Back to <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></p>
         </div>
     </div>
 </body>

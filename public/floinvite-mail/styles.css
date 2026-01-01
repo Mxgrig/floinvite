@@ -93,6 +93,24 @@ header {
   height: 32px;
 }
 
+.brand-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1;
+  text-transform: lowercase;
+}
+
+.brand-wordmark-flo {
+  color: var(--brand-blue);
+}
+
+.brand-wordmark-invite {
+  color: var(--brand-green);
+}
+
 .brand-name {
   font-size: 1.25rem;
   font-weight: 800;
@@ -153,6 +171,20 @@ nav a.active {
   padding: var(--space-4) var(--space-5);
   box-shadow: var(--shadow-card);
   margin-top: var(--space-4);
+}
+
+/* Footer */
+.mail-footer {
+  border-top: 1px solid var(--border-color);
+  margin-top: var(--space-8);
+  padding: var(--space-6) 0;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.mail-footer .brand-wordmark {
+  font-weight: 800;
 }
 
 /* ═══════════════════════════════════════════════════ */
