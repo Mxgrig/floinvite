@@ -78,6 +78,10 @@ function fetch_subscriber_statuses($db, $emails) {
 $preview = null;
 $preview_error = null;
 $prefill = $_SESSION['send_prefill'][$campaign_id] ?? null;
+$prefill_token = $_GET['prefill'] ?? null;
+if ($prefill && (!is_string($prefill_token) || !hash_equals($prefill['token'] ?? '', $prefill_token))) {
+    $prefill = null;
+}
 $prefill_mode = $prefill['mode'] ?? null;
 $prefill_custom = $prefill['custom_emails'] ?? '';
 
@@ -316,7 +320,7 @@ $custom_emails_display = $_POST['custom_emails'] ?? $prefill_custom;
 $allow_new_checked = !empty($_POST['allow_new']);
 $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
 
-if ($prefill) {
+if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
     unset($_SESSION['send_prefill'][$campaign_id]);
 }
 
