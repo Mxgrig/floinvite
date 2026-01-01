@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Subscribers - Floinvite Mail</title>
+    <title>Manage Subscribers - floinvite Mail</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         .tabs {
@@ -363,6 +363,12 @@ jane@example.com,Jane Smith,Tech Inc</pre>
                 <button type="submit" class="btn-primary">Import Subscribers</button>
             </form>
         </div>
+    </div>
+
+    <div class="container">
+        <footer class="mail-footer">
+            <p>© <?php echo date('Y'); ?> <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span>. All rights reserved.</p>
+        </footer>
     </div>
 
     <script>

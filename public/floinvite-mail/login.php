@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Marketing - Floinvite</title>
+    <title>Email Marketing - floinvite</title>
     <style>
         * {
             margin: 0;
@@ -31,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         :root {
+            --brand-blue: #4338ca;
+            --brand-green: #10b981;
             --auth-text-color: rgba(255, 255, 255, 0.95);
             --auth-subtitle-color: rgba(255, 255, 255, 0.75);
             --auth-label-color: rgba(255, 255, 255, 0.85);
@@ -153,6 +155,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             letter-spacing: -0.3px;
         }
 
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+
+        .brand-wordmark-flo {
+            color: var(--brand-blue);
+        }
+
+        .brand-wordmark-invite {
+            color: var(--brand-green);
+        }
+
         .auth-title {
             font-size: var(--auth-title-font-size);
             font-weight: var(--auth-title-font-weight);
@@ -260,6 +280,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 0.5rem;
         }
 
+        .mail-footer {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            z-index: 2;
+        }
+
         @media (max-width: 768px) {
             .auth-card {
                 padding: 2rem 1.75rem;
@@ -336,8 +368,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="auth-card">
                 <button class="auth-brand" type="button" style="background: none; border: none; cursor: pointer;">
                     <img src="<?php echo htmlspecialchars(get_logo_path()); ?>" alt="floinvite" class="auth-logo" />
-                    <span class="auth-brand-name">
-                        flo<span style="color: #4f46e5;">invite</span>
+                    <span class="auth-brand-name brand-wordmark">
+                        <span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span>
                     </span>
                 </button>
 
@@ -370,11 +402,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
 
                 <div class="auth-footer">
-                    <p>Professional Email Marketing for <span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></p>
+                    <p>Professional Email Marketing for <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></p>
                     <p style="font-size: 0.75rem; margin-top: 0.5rem; color: #9ca3af;"><?php echo date('M d, Y'); ?></p>
                 </div>
             </div>
         </div>
+
+        <footer class="mail-footer">
+            <p>© <?php echo date('Y'); ?> <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span>. All rights reserved.</p>
+        </footer>
     </div>
 </body>
 </html>

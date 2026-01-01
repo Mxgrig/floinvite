@@ -81,6 +81,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message = 'Campaign created successfully';
                 }
 
+                if ($action === 'save_send') {
+                    $recipient_mode = $_POST['recipient_mode'] ?? 'subscribers';
+                    $recipients_raw = $_POST['recipients'] ?? '[]';
+                    $recipients = json_decode($recipients_raw, true);
+                    $emails = [];
+                    if (is_array($recipients)) {
+                        foreach ($recipients as $recipient) {
+                            if (!empty($recipient['email'])) {
+                                $emails[] = strtolower(trim($recipient['email']));
+                            }
+                        }
+                    }
+                    $emails = array_values(array_unique(array_filter($emails)));
+                    $_SESSION['send_prefill'][$campaign_id] = [
+                        'mode' => $recipient_mode === 'subscribers' ? 'all' : 'custom',
+                        'custom_emails' => implode("\n", $emails)
+                    ];
+                    header('Location: send.php?id=' . $campaign_id);
+                    exit;
+                }
+
                 // Reload campaign data
                 $stmt = $db->prepare("SELECT * FROM campaigns WHERE id = ?");
                 $stmt->execute([$campaign_id]);
@@ -92,12 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get subscriber count for this campaign
+// Get subscriber count
 $subscriber_count = 0;
-if ($campaign_id) {
-    $result = $db->query("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
-    $subscriber_count = $result->fetch()['count'] ?? 0;
-}
+$result = $db->query("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
+$subscriber_count = $result->fetch()['count'] ?? 0;
 
 ?>
 <!DOCTYPE html>
@@ -105,7 +124,7 @@ if ($campaign_id) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $campaign_id ? 'Edit Campaign' : 'Compose Campaign'; ?> - Floinvite Mail</title>
+    <title><?php echo $campaign_id ? 'Edit Campaign' : 'Compose Campaign'; ?> - floinvite Mail</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         .container {
@@ -168,7 +187,7 @@ if ($campaign_id) {
                 <div class="form-group">
                     <label for="from_name">From Name *</label>
                     <input type="text" id="from_name" name="from_name" required
-                        value="<?php echo htmlspecialchars($campaign['from_name'] ?? 'Floinvite Team'); ?>"
+                        value="<?php echo htmlspecialchars($campaign['from_name'] ?? 'floinvite Team'); ?>"
                         placeholder="Your company name">
                 </div>
             </div>
@@ -214,9 +233,13 @@ if ($campaign_id) {
                 <label>Email Recipients *</label>
                 <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Choose how to add recipients</p>
 
-                <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
                     <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                        <input type="radio" name="recipient_mode" id="recipient-csv" value="csv" checked style="cursor: pointer;">
+                        <input type="radio" name="recipient_mode" id="recipient-subscribers" value="subscribers" checked style="cursor: pointer;">
+                        <span>Use active subscribers (<?php echo number_format($subscriber_count); ?>)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="recipient_mode" id="recipient-csv" value="csv" style="cursor: pointer;">
                         <span>Upload CSV File</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
@@ -225,7 +248,14 @@ if ($campaign_id) {
                     </label>
                 </div>
 
-                <div id="csv-input-section">
+                <div id="subscribers-input-section" style="margin-bottom: 1rem;">
+                    <div style="padding: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; color: #1e3a8a;">
+                        Sending to all active subscribers in your list.
+                        <a href="subscribers.php" style="color: #1d4ed8; text-decoration: underline; margin-left: 0.25rem;">Manage subscribers</a>
+                    </div>
+                </div>
+
+                <div id="csv-input-section" style="display: none;">
                     <input type="file" id="recipient-csv-file" accept=".csv" style="display: none;">
                     <button type="button" class="btn-secondary" id="csv-upload-btn" style="margin-bottom: 0.5rem;">Choose CSV File</button>
                     <small style="color: #6b7280; margin-top: 0.5rem; display: block;">CSV must have email, name (optional), and company (optional) columns</small>
@@ -266,11 +296,9 @@ if ($campaign_id) {
                 <button type="submit" class="btn-primary">
                     <?php echo $campaign_id ? 'Update Campaign' : 'Save Draft'; ?>
                 </button>
-                <?php if ($campaign_id && $campaign['status'] === 'draft'): ?>
-                    <a href="send.php?id=<?php echo $campaign_id; ?>" class="btn-primary" style="text-decoration: none; padding: 0.75rem 1.5rem; display: inline-block; background: #10b981;">
-                        Send Campaign
-                    </a>
-                <?php endif; ?>
+                <button type="button" class="btn-primary" id="save-send-btn" style="background: #10b981;">
+                    Save &amp; Continue to Send
+                </button>
                 <a href="index.php" class="btn-secondary" style="text-decoration: none; padding: 0.75rem 1.5rem; display: inline-block;">
                     Cancel
                 </a>
@@ -282,6 +310,12 @@ if ($campaign_id) {
                 </div>
             <?php endif; ?>
         </form>
+    </div>
+
+    <div class="container">
+        <footer class="mail-footer">
+            <p>© <?php echo date('Y'); ?> <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span>. All rights reserved.</p>
+        </footer>
     </div>
 
     <script>
@@ -397,13 +431,13 @@ if ($campaign_id) {
     <div class="email-container">
         <div class="header">
             <div class="logo-section">
-                <img src="${logoUrl}" alt="Floinvite">
+                <img src="${logoUrl}" alt="floinvite">
                 <div class="company-name"><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></div>
             </div>
         </div>
         <div class="content">
             <p class="greeting">Hello {name},</p>
-            <h2>Welcome to Floinvite</h2>
+            <h2>Welcome to <span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></h2>
             <p>We're excited to connect with you. Here's an important update for your visit.</p>
             <p>Your content goes here. Edit this message to customize your email.</p>
             <a href="#" class="cta-button">Learn More</a>
@@ -551,7 +585,7 @@ if ($campaign_id) {
     <div class="email-container">
         <div class="header">
             <div class="logo-section">
-                <img src="${logoUrl}" alt="Floinvite">
+                <img src="${logoUrl}" alt="floinvite">
                 <div class="company-name"><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></div>
             </div>
         </div>
@@ -565,7 +599,7 @@ if ($campaign_id) {
             <p>Hi {name},</p>
             <p>We have a special exclusive offer just for our valued customers like you.</p>
             <p>This limited-time offer is a token of our appreciation. Don't miss out!</p>
-            <p>Thank you for choosing Floinvite!</p>
+            <p>Thank you for choosing <span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span>!</p>
         </div>
         <div class="footer">
             <p><strong><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></strong><br>Professional Visitor Management</p>
@@ -647,6 +681,7 @@ if ($campaign_id) {
         }
 
         const testBtn = document.getElementById('send-test-btn');
+        const saveSendBtn = document.getElementById('save-send-btn');
         const formAction = document.getElementById('form-action');
         const campaignForm = document.getElementById('campaign-form');
 
@@ -657,9 +692,18 @@ if ($campaign_id) {
             });
         }
 
+        if (saveSendBtn && formAction && campaignForm) {
+            saveSendBtn.addEventListener('click', () => {
+                formAction.value = 'save_send';
+                campaignForm.submit();
+            });
+        }
+
         // Recipient input handling
+        const recipientSubscribersRadio = document.getElementById('recipient-subscribers');
         const recipientCSVRadio = document.getElementById('recipient-csv');
         const recipientManualRadio = document.getElementById('recipient-manual');
+        const subscribersInputSection = document.getElementById('subscribers-input-section');
         const csvInputSection = document.getElementById('csv-input-section');
         const manualInputSection = document.getElementById('manual-input-section');
         const csvUploadBtn = document.getElementById('csv-upload-btn');
@@ -667,16 +711,37 @@ if ($campaign_id) {
         const recipientEmailsTextarea = document.getElementById('recipient-emails');
         const recipientsJsonField = document.getElementById('recipients-json');
 
-        // Toggle between CSV and manual input
-        recipientCSVRadio.addEventListener('change', () => {
+        // Toggle between subscriber list, CSV, and manual input
+        const showSubscriberMode = () => {
+            subscribersInputSection.style.display = 'block';
+            csvInputSection.style.display = 'none';
+            manualInputSection.style.display = 'none';
+            recipientsJsonField.value = '[]';
+        };
+
+        const showCSVMode = () => {
+            subscribersInputSection.style.display = 'none';
             csvInputSection.style.display = 'block';
             manualInputSection.style.display = 'none';
-        });
+        };
 
-        recipientManualRadio.addEventListener('change', () => {
+        const showManualMode = () => {
+            subscribersInputSection.style.display = 'none';
             csvInputSection.style.display = 'none';
             manualInputSection.style.display = 'block';
-        });
+        };
+
+        recipientSubscribersRadio.addEventListener('change', showSubscriberMode);
+        recipientCSVRadio.addEventListener('change', showCSVMode);
+        recipientManualRadio.addEventListener('change', showManualMode);
+
+        if (recipientSubscribersRadio.checked) {
+            showSubscriberMode();
+        } else if (recipientCSVRadio.checked) {
+            showCSVMode();
+        } else {
+            showManualMode();
+        }
 
         // CSV file upload
         csvUploadBtn.addEventListener('click', () => {
