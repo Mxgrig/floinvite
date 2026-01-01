@@ -154,14 +154,18 @@ if ($campaign_id) {
 
             <div class="form-group">
                 <label for="html_body">Email Content (HTML) *</label>
-                <div style="margin-bottom: 0.5rem;">
+                <div style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
                     <button type="button" class="template-btn" onclick="insertTemplate()">Insert Default Template</button>
                     <button type="button" class="template-btn" onclick="insertPromo()">Insert Promo Template</button>
+                    <button type="button" class="template-btn" onclick="togglePreview()" style="background: #4f46e5; color: white; border: none;">Show Preview</button>
                 </div>
                 <textarea id="html_body" name="html_body" required placeholder="Enter HTML email content..."><?php echo htmlspecialchars($campaign['html_body'] ?? ''); ?></textarea>
                 <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
                     Support variables: {name}, {email}, {company}. Use tracking pixel: &lt;img src="<?php echo BASE_URL; ?>/track.php?id={tracking_id}" width="1" height="1"&gt;
                 </small>
+                <div id="preview-container" style="display: none; margin-top: 1rem;">
+                    <iframe id="email-preview" style="width: 100%; height: 600px; border: 1px solid #e5e7eb; border-radius: 6px;"></iframe>
+                </div>
             </div>
 
             <?php if ($campaign_id): ?>
@@ -198,36 +202,60 @@ if ($campaign_id) {
     </div>
 
     <script>
-        function insertTemplate() {
-            const template = `<!DOCTYPE html>
+        const logoUrl = '<?php echo htmlspecialchars(get_logo_path()); ?>';
+
+        function getDefaultTemplate() {
+            return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #4f46e5; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: white; }
-        .footer { background: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        body { font-family: 'Outfit', Arial, sans-serif; margin: 0; padding: 0; background: #f3f4f6; }
+        .email-container { max-width: 600px; margin: 0 auto; background: white; }
+        .header { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; padding: 30px 20px; text-align: center; }
+        .logo { margin-bottom: 15px; }
+        .logo img { height: 40px; margin-right: 10px; vertical-align: middle; }
+        .brand-name { display: inline-block; font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+        .brand-invite { color: #a5f3fc; }
+        .header h1 { font-size: 28px; margin: 15px 0 0 0; font-weight: 600; }
+        .content { padding: 30px 20px; color: #374151; line-height: 1.6; }
+        .content h2 { color: #111827; font-size: 20px; margin: 0 0 10px 0; }
+        .content p { margin: 0 0 15px 0; }
+        .cta-button { display: inline-block; background: #4f46e5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 15px 0; }
+        .cta-button:hover { background: #4338ca; }
+        .footer { background: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; }
+        .footer a { color: #4f46e5; text-decoration: none; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="email-container">
         <div class="header">
+            <div class="logo">
+                <img src="${logoUrl}" alt="Floinvite">
+                <span class="brand-name">flo<span class="brand-invite">invite</span></span>
+            </div>
             <h1>Hello {name}</h1>
         </div>
         <div class="content">
-            <p>We have an exciting update for you!</p>
-            <p>Your content goes here...</p>
+            <h2>Welcome to Floinvite</h2>
+            <p>We're excited to connect with you. Here's an important update for your visit.</p>
+            <p>Your content goes here. Edit this message to customize your email.</p>
+            <a href="#" class="cta-button">Learn More</a>
         </div>
         <div class="footer">
-            <p>Floinvite | Professional Visitor Management</p>
-            <p><a href="${BASE_URL}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a></p>
+            <p><strong>Floinvite</strong> | Professional Visitor Management</p>
+            <p>Email: {email} | Company: {company}</p>
+            <p><a href="#">Unsubscribe</a> | <a href="#">Contact Us</a></p>
         </div>
     </div>
 </body>
 </html>`;
+        }
+
+        function insertTemplate() {
+            const template = getDefaultTemplate();
             document.getElementById('html_body').value = template;
+            updatePreview();
         }
 
         function insertPromo() {
@@ -236,30 +264,88 @@ if ($campaign_id) {
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: Arial, sans-serif; background: #f3f4f6; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .promo { background: #dc2626; color: white; padding: 40px; text-align: center; }
-        .promo h1 { font-size: 2em; margin: 0 0 10px 0; }
-        .cta { display: inline-block; background: white; color: #dc2626; padding: 12px 30px; text-decoration: none; font-weight: bold; margin: 20px 0; }
+        body { font-family: 'Outfit', Arial, sans-serif; margin: 0; padding: 0; background: #f3f4f6; }
+        .email-container { max-width: 600px; margin: 0 auto; background: white; }
+        .logo { padding: 20px; text-align: center; }
+        .logo img { height: 40px; margin-right: 10px; vertical-align: middle; }
+        .brand-name { display: inline-block; font-size: 24px; font-weight: 700; }
+        .brand-invite { color: #a5f3fc; }
+        .promo { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 50px 20px; text-align: center; }
+        .promo h1 { font-size: 32px; margin: 0 0 15px 0; font-weight: 700; }
+        .promo p { margin: 0 0 20px 0; font-size: 16px; }
+        .cta { display: inline-block; background: white; color: #dc2626; padding: 14px 40px; text-decoration: none; font-weight: 700; border-radius: 6px; }
+        .cta:hover { background: #f3f4f6; }
+        .content { padding: 30px 20px; color: #374151; line-height: 1.6; }
+        .footer { background: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="email-container">
+        <div style="padding: 20px; text-align: center;">
+            <img src="${logoUrl}" alt="Floinvite" style="height: 40px; margin-right: 10px; vertical-align: middle;">
+            <span class="brand-name">flo<span class="brand-invite">invite</span></span>
+        </div>
         <div class="promo">
             <h1>Special Offer Just For You!</h1>
             <p>Get 20% off on your next visit</p>
-            <a href="#" class="cta">Claim Offer</a>
+            <a href="#" class="cta">Claim Offer Now</a>
         </div>
-        <div style="padding: 20px; background: white; margin-top: 20px;">
+        <div class="content">
             <p>Hi {name},</p>
-            <p>We have a special offer just for our valued customers like you.</p>
+            <p>We have a special exclusive offer just for our valued customers like you.</p>
+            <p>This offer is limited time only. Don't miss out!</p>
             <p>Thank you for choosing Floinvite!</p>
+        </div>
+        <div class="footer">
+            <p><strong>Floinvite</strong> | Professional Visitor Management</p>
+            <p><a href="#">Unsubscribe</a> | <a href="#">Contact Us</a></p>
         </div>
     </div>
 </body>
 </html>`;
             document.getElementById('html_body').value = template;
+            updatePreview();
         }
+
+        let previewOpen = false;
+        let textarea, preview, previewContainer, previewBtn;
+
+        function initializePreview() {
+            textarea = document.getElementById('html_body');
+            preview = document.getElementById('email-preview');
+            previewContainer = document.getElementById('preview-container');
+            previewBtn = document.querySelector('[onclick="togglePreview()"]');
+
+            if (textarea && preview && previewContainer && previewBtn) {
+                // Load default template on page load
+                if (!textarea.value) {
+                    textarea.value = getDefaultTemplate();
+                }
+
+                textarea.addEventListener('input', function() {
+                    if (previewOpen) {
+                        updatePreview();
+                    }
+                });
+            }
+        }
+
+        function togglePreview() {
+            previewOpen = !previewOpen;
+            previewContainer.style.display = previewOpen ? 'block' : 'none';
+            previewBtn.textContent = previewOpen ? 'Hide Preview' : 'Show Preview';
+            if (previewOpen) {
+                updatePreview();
+            }
+        }
+
+        function updatePreview() {
+            const html = textarea.value || '<p style="color: #999; padding: 20px; text-align: center;">Email preview will appear here...</p>';
+            preview.srcDoc = html;
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initializePreview);
     </script>
 </body>
 </html>
