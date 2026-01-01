@@ -5,6 +5,7 @@
  */
 
 require_once 'config.php';
+require_once 'logo.php';
 require_auth();
 
 $db = get_db();
@@ -202,7 +203,9 @@ if ($campaign_id) {
     </div>
 
     <script>
-        const logoUrl = '<?php echo htmlspecialchars(get_logo_path()); ?>';
+        const logoUrl = '<?php echo htmlspecialchars(get_logo_url(PUBLIC_URL)); ?>';
+        const baseUrl = '<?php echo htmlspecialchars(BASE_URL); ?>';
+        const publicUrl = '<?php echo htmlspecialchars(PUBLIC_URL); ?>';
 
         function getDefaultTemplate() {
             return `<!DOCTYPE html>
@@ -245,7 +248,7 @@ if ($campaign_id) {
         <div class="footer">
             <p><strong>Floinvite</strong> | Professional Visitor Management</p>
             <p>Email: {email} | Company: {company}</p>
-            <p><a href="#">Unsubscribe</a> | <a href="#">Contact Us</a></p>
+            <p><a href="${baseUrl}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="${publicUrl}/contact">Contact Us</a></p>
         </div>
     </div>
 </body>
@@ -298,7 +301,7 @@ if ($campaign_id) {
         </div>
         <div class="footer">
             <p><strong>Floinvite</strong> | Professional Visitor Management</p>
-            <p><a href="#">Unsubscribe</a> | <a href="#">Contact Us</a></p>
+            <p><a href="${baseUrl}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="${publicUrl}/contact">Contact Us</a></p>
         </div>
     </div>
 </body>
