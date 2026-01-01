@@ -1,10 +1,3 @@
-# Password protection for admin panel
-# Run: htpasswd -c .htpasswd username
-AuthType Basic
-AuthName "Floinvite Mail Admin"
-AuthUserFile /home/u958180753/public_html/floinvite-mail/.htpasswd
-Require valid-user
-
 # Allow unsubscribe.php to be accessed without authentication
 <Files "unsubscribe.php">
     Require all granted
