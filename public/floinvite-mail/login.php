@@ -370,7 +370,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
 
                 <div class="auth-footer">
-                    <p>Professional Email Marketing for Floinvite</p>
+                    <p>Professional Email Marketing for <span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></p>
+                    <p style="font-size: 0.75rem; margin-top: 0.5rem; color: #9ca3af;"><?php echo date('M d, Y'); ?></p>
                 </div>
             </div>
         </div>

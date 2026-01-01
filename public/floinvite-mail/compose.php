@@ -210,6 +210,41 @@ if ($campaign_id) {
                 </small>
             </div>
 
+            <div class="form-group">
+                <label>Email Recipients *</label>
+                <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Choose how to add recipients</p>
+
+                <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="recipient_mode" id="recipient-csv" value="csv" checked style="cursor: pointer;">
+                        <span>Upload CSV File</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="recipient_mode" id="recipient-manual" value="manual" style="cursor: pointer;">
+                        <span>Enter Email Addresses Manually</span>
+                    </label>
+                </div>
+
+                <div id="csv-input-section">
+                    <input type="file" id="recipient-csv-file" accept=".csv" style="display: none;">
+                    <button type="button" class="btn-secondary" id="csv-upload-btn" style="margin-bottom: 0.5rem;">Choose CSV File</button>
+                    <small style="color: #6b7280; margin-top: 0.5rem; display: block;">CSV must have email, name (optional), and company (optional) columns</small>
+                    <div id="csv-preview" style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; color: #166534; display: none;">
+                        <strong id="csv-count">0 recipients loaded</strong>
+                    </div>
+                </div>
+
+                <div id="manual-input-section" style="display: none;">
+                    <textarea id="recipient-emails" name="recipient_emails" placeholder="name@company.com, another@domain.com&#10;one@more.com" rows="6" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 0.875rem;"></textarea>
+                    <small style="color: #6b7280; margin-top: 0.5rem; display: block;">Comma, space, or newline separated</small>
+                    <div id="manual-preview" style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; color: #166534; display: none;">
+                        <strong id="manual-count">0 valid emails detected</strong>
+                    </div>
+                </div>
+
+                <input type="hidden" name="recipients" id="recipients-json" value="[]">
+            </div>
+
             <?php if ($campaign_id): ?>
                 <div class="stats">
                     <div class="stat">
@@ -277,7 +312,7 @@ if ($campaign_id) {
         }
         .header {
             padding: 32px 32px 24px;
-            border-bottom: 3px solid #4f46e5;
+            border-bottom: 3px solid #4338ca;
             text-align: left;
         }
         .logo-section {
@@ -318,7 +353,7 @@ if ($campaign_id) {
         }
         .cta-button {
             display: inline-block;
-            background: #4f46e5;
+            background: #4338ca;
             color: white;
             padding: 12px 32px;
             text-decoration: none;
@@ -331,7 +366,7 @@ if ($campaign_id) {
             cursor: pointer;
         }
         .cta-button:hover {
-            background: #4338ca;
+            background: #3730a3;
         }
         .footer {
             padding: 24px 32px;
@@ -344,7 +379,7 @@ if ($campaign_id) {
             margin: 0 0 8px 0;
         }
         .footer a {
-            color: #4f46e5;
+            color: #4338ca;
             text-decoration: none;
         }
         .footer a:hover {
@@ -363,7 +398,7 @@ if ($campaign_id) {
         <div class="header">
             <div class="logo-section">
                 <img src="${logoUrl}" alt="Floinvite">
-                <div class="company-name">Floinvite</div>
+                <div class="company-name"><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></div>
             </div>
         </div>
         <div class="content">
@@ -375,7 +410,7 @@ if ($campaign_id) {
             <p style="color: #666; font-size: 14px; margin-top: 32px;">If you have any questions, don't hesitate to reach out.</p>
         </div>
         <div class="footer">
-            <p><strong>Floinvite</strong><br>Professional Visitor Management</p>
+            <p><strong><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></strong><br>Professional Visitor Management</p>
             <p>Email: {email}<br>Company: {company}</p>
             <p><a href="${baseUrl}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="${publicUrl}/contact">Contact Us</a></p>
         </div>
@@ -486,7 +521,7 @@ if ($campaign_id) {
             margin: 0 0 8px 0;
         }
         .footer a {
-            color: #4f46e5;
+            color: #4338ca;
             text-decoration: none;
         }
         .footer a:hover {
@@ -517,7 +552,7 @@ if ($campaign_id) {
         <div class="header">
             <div class="logo-section">
                 <img src="${logoUrl}" alt="Floinvite">
-                <div class="company-name">Floinvite</div>
+                <div class="company-name"><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></div>
             </div>
         </div>
         <div class="hero">
@@ -533,7 +568,7 @@ if ($campaign_id) {
             <p>Thank you for choosing Floinvite!</p>
         </div>
         <div class="footer">
-            <p><strong>Floinvite</strong><br>Professional Visitor Management</p>
+            <p><strong><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></strong><br>Professional Visitor Management</p>
             <p><a href="${baseUrl}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="${publicUrl}/contact">Contact Us</a></p>
         </div>
     </div>
@@ -621,6 +656,147 @@ if ($campaign_id) {
                 campaignForm.submit();
             });
         }
+
+        // Recipient input handling
+        const recipientCSVRadio = document.getElementById('recipient-csv');
+        const recipientManualRadio = document.getElementById('recipient-manual');
+        const csvInputSection = document.getElementById('csv-input-section');
+        const manualInputSection = document.getElementById('manual-input-section');
+        const csvUploadBtn = document.getElementById('csv-upload-btn');
+        const csvFileInput = document.getElementById('recipient-csv-file');
+        const recipientEmailsTextarea = document.getElementById('recipient-emails');
+        const recipientsJsonField = document.getElementById('recipients-json');
+
+        // Toggle between CSV and manual input
+        recipientCSVRadio.addEventListener('change', () => {
+            csvInputSection.style.display = 'block';
+            manualInputSection.style.display = 'none';
+        });
+
+        recipientManualRadio.addEventListener('change', () => {
+            csvInputSection.style.display = 'none';
+            manualInputSection.style.display = 'block';
+        });
+
+        // CSV file upload
+        csvUploadBtn.addEventListener('click', () => {
+            csvFileInput.click();
+        });
+
+        csvFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const text = await file.text();
+            const recipients = parseCSV(text);
+            displayCSVPreview(recipients);
+            serializeRecipients(recipients);
+        });
+
+        // Manual email input with real-time validation
+        recipientEmailsTextarea.addEventListener('input', () => {
+            const emails = parseManualEmails(recipientEmailsTextarea.value);
+            displayManualPreview(emails);
+            serializeRecipients(emails);
+        });
+
+        // Parse CSV file
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length === 0) return [];
+
+            // Parse header
+            const headerLine = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const emailIndex = headerLine.indexOf('email');
+            const nameIndex = headerLine.indexOf('name');
+            const companyIndex = headerLine.indexOf('company');
+
+            if (emailIndex === -1) {
+                alert('CSV must have an "email" column');
+                return [];
+            }
+
+            // Parse data rows
+            const recipients = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const fields = line.split(',').map(f => f.trim());
+                const email = fields[emailIndex];
+                const name = nameIndex !== -1 ? fields[nameIndex] : '';
+                const company = companyIndex !== -1 ? fields[companyIndex] : '';
+
+                if (validateEmail(email)) {
+                    recipients.push({ email, name, company });
+                }
+            }
+
+            return recipients;
+        }
+
+        // Parse manual email input (comma, space, or newline separated)
+        function parseManualEmails(text) {
+            const recipients = [];
+            const emailsText = text.replace(/[,\s]+/g, '\n').trim();
+            const lines = emailsText.split('\n');
+
+            lines.forEach(line => {
+                const email = line.trim();
+                if (email && validateEmail(email)) {
+                    recipients.push({ email, name: '', company: '' });
+                }
+            });
+
+            return recipients;
+        }
+
+        // Email validation
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        // Display CSV preview
+        function displayCSVPreview(recipients) {
+            const preview = document.getElementById('csv-preview');
+            const count = document.getElementById('csv-count');
+
+            if (recipients.length === 0) {
+                preview.style.display = 'none';
+                return;
+            }
+
+            count.textContent = recipients.length + ' recipient' + (recipients.length !== 1 ? 's' : '') + ' loaded';
+            preview.style.display = 'block';
+        }
+
+        // Display manual preview
+        function displayManualPreview(recipients) {
+            const preview = document.getElementById('manual-preview');
+            const count = document.getElementById('manual-count');
+
+            if (recipients.length === 0) {
+                preview.style.display = 'none';
+                return;
+            }
+
+            count.textContent = recipients.length + ' valid email' + (recipients.length !== 1 ? 's' : '') + ' detected';
+            preview.style.display = 'block';
+        }
+
+        // Serialize recipients to JSON field
+        function serializeRecipients(recipients) {
+            recipientsJsonField.value = JSON.stringify(recipients);
+        }
     </script>
+
+    <!-- Footer -->
+    <div class="container">
+        <div style="text-align: center; padding: 2rem 0; border-top: 1px solid #e5e7eb; margin-top: 2rem; color: #6b7280; font-size: 0.875rem;">
+            <p style="margin: 0;"><strong><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></strong> Email Marketing Platform</p>
+            <p style="margin: 0.25rem 0 0 0;"><?php echo date('M d, Y'); ?></p>
+        </div>
+    </div>
 </body>
 </html>

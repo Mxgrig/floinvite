@@ -890,5 +890,13 @@ $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
             updateSendMode();
         }
     </script>
+
+    <!-- Footer -->
+    <div class="container">
+        <div style="text-align: center; padding: 2rem 0; border-top: 1px solid #e5e7eb; margin-top: 2rem; color: #6b7280; font-size: 0.875rem;">
+            <p style="margin: 0;"><strong><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></strong> Email Marketing Platform</p>
+            <p style="margin: 0.25rem 0 0 0;"><?php echo date('M d, Y'); ?></p>
+        </div>
+    </div>
 </body>
 </html>
