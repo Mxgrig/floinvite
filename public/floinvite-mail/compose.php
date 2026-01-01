@@ -94,11 +94,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                     $emails = array_values(array_unique(array_filter($emails)));
+                    $prefill_token = bin2hex(random_bytes(16));
                     $_SESSION['send_prefill'][$campaign_id] = [
                         'mode' => $recipient_mode === 'subscribers' ? 'all' : 'custom',
-                        'custom_emails' => implode("\n", $emails)
+                        'custom_emails' => implode("\n", $emails),
+                        'token' => $prefill_token
                     ];
-                    header('Location: send.php?id=' . $campaign_id);
+                    header('Location: send.php?id=' . $campaign_id . '&prefill=' . urlencode($prefill_token));
                     exit;
                 }
 
@@ -359,6 +361,36 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
             height: 32px;
             width: auto;
         }
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+        .brand-wordmark-flo {
+            color: #4338ca;
+        }
+        .brand-wordmark-invite {
+            color: #10b981;
+        }
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+        .brand-wordmark-flo {
+            color: #4338ca;
+        }
+        .brand-wordmark-invite {
+            color: #10b981;
+        }
         .company-name {
             font-size: 18px;
             font-weight: 600;
@@ -432,19 +464,19 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
         <div class="header">
             <div class="logo-section">
                 <img src="${logoUrl}" alt="floinvite">
-                <div class="company-name"><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></div>
+                <div class="company-name"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></div>
             </div>
         </div>
         <div class="content">
             <p class="greeting">Hello {name},</p>
-            <h2>Welcome to <span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></h2>
+            <h2>Welcome to <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></h2>
             <p>We're excited to connect with you. Here's an important update for your visit.</p>
             <p>Your content goes here. Edit this message to customize your email.</p>
             <a href="#" class="cta-button">Learn More</a>
             <p style="color: #666; font-size: 14px; margin-top: 32px;">If you have any questions, don't hesitate to reach out.</p>
         </div>
         <div class="footer">
-            <p><strong><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></strong><br>Professional Visitor Management</p>
+            <p><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong><br>Professional Visitor Management</p>
             <p>Email: {email}<br>Company: {company}</p>
             <p><a href="${baseUrl}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="${publicUrl}/contact">Contact Us</a></p>
         </div>
@@ -586,7 +618,7 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
         <div class="header">
             <div class="logo-section">
                 <img src="${logoUrl}" alt="floinvite">
-                <div class="company-name"><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></div>
+                <div class="company-name"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></div>
             </div>
         </div>
         <div class="hero">
@@ -599,10 +631,10 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
             <p>Hi {name},</p>
             <p>We have a special exclusive offer just for our valued customers like you.</p>
             <p>This limited-time offer is a token of our appreciation. Don't miss out!</p>
-            <p>Thank you for choosing <span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span>!</p>
+            <p>Thank you for choosing <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span>!</p>
         </div>
         <div class="footer">
-            <p><strong><span style="color: #4338ca;">flo</span><span style="color: #10b981;">invite</span></strong><br>Professional Visitor Management</p>
+            <p><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong><br>Professional Visitor Management</p>
             <p><a href="${baseUrl}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="${publicUrl}/contact">Contact Us</a></p>
         </div>
     </div>
