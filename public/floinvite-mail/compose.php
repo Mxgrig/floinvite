@@ -158,7 +158,7 @@ if ($campaign_id) {
                 <div style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
                     <button type="button" class="template-btn" onclick="insertTemplate()">Insert Default Template</button>
                     <button type="button" class="template-btn" onclick="insertPromo()">Insert Promo Template</button>
-                    <button type="button" class="template-btn" onclick="togglePreview()" style="background: #4f46e5; color: white; border: none;">Show Preview</button>
+                    <button type="button" class="template-btn" id="preview-toggle" onclick="togglePreview()" style="background: #4f46e5; color: white; border: none;">Show Preview</button>
                 </div>
                 <textarea id="html_body" name="html_body" required placeholder="Enter HTML email content..."><?php echo htmlspecialchars($campaign['html_body'] ?? ''); ?></textarea>
                 <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
@@ -311,13 +311,14 @@ if ($campaign_id) {
         }
 
         let previewOpen = false;
+        let previewReady = false;
         let textarea, preview, previewContainer, previewBtn;
 
         function initializePreview() {
             textarea = document.getElementById('html_body');
             preview = document.getElementById('email-preview');
             previewContainer = document.getElementById('preview-container');
-            previewBtn = document.querySelector('[onclick="togglePreview()"]');
+            previewBtn = document.getElementById('preview-toggle');
 
             if (textarea && preview && previewContainer && previewBtn) {
                 // Load default template on page load
@@ -330,10 +331,17 @@ if ($campaign_id) {
                         updatePreview();
                     }
                 });
+                previewReady = true;
             }
         }
 
         function togglePreview() {
+            if (!previewReady) {
+                initializePreview();
+            }
+            if (!previewContainer || !previewBtn) {
+                return;
+            }
             previewOpen = !previewOpen;
             previewContainer.style.display = previewOpen ? 'block' : 'none';
             previewBtn.textContent = previewOpen ? 'Hide Preview' : 'Show Preview';
@@ -343,12 +351,19 @@ if ($campaign_id) {
         }
 
         function updatePreview() {
+            if (!textarea || !preview) {
+                return;
+            }
             const html = textarea.value || '<p style="color: #999; padding: 20px; text-align: center;">Email preview will appear here...</p>';
             preview.srcDoc = html;
         }
 
         // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', initializePreview);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePreview);
+        } else {
+            initializePreview();
+        }
     </script>
 </body>
 </html>
