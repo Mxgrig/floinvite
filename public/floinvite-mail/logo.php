@@ -24,3 +24,15 @@ function is_yuletide_season() {
 function get_logo_path() {
     return is_yuletide_season() ? '../xmas-logo.png' : '../mainflologo.png';
 }
+
+function get_logo_url($base_url = null) {
+    if ($base_url === null) {
+        $base_url = defined('PUBLIC_URL') ? PUBLIC_URL : '';
+    }
+    $path = get_logo_path();
+    $normalized = ltrim($path, './');
+    if ($base_url === '') {
+        return $normalized;
+    }
+    return rtrim($base_url, '/') . '/' . $normalized;
+}
