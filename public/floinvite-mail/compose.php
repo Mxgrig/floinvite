@@ -365,22 +365,7 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
             display: inline-flex;
             align-items: baseline;
             gap: 0;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-            line-height: 1;
-            text-transform: lowercase;
-        }
-        .brand-wordmark-flo {
-            color: #4338ca;
-        }
-        .brand-wordmark-invite {
-            color: #10b981;
-        }
-        .brand-wordmark {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 0;
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: -0.3px;
             line-height: 1;
             text-transform: lowercase;
@@ -524,6 +509,21 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
         .logo-section img {
             height: 32px;
             width: auto;
+        }
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+        .brand-wordmark-flo {
+            color: #4338ca;
+        }
+        .brand-wordmark-invite {
+            color: #10b981;
         }
         .company-name {
             font-size: 18px;
