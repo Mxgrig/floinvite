@@ -224,6 +224,9 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'subscribers' | 'compose'>('dashboard');
   const [recipients, setRecipients] = useState<Subscriber[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [customEmails, setCustomEmails] = useState<string>('');
+  const [customEmailParsed, setCustomEmailParsed] = useState<Subscriber[]>([]);
+  const [sendMode, setSendMode] = useState<'csv' | 'custom'>('csv');
   const [subject, setSubject] = useState('Streamline Your Visitor Management with Floinvite');
   const [fromName, setFromName] = useState('Floinvite');
   const [template, setTemplate] = useState(DEFAULT_TEMPLATE);
@@ -289,6 +292,25 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
     reader.readAsText(file);
   };
 
+  // Parse custom emails (comma, space, or newline separated)
+  const parseCustomEmails = (text: string): Subscriber[] => {
+    const normalized = text.replace(/[,;\n]/g, ' ');
+    const emails = normalized
+      .split(/\s+/)
+      .map(e => e.toLowerCase().trim())
+      .filter(e => e.includes('@') && e.length > 0);
+    
+    const uniqueEmails = [...new Set(emails)];
+    return uniqueEmails.map(email => ({ email }));
+  };
+
+  // Handle custom email input
+  const handleCustomEmailChange = (text: string) => {
+    setCustomEmails(text);
+    const parsed = parseCustomEmails(text);
+    setCustomEmailParsed(parsed);
+  };
+
   // Handle import subscribers
   const handleImportSubscribers = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -340,10 +362,16 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
 
   // Send emails
   const handleSendEmails = async () => {
-    const emailsToSend = recipients.length > 0 ? recipients : subscribers;
+    let emailsToSend: Subscriber[] = [];
+    
+    if (sendMode === 'custom') {
+      emailsToSend = customEmailParsed;
+    } else {
+      emailsToSend = recipients.length > 0 ? recipients : subscribers;
+    }
 
     if (!emailsToSend.length) {
-      setError('No recipients selected. Upload a CSV or select subscribers.');
+      setError('No recipients selected. Upload a CSV or enter custom emails.');
       return;
     }
 
@@ -382,6 +410,8 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
 
       setSendLogs([log, ...sendLogs]);
       setRecipients([]);
+      setCustomEmails('');
+      setCustomEmailParsed([]);
       setSuccess('Campaign sent successfully!');
       setTimeout(() => setSuccess(null), 3000);
 
@@ -400,6 +430,8 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
   const removeSubscriber = (index: number) => {
     setSubscribers(subscribers.filter((_, i) => i !== index));
   };
+
+  const currentRecipientCount = sendMode === 'custom' ? customEmailParsed.length : recipients.length;
 
   return (
     <PageLayout
@@ -545,34 +577,91 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
         {activeTab === 'compose' && (
           <>
             <div className="email-section">
-              <h2>Upload Recipients</h2>
-              <p>CSV file with email, name (optional), and company (optional) columns</p>
+              <h2>Select Recipients</h2>
+              <p style={{ marginBottom: '1.5rem', color: '#6b7280' }}>Choose how to specify recipients</p>
 
-              <div className="email-upload">
-                <input
-                  type="file"
-                  accept=".csv"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  style={{ display: 'none' }}
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="email-upload-btn"
-                >
-                  <Upload size={18} />
-                  Choose CSV File
-                </button>
-                {recipients.length > 0 && (
-                  <div className="email-upload-success">
-                    <CheckCircle size={20} />
-                    <div>
-                      <strong>{recipients.length} recipients loaded</strong>
-                      <p>{recipients.map(r => r.email).join(', ').substring(0, 100)}...</p>
-                    </div>
-                  </div>
-                )}
+              <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    checked={sendMode === 'csv'}
+                    onChange={() => setSendMode('csv')}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span>Upload CSV File</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    checked={sendMode === 'custom'}
+                    onChange={() => setSendMode('custom')}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span>Enter Email Addresses</span>
+                </label>
               </div>
+
+              {sendMode === 'csv' && (
+                <div className="email-upload">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="email-upload-btn"
+                  >
+                    <Upload size={18} />
+                    Choose CSV File
+                  </button>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                    CSV must have email, name (optional), and company (optional) columns
+                  </p>
+                  {recipients.length > 0 && (
+                    <div className="email-upload-success">
+                      <CheckCircle size={20} />
+                      <div>
+                        <strong>{recipients.length} recipients loaded</strong>
+                        <p>{recipients.map(r => r.email).join(', ').substring(0, 100)}...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {sendMode === 'custom' && (
+                <div>
+                  <textarea
+                    value={customEmails}
+                    onChange={(e) => handleCustomEmailChange(e.target.value)}
+                    placeholder="name@company.com, another@domain.com&#10;one@more.com"
+                    rows={6}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontFamily: 'monospace',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                    Comma, space, or newline separated
+                  </p>
+                  {customEmailParsed.length > 0 && (
+                    <div className="email-upload-success" style={{ marginTop: '1rem' }}>
+                      <CheckCircle size={20} />
+                      <div>
+                        <strong>{customEmailParsed.length} valid emails detected</strong>
+                        <p>{customEmailParsed.map(r => r.email).join(', ').substring(0, 100)}...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="email-section">
@@ -643,9 +732,9 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
               <div style={{ textAlign: 'center' }}>
                 <button
                   onClick={handleSendEmails}
-                  disabled={isSending || !recipients.length}
+                  disabled={isSending || !currentRecipientCount}
                   className="btn btn-danger"
-                  style={{ opacity: isSending || !recipients.length ? 0.6 : 1 }}
+                  style={{ opacity: isSending || !currentRecipientCount ? 0.6 : 1 }}
                 >
                   {isSending ? (
                     <>
@@ -655,7 +744,7 @@ export function EmailMarketing({ onNavigate }: EmailMarketingProps) {
                   ) : (
                     <>
                       <Send size={18} />
-                      Send to {recipients.length} Recipients
+                      Send to {currentRecipientCount} Recipients
                     </>
                   )}
                 </button>
