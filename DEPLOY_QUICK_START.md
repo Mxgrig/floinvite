@@ -10,7 +10,7 @@
 **One command deploys everything safely:**
 
 ```bash
-./deploy.sh
+./deploy.sh --confirmed
 ```
 
 This script:
@@ -31,7 +31,7 @@ npm run build             # No errors?
 
 ### Step 2: Deploy (4 minutes)
 ```bash
-./deploy.sh
+./deploy.sh --confirmed
 ```
 
 ### Step 3: Verify in browser (1 minute)
@@ -41,6 +41,25 @@ npm run build             # No errors?
 - Done!
 
 ## Total Time: 5 Minutes
+
+---
+
+## Three Deployment Options
+
+**React app only:**
+```bash
+./deploy.sh --confirmed
+```
+
+**React app + Mail marketing system:**
+```bash
+./deploy.sh --confirmed --mail
+```
+
+**Mail system only (no React build):**
+```bash
+./deploy.sh --mail-only --confirmed
+```
 
 ---
 
@@ -74,17 +93,33 @@ EOF
 
 ---
 
+## Mail System Notes
+
+Mail system credentials (database password, SMTP settings) in `config.php` are **protected** - they never get overwritten by the deploy script. This prevents accidental credential loss.
+
+To update mail credentials:
+```bash
+ssh -p 65002 u958180753@45.87.81.67 \
+  "nano /home/u958180753/domains/floinvite.com/public_html/floinvite-mail/config.php"
+```
+
+---
+
 ## Never Again
 - ❌ Manual .htaccess edits
 - ❌ Wrong deployment directories
 - ❌ 3-hour debugging sessions
 - ❌ Unvalidated changes
+- ❌ Conflicting deploy scripts
 
 - ✓ Automated, tested deploys
 - ✓ Automatic backups
 - ✓ Instant rollback
 - ✓ 5-minute turnaround
+- ✓ Single deployment script
 
 ---
 
-**Remember**: If `./deploy.sh` succeeds, your site is live and safe.
+**Remember**: If `./deploy.sh --confirmed` succeeds, your site is live and safe.
+
+For details: Read `DEPLOYMENT.md`

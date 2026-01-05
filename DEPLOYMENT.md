@@ -4,12 +4,20 @@
 
 ## Quick Start
 
-```bash
-npm run build          # Verify build works locally
-./deploy.sh            # Deploy to production
-```
+**Three deployment options:**
 
-That's it. The script handles everything else.
+```bash
+# React app only (default)
+npm run build
+./deploy.sh --confirmed
+
+# React app + Mail marketing system
+npm run build
+./deploy.sh --confirmed --mail
+
+# Mail system only (no React build needed)
+./deploy.sh --mail-only --confirmed
+```
 
 ---
 
@@ -17,22 +25,24 @@ That's it. The script handles everything else.
 
 ### 1. **Validation** (Local)
 - Checks project structure
-- Builds React app with `npm run build`
+- Builds React app with `npm run build` (if deploying React)
 - Validates .htaccess syntax
 
 ### 2. **Backup** (Remote)
 - Creates timestamped backup of previous deployment
 - Stored in `/domains/floinvite.com/public_html/backups/`
 - Automatic rollback if anything fails
+- Mail system backed up before changes
 
 ### 3. **Deploy** (Remote)
-- Uploads built files to correct directory
+- **React App**: Uploads built files, configures SPA routing
+- **Mail System**: Uploads PHP files, preserves credentials (config.php, .htpasswd)
 - Sets proper file permissions (755 dirs, 644 files)
-- Configures .htaccess for React SPA routing
+- Tests both systems after deploy
 
 ### 4. **Test** (Remote)
 - HTTP 200 check on main site
-- HTTP 200 check on mail system
+- HTTP 200 check on mail login page
 - Automatic rollback if tests fail
 
 ---
@@ -42,7 +52,7 @@ That's it. The script handles everything else.
 **Every time:**
 ```bash
 git status                   # Working tree must be clean
-npm run build              # No TypeScript errors
+npm run build              # No TypeScript errors (if deploying React)
 ```
 
 **Test locally:**
@@ -68,7 +78,7 @@ npm run dev                # Load http://localhost:5173
 
 ## Common Scenarios
 
-### Scenario 1: Deploy a Code Change
+### Scenario 1: Deploy React App Changes
 ```bash
 # 1. Make code change, test locally
 # 2. Commit and push
@@ -76,15 +86,54 @@ git add .
 git commit -m "[FEATURE]: Description"
 git push origin feature/branch-name
 
-# 3. Deploy
-./deploy.sh
+# 3. Build and deploy
+npm run build
+./deploy.sh --confirmed
 
 # 4. Verify in browser
 # - Hard refresh: Cmd+Shift+R or Ctrl+Shift+R
 # - Check console for errors
 ```
 
-### Scenario 2: Rollback After Deployment
+### Scenario 2: Deploy React App + Mail System Together
+```bash
+# When you have changes to both React app AND mail marketing system
+
+# 1. Make both sets of changes
+# 2. Test locally
+# 3. Commit and push
+git add .
+git commit -m "[FEATURE]: React app + Mail system updates"
+git push
+
+# 4. Build and deploy both
+npm run build
+./deploy.sh --confirmed --mail
+
+# 5. Verify both systems work
+# - https://floinvite.com (hard refresh)
+# - https://floinvite.com/floinvite-mail/login.php
+```
+
+### Scenario 3: Deploy Mail System Only (No React Changes)
+```bash
+# When you only changed mail system PHP files
+
+# 1. Make mail system changes in public/floinvite-mail/
+# 2. Test locally (if possible)
+# 3. Commit and push
+git add public/floinvite-mail/
+git commit -m "[MAIL]: Updated email templates or features"
+git push
+
+# 4. Deploy mail system only (no React build)
+./deploy.sh --mail-only --confirmed
+
+# 5. Verify mail login works
+# - https://floinvite.com/floinvite-mail/login.php
+```
+
+### Scenario 4: Rollback After Deployment
 If something breaks after deploy and you need to revert:
 
 ```bash
@@ -101,18 +150,15 @@ echo "Rolled back to backup_TIMESTAMP"
 EOF
 ```
 
-### Scenario 3: Deploy Mail System Only
-The mail system files (PHP, database config) are NOT managed by this deploy script. To deploy mail system changes:
+### Scenario 5: Update Mail System Credentials
+Mail system credentials (database password, SMTP config) are stored in `config.php` and are NOT overwritten by deploy script:
 
 ```bash
+# To update mail system credentials, use SSH directly:
 ssh -p 65002 u958180753@45.87.81.67 << 'EOF'
-cd /home/u958180753/domains/floinvite.com/public_html/floinvite-mail
-
-# Make changes or upload files
-# Then restart PHP session
-touch index.php
-
-echo "Mail system updated"
+nano /home/u958180753/domains/floinvite.com/public_html/floinvite-mail/config.php
+# Edit database/SMTP credentials
+# Save and exit
 EOF
 ```
 
@@ -134,7 +180,7 @@ EOF
 npm run build              # See full error
 # Fix errors in code
 npm run build              # Verify it works
-./deploy.sh                # Try again
+./deploy.sh --confirmed    # Try again
 ```
 
 ### Deploy script fails with "Upload failed"
@@ -183,6 +229,11 @@ curl -I https://floinvite.com/floinvite-mail/login.php
 EOF
 ```
 
+### Mail system deployment skipped credentials
+**Expected behavior**: config.php and .htpasswd are preserved on server
+**Reason**: These files contain database passwords and email credentials
+**To update them**: Use SSH to edit directly (see Scenario 5 above)
+
 ---
 
 ## Infrastructure Details
@@ -200,16 +251,26 @@ EOF
 ├── index.html                    # React app entry point
 ├── .htaccess                     # Apache routing config
 ├── assets/                       # JS, CSS bundles
-├── floinvite-mail/              # PHP mail system
+├── floinvite-mail/              # PHP mail marketing system
 │   ├── index.php                # Mail admin dashboard
 │   ├── login.php                # Mail login page
-│   ├── config.php               # Database config (RESTRICTED)
-│   └── .htaccess                # Mail system config
+│   ├── compose.php              # Campaign composer
+│   ├── config.php               # Database config (NOT overwritten)
+│   ├── .htaccess                # Mail system config
+│   ├── .htpasswd                # Mail credentials (NOT overwritten)
+│   └── logs/                    # Mail system logs
 └── backups/                     # Auto-created by deploy script
     └── backup_TIMESTAMP/
         ├── index.html
         └── assets/
 ```
+
+### File Preservation
+These files are **NOT overwritten** during mail system deployment:
+- `config.php` - Database credentials and SMTP settings
+- `.htpasswd` - Mail system login credentials
+
+This prevents accidental loss of production secrets.
 
 ### Permissions
 - Directories: 755 (rwxr-xr-x)
@@ -220,7 +281,7 @@ EOF
 
 ## Deploy Script Behavior
 
-### On Success ✓
+### On Success ✓ (React App Only)
 ```
 [1/7] Validating environment...
 ✓ Project structure valid
@@ -230,17 +291,31 @@ EOF
 ✓ .htaccess syntax looks valid
 [4/7] Creating backup...
 ✓ Backup created
-[5/7] Uploading files...
-✓ Files uploaded successfully
-[6/7] Setting permissions...
+[5/7] Uploading React app files...
+✓ React app files uploaded
+[6/7] Setting permissions and React routing...
 ✓ Server configured
-[7/7] Testing deployment...
+[7/7] Testing React app deployment...
 ✓ Main site: HTTP 200 OK
 ✓ Mail system: HTTP 200 OK
 
 =====================================
-  ✓ Deployment Successful!
+  ✓ Deployment Complete!
 =====================================
+```
+
+### On Success ✓ (React App + Mail System)
+```
+[Same as above, plus:]
+
+[MAIL] Deploying mail marketing system...
+[MAIL] Uploading mail system files...
+✓ Mail system files uploaded
+✓ Mail login page: HTTP 200 OK
+
+⚠ IMPORTANT NOTE:
+  Database config (config.php) and .htpasswd are NOT overwritten.
+  These files contain server credentials and stay on production.
 ```
 
 ### On Failure ✗
@@ -256,24 +331,20 @@ EOF
 ## Security Notes
 
 - **Config Files**: `.htaccess` blocks access to `config.php`, `.env`, `.htpasswd`
-- **HTTP Basic Auth**: Removed from main site (used only for mail system if configured)
+- **Credential Preservation**: Production credentials (database password, SMTP settings) are protected
 - **CORS Headers**: Mail system allows cross-origin requests from https://floinvite.com
 - **SSL/TLS**: All traffic must use HTTPS
+- **No Overwrites**: Deploy script never overwrites `config.php` or `.htpasswd`
 
 ---
 
-## When to NOT Use This Script
+## Deployment Modes Reference
 
-The deploy script handles **React app changes only**.
-
-For **PHP mail system changes**:
-- Deploy files manually via SSH/SCP
-- Update database config directly
-- Restart PHP if needed
-
-For **DNS/SSL/server changes**:
-- Use Hostinger cPanel directly
-- Contact Hostinger support
+| Command | What Deploys | Build Required? | Backup Created? |
+|---------|--------------|-----------------|-----------------|
+| `./deploy.sh --confirmed` | React app only | Yes | Yes |
+| `./deploy.sh --confirmed --mail` | React app + Mail system | Yes | Yes |
+| `./deploy.sh --mail-only --confirmed` | Mail system only | No | No |
 
 ---
 
@@ -301,14 +372,30 @@ ssh -p 65002 u958180753@45.87.81.67 \
 
 ## Deployment Checklist (Before You Deploy)
 
+### For React App Changes:
 - [ ] Code changes tested locally
 - [ ] `npm run build` succeeds with no errors
 - [ ] Committed and pushed to git
 - [ ] `git status` shows clean working tree
 - [ ] SSH connection works: `ssh -p 65002 u958180753@45.87.81.67 "echo ok"`
+- [ ] Run: `./deploy.sh --confirmed`
+
+### For Mail System Changes:
+- [ ] Mail PHP files tested/reviewed
+- [ ] No credentials in git (only on server)
+- [ ] Committed and pushed to git
+- [ ] `git status` shows clean working tree
+- [ ] Run: `./deploy.sh --mail-only --confirmed`
+
+### For Both Changes:
+- [ ] React app tested locally
+- [ ] Mail system changes reviewed
+- [ ] All committed and pushed
+- [ ] `git status` shows clean working tree
+- [ ] Run: `./deploy.sh --confirmed --mail`
 
 ---
 
 **Last Updated**: Jan 5, 2026
-**Script Version**: 1.0
+**Script Version**: 2.0 (with mail system support)
 **Next Review**: After 5 successful deployments
