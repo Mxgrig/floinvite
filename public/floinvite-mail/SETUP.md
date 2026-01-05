@@ -143,7 +143,23 @@ Or update `.htaccess`:
 SetEnv SMTP_USER admin@floinvite.com
 SetEnv SMTP_PASS your-password
 SetEnv DB_PASS your-db-password
+SetEnv MAIL_ADMIN_PASSWORD_HASH your-bcrypt-hash
 ```
+
+### Admin Password (Production)
+
+The mail admin login supports a bcrypt hash via environment variable:
+
+- `MAIL_ADMIN_PASSWORD_HASH` (preferred)
+- `MAIL_ADMIN_PASSWORD` (fallback)
+
+Generate a bcrypt hash:
+
+```bash
+php -r "echo password_hash('your-strong-password', PASSWORD_BCRYPT);"
+```
+
+Set the hash in your environment (preferred) or in `.htaccess` as `SetEnv MAIL_ADMIN_PASSWORD_HASH ...`.
 
 ## Step 7: File Permissions
 
@@ -197,12 +213,19 @@ Error: "Unauthorized" or "Session expired"
 
 - [ ] Database password is strong (use generated one)
 - [ ] SMTP credentials stored in environment variables
+- [ ] Admin password stored as MAIL_ADMIN_PASSWORD_HASH (bcrypt)
 - [ ] .env file is in .gitignore
 - [ ] Logs directory exists and is writable
+- [ ] Logs directory is not web-accessible (blocked in .htaccess)
 - [ ] HTTPS enabled on floinvite.com
 - [ ] Admin IP whitelisting configured (optional)
 - [ ] Rate limiting set appropriately
 - [ ] Unsubscribe mechanism functional
+
+## Notes
+
+- `.htpasswd` location in production: `/home/u958180753/domains/floinvite.com/public_html/floinvite-mail/.htpasswd`
+- If your hosting path differs, update `AuthUserFile` in `public/floinvite-mail/.htaccess`.
 
 ## Monitoring
 
