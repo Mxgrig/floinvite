@@ -1,75 +1,53 @@
 <?php
 /**
- * Floinvite Mail Dashboard
- * Main admin panel for campaign management
+ * Local Dev Version - index.php with mock data
+ * Shows actual HTML/CSS/structure without database
  */
 
-require_once 'config.php';
+session_start();
+$_SESSION['admin_logged_in'] = true;
+$_SESSION['last_activity'] = time();
+
 require_once 'logo.php';
-require_auth();
 
-$db = get_db();
+// Mock data - replaces database queries
+$stats = [
+    'total_subscribers' => 1234,
+    'active_campaigns' => 5,
+    'completed_campaigns' => 12,
+    'emails_sent_week' => 3456,
+    'open_rate' => 34.5
+];
 
-// Get dashboard statistics
-$stats = [];
-
-// Total subscribers
-$result = $db->query("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
-$stats['total_subscribers'] = $result->fetch()['count'] ?? 0;
-
-// Active campaigns
-$result = $db->query("SELECT COUNT(*) as count FROM campaigns WHERE status IN ('draft', 'scheduled', 'sending')");
-$stats['active_campaigns'] = $result->fetch()['count'] ?? 0;
-
-// Completed campaigns
-$result = $db->query("SELECT COUNT(*) as count FROM campaigns WHERE status = 'completed'");
-$stats['completed_campaigns'] = $result->fetch()['count'] ?? 0;
-
-// Total emails sent (this week)
-$result = $db->query("
-    SELECT COUNT(*) as count FROM campaign_sends
-    WHERE status = 'sent'
-    AND sent_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-");
-$stats['emails_sent_week'] = $result->fetch()['count'] ?? 0;
-
-// Average open rate
-$result = $db->query("
-    SELECT
-        COUNT(DISTINCT CASE WHEN opened_at IS NOT NULL THEN id END) as opens,
-        COUNT(*) as total
-    FROM campaign_sends
-    WHERE status = 'sent' AND opened_at IS NOT NULL
-");
-$row = $result->fetch();
-$stats['open_rate'] = $row['total'] > 0 ? round(($row['opens'] / $row['total']) * 100, 1) : 0;
-
-// Queue status
-$result = $db->query("SELECT COUNT(*) as count FROM send_queue WHERE status = 'queued'");
-$stats['queue_pending'] = $result->fetch()['count'] ?? 0;
-
-$result = $db->query("SELECT COUNT(*) as count FROM send_queue WHERE status = 'sent'");
-$stats['queue_sent'] = $result->fetch()['count'] ?? 0;
-
-// Recent campaigns
-$result = $db->query("
-    SELECT id, name, status, recipient_count, sent_count, opened_count, created_at
-    FROM campaigns
-    ORDER BY created_at DESC
-    LIMIT 5
-");
-$recent_campaigns = $result->fetchAll();
-
-// Check if API request
-if (!empty($_GET['api'])) {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => true,
-        'stats' => $stats,
-        'recent_campaigns' => $recent_campaigns
-    ]);
-    exit;
-}
+$recent_campaigns = [
+    [
+        'id' => 1,
+        'name' => 'Welcome Series',
+        'status' => 'completed',
+        'recipient_count' => 500,
+        'sent_count' => 500,
+        'opened_count' => 175,
+        'created_at' => '2026-01-01 10:30:00'
+    ],
+    [
+        'id' => 2,
+        'name' => 'New Year Sale',
+        'status' => 'sending',
+        'recipient_count' => 1200,
+        'sent_count' => 450,
+        'opened_count' => 120,
+        'created_at' => '2025-12-31 15:45:00'
+    ],
+    [
+        'id' => 3,
+        'name' => 'Holiday Promo',
+        'status' => 'draft',
+        'recipient_count' => 800,
+        'sent_count' => 0,
+        'opened_count' => 0,
+        'created_at' => '2025-12-20 09:15:00'
+    ]
+];
 
 // Handle logout
 if (!empty($_GET['logout'])) {
@@ -104,7 +82,7 @@ if (!empty($_GET['logout'])) {
 
         <!-- Navigation -->
         <nav class="mail-nav">
-            <a href="index.php" class="active">Dashboard</a>
+            <a href="index-local.php" class="active">Dashboard</a>
             <a href="subscribers.php">Subscribers</a>
             <a href="compose.php">New Campaign</a>
         </nav>
@@ -129,14 +107,6 @@ if (!empty($_GET['logout'])) {
             <div class="stat-card">
                 <span class="stat-label">Average Open Rate</span>
                 <span class="stat-value"><?php echo $stats['open_rate']; ?>%</span>
-            </div>
-            <div class="stat-card" style="background: <?php echo $stats['queue_pending'] > 0 ? '#fef3c7' : '#dcfce7'; ?>; border: 1px solid <?php echo $stats['queue_pending'] > 0 ? '#fcd34d' : '#86efac'; ?>;">
-                <span class="stat-label">Queue Pending</span>
-                <span class="stat-value"><?php echo $stats['queue_pending']; ?></span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Queue Sent</span>
-                <span class="stat-value"><?php echo number_format($stats['queue_sent']); ?></span>
             </div>
         </div>
 
@@ -191,7 +161,7 @@ if (!empty($_GET['logout'])) {
             </div>
             <div class="section-content">
                 <div class="button-group">
-                    <a href="compose.php" class="btn btn-primary">New Campaign</a>
+                    <a href="compose-local.php" class="btn btn-primary">New Campaign</a>
                     <a href="subscribers.php" class="btn btn-secondary">Manage Subscribers</a>
                     <a href="subscribers.php?action=import" class="btn btn-secondary">Import List</a>
                 </div>
