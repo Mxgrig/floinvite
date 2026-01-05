@@ -239,7 +239,7 @@ export function App() {
       case 'pricing':
         return <Pricing onNavigate={setCurrentPage} />;
       case 'marketing':
-        return <MarketingPage onNavigate={setCurrentPage} />;
+        return <MarketingPage onNavigate={setCurrentPage} onStartCheckIn={handleStartCheckIn} />;
       case 'check-in':
         return <VisitorCheckIn />;
       case 'logbook':

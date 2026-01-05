@@ -1,6 +1,6 @@
 /**
  * Pricing Service
- * Starter and Compliance+ aligned to $29/$40 pricing.
+ * Starter and Compliance+ aligned to $29/$49 pricing.
  */
 
 export interface PricingTier {
@@ -31,7 +31,7 @@ export const PRICING_TIERS: PricingTier[] = [
     description: 'Everything a small organisation needs to know who is on site',
     highlighted: false,
     stripePriceId: 'price_1SkJhFIB0Mi9CiIRq7m1oZB6',
-    buttonText: 'Book a demo',
+    buttonText: 'Start Free',
     buttonColor: 'slate',
     features: [
       // Core Features
@@ -107,12 +107,12 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'compliance',
     name: 'Compliance+',
-    price: 40,
+    price: 49,
     billingCycle: 'month',
     description: 'For estates and organisations that must retain records and stay audit-ready',
     highlighted: true,
     stripePriceId: 'price_1SkJhGIB0Mi9CiIRyZn3B9oB',
-    buttonText: 'Book a demo',
+    buttonText: 'Upgrade to Compliance+',
     buttonColor: 'indigo',
     features: [
       // Core Features
@@ -327,13 +327,13 @@ export const STRIPE_PRICES: PaymentOption[] = [
   {
     tier: 'compliance',
     priceId: import.meta.env.VITE_STRIPE_COMPLIANCE_MONTHLY || 'price_1SkJhGIB0Mi9CiIRyZn3B9oB',
-    amount: 4000,
+    amount: 4900,
     interval: 'month'
   },
   {
     tier: 'compliance',
     priceId: import.meta.env.VITE_STRIPE_COMPLIANCE_YEARLY || 'price_1SkJhGIB0Mi9CiIRaSZNXzSh',
-    amount: 38400,
+    amount: 58800,
     interval: 'year'
   },
   {

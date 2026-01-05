@@ -30,9 +30,10 @@ import './MarketingPage.css';
 
 interface MarketingPageProps {
   onNavigate: (page: string) => void;
+  onStartCheckIn: () => void;
 }
 
-export function MarketingPage({ onNavigate }: MarketingPageProps) {
+export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps) {
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
   const [contactForm, setContactForm] = useState({
     name: '',
@@ -43,14 +44,8 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
   const [contactStatus, setContactStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [contactError, setContactError] = useState('');
 
-  const requestDemo = (tierId?: string) => {
-    const tier = PRICING_TIERS.find((plan) => plan.id === tierId);
-    const subject = tier ? `Demo request - ${tier.name}` : 'Demo request';
-    setContactForm((prev) => ({ ...prev, subject }));
-    setContactStatus('idle');
-    setContactError('');
-    const contactSection = document.getElementById('contact');
-    contactSection?.scrollIntoView({ behavior: 'smooth' });
+  const startFree = () => {
+    onStartCheckIn();
   };
 
   const handleContactChange = (field: keyof typeof contactForm, value: string) => {
@@ -96,76 +91,66 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
   };
 
   const stats = [
-    { value: 'Seconds', label: 'On-site list updates' },
-    { value: 'Always', label: 'Evacuation-ready' },
-    { value: '7 Years', label: 'Record retention (Compliance+)' },
+    { value: '30s', label: 'Average check-in' },
+    { value: '100%', label: 'Browser-based' },
+    { value: 'Export', label: 'Anytime' },
   ];
 
   const features = [
     {
       icon: ClipboardList,
-      title: 'Fast Visitor Capture',
+      title: '30-Second Check-In',
       description:
-        'Check in walk-ins or expected guests in seconds with a clean, two-path flow.',
+        'Fast two-path flow for walk-ins and expected visitors.',
     },
     {
       icon: Bell,
       title: 'Arrival Notifications',
       description:
-        'Notify hosts immediately when someone arrives. Email included; SMS where enabled.',
+        'Notify hosts immediately when someone arrives.',
     },
     {
       icon: BookOpen,
-      title: 'Audit-Ready Records',
+      title: 'Exportable Records',
       description:
-        'Searchable visitor history, exports, and compliance-ready records when you need them.',
+        'Searchable visitor history with exports on demand.',
     },
     {
       icon: Users,
-      title: 'Evacuation Accountability',
+      title: 'On-Site Accountability',
       description:
-        'Know who is on site right now and generate evacuation lists instantly.',
+        'Know who is on site right now, with a clean live list.',
     },
   ];
 
   const useCases = [
     {
       icon: Building2,
-      title: 'Estates & Shared Buildings',
-      description: 'Keep a clear, live list of who is on site across multiple tenants.',
+      title: 'Events & Venues',
+      description: 'Check in guests in seconds. Export attendee lists for invoicing.',
     },
     {
       icon: GraduationCap,
-      title: 'Small Offices',
-      description: 'Run a simple, fast check-in without kiosks, badges, or hardware.',
+      title: 'Construction & Contractors',
+      description: 'Track crew on-site. Daily accountability for payroll.',
     },
     {
       icon: Hammer,
-      title: 'Contractors & Suppliers',
-      description: 'Track external visitors and keep clean records for audits.',
+      title: 'Small Offices',
+      description: "Better than a clipboard. Know who's here.",
     },
     {
       icon: Calendar,
-      title: 'Meeting Venues',
-      description: 'Create expected guest lists and keep front desk flow smooth.',
-    },
-    {
-      icon: Shield,
-      title: 'Facilities Managers',
-      description: 'Instant evacuation lists and retention-ready records.',
-    },
-    {
-      icon: Heart,
-      title: 'Property Managers',
-      description: 'Meet compliance needs without enterprise complexity.',
+      title: 'Staffing Coordinators',
+      description: 'Quick intake for temp workers. Compliance-ready records.',
     },
   ];
 
   const steps = [
     {
       number: '1',
-      title: 'Book a Demo',
-      description: 'See the flow end-to-end and map it to your building or site.',
+      title: 'Start Free',
+      description: 'Sign up in seconds and start checking in immediately.',
     },
     {
       number: '2',
@@ -179,18 +164,16 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
     },
     {
       number: '4',
-      title: 'Export & Prove',
-      description: 'Generate exports and reports when compliance requires it.',
+      title: 'Export Anytime',
+      description: 'Generate exports whenever you need a record.',
     },
   ];
 
   const trustPoints = [
-    'Secure storage with encryption',
-    'Complete audit trails for compliance',
-    'Automatic backups (Compliance+)',
-    '7-year record retention (Compliance+)',
-    'GDPR-ready data handling',
-    'Password-protected access',
+    'Secure, encrypted data',
+    'No software to install',
+    'Works on any browser',
+    'Export anytime',
   ];
 
   return (
@@ -231,28 +214,28 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
               </div>
 
               <h1 className="display-4 fw-bold mb-4 lh-1 text-dark">
-                On-site Accountability
+                30 Seconds to Check-In
                 <br />
-                <span className="text-primary">Without Enterprise Complexity</span>
+                <span className="text-primary">No Hardware, No Hassle</span>
               </h1>
 
               <div className="hero-copy">
                 <p className="fs-5 mb-4 lh-base text-secondary">
-                  Know who is on site, notify hosts instantly, and export audit-ready
-                  records when compliance demands it.
+                  Check in guests in seconds, notify hosts instantly, and export visitor
+                  lists whenever you need them.
                 </p>
 
                 <p className="fs-5 mb-4 lh-base text-secondary">
-                  Floinvite is built for small organisations, estates, and shared buildings that
-                  need clear visitor accountability without hardware or complex setups.
+                  Built for fast-moving teams: venues, contractors, small offices, and staffing
+                  coordinators who need speed over complexity.
                 </p>
 
                 <div className="hero-cta-row">
                   <button
                     className="btn btn-primary btn-lg fw-semibold px-4 py-3 d-flex align-items-center gap-2"
-                    onClick={() => requestDemo()}
+                    onClick={startFree}
                   >
-                    Book a demo
+                    Start Free
                     <span className="fs-5">→</span>
                   </button>
                   <button
@@ -262,7 +245,7 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
                       pricingSection?.scrollIntoView({ behavior: 'smooth' });
                     }}
                   >
-                    See pricing
+                    View Pricing
                   </button>
                 </div>
               </div>
@@ -271,19 +254,19 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
                 <div className="col-12">
                   <div className="d-flex align-items-center gap-3">
                     <Check size={20} className="text-success" />
-                    <span className="text-secondary">No hardware required</span>
+                    <span className="text-secondary">No software to install</span>
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="d-flex align-items-center gap-3">
                     <Check size={20} className="text-success" />
-                    <span className="text-secondary">Works offline and on any device</span>
+                    <span className="text-secondary">Works on any browser</span>
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="d-flex align-items-center gap-3">
                     <Check size={20} className="text-success" />
-                    <span className="text-secondary">Exports for audits and incidents</span>
+                    <span className="text-secondary">Export anytime</span>
                   </div>
                 </div>
               </div>
@@ -292,7 +275,7 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
             <div className="col-lg-5 col-12 mt-4 mt-lg-0">
               <div className="hero-panel">
                 <div className="hero-panel-header">
-                  Built for small sites and estates
+                  Built for fast check-ins
                 </div>
                 <div className="hero-panel-list">
                   <div className="hero-panel-item">
@@ -300,8 +283,8 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
                       <Zap size={20} />
                     </div>
                     <div>
-                      <h6>Fast check-ins</h6>
-                      <p>Two-path flow for walk-ins and expected visitors.</p>
+                      <h6>Two-path flow</h6>
+                      <p>Walk-ins or expected guests.</p>
                     </div>
                   </div>
                   <div className="hero-panel-item">
@@ -310,7 +293,7 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
                     </div>
                     <div>
                       <h6>Instant host alerts</h6>
-                      <p>Email notifications with optional SMS where enabled.</p>
+                      <p>Email notifications in real time.</p>
                     </div>
                   </div>
                   <div className="hero-panel-item">
@@ -318,13 +301,13 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
                       <Shield size={20} />
                     </div>
                     <div>
-                      <h6>Evacuation accountability</h6>
-                      <p>Live on-site list and exportable records.</p>
+                      <h6>Live on-site list</h6>
+                      <p>Know who is here right now.</p>
                     </div>
                   </div>
                 </div>
                 <div className="hero-panel-footer">
-                  <span className="text-success">✓</span> See a live demo in minutes
+                  <span className="text-success">✓</span> Start free, upgrade anytime
                 </div>
               </div>
             </div>
@@ -357,7 +340,7 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">How It Works</h2>
-            <p className="fs-5 text-muted mb-0">Get started in 4 simple steps</p>
+            <p className="fs-5 text-muted mb-0">Start in minutes</p>
           </div>
 
           <div className="row g-4 steps-grid">
@@ -383,7 +366,7 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">Everything You Need</h2>
-            <p className="fs-5 text-muted mb-0">Comprehensive features for modern visitor management</p>
+            <p className="fs-5 text-muted mb-0">Simple, fast visitor management</p>
           </div>
 
           <div className="row g-4 justify-content-center">
@@ -413,12 +396,12 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">Who It's For</h2>
-            <p className="fs-5 text-muted mb-0">Built for smaller teams who need accountability</p>
+            <p className="fs-5 text-muted mb-0">Fast-moving teams that need speed and clarity</p>
           </div>
 
           <div className="row g-4">
             {useCases.map((useCase, index) => (
-              <div key={index} className="col-lg-4 col-md-6 col-12">
+              <div key={index} className="col-lg-3 col-md-6 col-12">
                 <div className="usecase-card card h-100 border-0 shadow-sm">
                   <div className="card-body p-4">
                     <div className="usecase-card-header">
@@ -443,10 +426,9 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6 col-12 mb-4 mb-lg-0">
-              <h2 className="display-5 fw-bold mb-4">Trust & Compliance</h2>
+              <h2 className="display-5 fw-bold mb-4">Trust & Security</h2>
               <p className="fs-5 text-muted mb-4">
-                Your visitor data is secure and retention-ready. Floinvite is built for
-                inspections, audits, and incident reporting.
+                Keep it simple. Your visitor data stays secure and accessible.
               </p>
 
               <div className="row g-3">
@@ -466,10 +448,9 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
                 <div className="trust-badge p-4 bg-white rounded-4 shadow-sm">
                   <div className="text-center">
                     <Lock size={64} className="text-primary mb-3" />
-                    <h5 className="fw-bold">Enterprise Security</h5>
+                    <h5 className="fw-bold">Secure by Default</h5>
                     <p className="text-muted">
-                      Your data is encrypted, backed up, and protected by industry-standard security
-                      practices.
+                      Your visitor data stays protected without extra setup.
                     </p>
                   </div>
                 </div>
@@ -488,7 +469,7 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
             <span className="badge bg-primary mb-3">Plans & Pricing</span>
             <h2 id="pricing-heading" className="display-5 fw-bold mb-3">Simple, Transparent Pricing</h2>
             <p className="fs-5 text-muted mb-4 mx-auto" style={{ maxWidth: '600px' }}>
-              All plans include visitor check-in and live on-site lists. Retention and compliance scale with each tier.
+              Start free. Data for your first 20 visitors/hosts included.
             </p>
 
             <div className="btn-group mb-5" role="group">
@@ -562,9 +543,9 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
                         className={`btn ${
                           tier.buttonColor === 'primary' ? 'btn-primary' : 'btn-outline-primary'
                         } btn-lg w-100 fw-semibold mb-4`}
-                        onClick={() => requestDemo(tier.id)}
+                        onClick={startFree}
                       >
-                        {tier.buttonText}
+                        Start Free
                       </button>
 
                       <div className="border-top pt-4">
@@ -646,7 +627,7 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <section id="contact" className="contact-section py-5 bg-light" aria-labelledby="contact-heading">
         <div className="container">
-          <h2 id="contact-heading" className="display-5 fw-bold text-center mb-5">Book a Demo</h2>
+          <h2 id="contact-heading" className="display-5 fw-bold text-center mb-5">Questions?</h2>
 
           <div className="row g-4 mb-5">
             <div className="col-lg-4 col-md-6 col-12">
@@ -705,7 +686,7 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
 
           <div className="row">
             <div className="col-lg-8 col-12 mx-auto">
-              <h3 className="fw-bold mb-4">Tell us about your site</h3>
+              <h3 className="fw-bold mb-4">Send us a message</h3>
               <form
                 className="contact-form"
                 onSubmit={handleContactSubmit}
@@ -806,16 +787,16 @@ export function MarketingPage({ onNavigate }: MarketingPageProps) {
         <div className="container text-center position-relative">
           <div className="cta-content mx-auto" style={{ maxWidth: '600px' }}>
             <h2 className="display-5 fw-bold mb-3 text-white">
-              Ready for clear on-site accountability?
+              Ready to move faster?
             </h2>
             <p className="fs-5 mb-4 text-white">
-              Book a demo to see how Floinvite fits your site and compliance needs.
+              Start free. Data for your first 20 visitors/hosts included.
             </p>
             <button
               className="btn btn-primary btn-lg fw-semibold px-5 py-3 d-inline-flex align-items-center gap-2"
-              onClick={() => requestDemo()}
+              onClick={startFree}
             >
-              Book a demo
+              Start Free
               <span className="fs-5">→</span>
             </button>
           </div>

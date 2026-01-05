@@ -31,15 +31,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $subject = trim($_POST['subject'] ?? '');
     $from_name = trim($_POST['from_name'] ?? '');
+    $greeting = trim($_POST['greeting'] ?? '');
     $html_body = trim($_POST['html_body'] ?? '');
+    $signature = trim($_POST['signature'] ?? '');
     $test_email = trim($_POST['test_email'] ?? '');
+    $send_method = $_POST['send_method'] ?? 'queue';
+    $scheduled_at = !empty($_POST['scheduled_at']) ? $_POST['scheduled_at'] : null;
 
     if ($action === 'test') {
         if (!validate_email($test_email)) {
             $message = 'Error: Provide a valid test email address';
         } elseif (!$subject || !$from_name || !$html_body) {
-            $message = 'Error: Subject, From Name, and Email Content are required for test send';
+            $message = 'Error: Subject, From Name, and Email Body are required for test send';
         } else {
+            // Get template type from form
+            $template_type = $_POST['template-type'] ?? 'default';
+
+            // Generate email HTML from greeting + body + signature
+            $test_email_html = create_email_from_text(
+                $greeting,
+                $html_body,
+                $signature,
+                'Test User',  // Sample visitor name
+                $test_email,
+                'Test Company',  // Sample company
+                'Test Host',  // Sample host name
+                'host@example.com',  // Sample host email
+                $template_type
+            );
+
             $safe_subject = preg_replace('/[\r\n]+/', ' ', $subject);
             $safe_from = preg_replace('/[\r\n]+/', ' ', $from_name);
             $from_email = SMTP_USER ?: 'admin@floinvite.com';
@@ -49,10 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $headers .= "From: {$safe_from} <{$from_email}>\r\n";
             $headers .= "Reply-To: {$from_email}\r\n";
 
-            if (@mail($test_email, $safe_subject, $html_body, $headers)) {
-                $message = 'Test email sent successfully';
+            error_log("TEST_EMAIL_SENDING: to={$test_email}, from={$safe_from} <{$from_email}>");
+            if (@mail($test_email, $safe_subject, $test_email_html, $headers)) {
+                $message = 'Test email sent successfully (with sample data)';
+                error_log("TEST_EMAIL_SUCCESS: Email sent to {$test_email}");
             } else {
                 $message = 'Error: Test email failed to send';
+                error_log("TEST_EMAIL_FAILED: mail() returned false for {$test_email}");
             }
         }
     } else {
@@ -65,18 +88,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Update existing
                     $stmt = $db->prepare("
                         UPDATE campaigns
-                        SET name = ?, subject = ?, from_name = ?, html_body = ?
+                        SET name = ?, subject = ?, from_name = ?, greeting = ?, html_body = ?, signature = ?, send_method = ?, scheduled_at = ?
                         WHERE id = ?
                     ");
-                    $stmt->execute([$name, $subject, $from_name, $html_body, $campaign_id]);
+                    $stmt->execute([$name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $campaign_id]);
                     $message = 'Campaign updated successfully';
                 } else {
                     // Create new
                     $stmt = $db->prepare("
-                        INSERT INTO campaigns (name, subject, from_name, html_body, status)
-                        VALUES (?, ?, ?, ?, 'draft')
+                        INSERT INTO campaigns (name, subject, from_name, greeting, html_body, signature, send_method, scheduled_at, status)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft')
                     ");
-                    $stmt->execute([$name, $subject, $from_name, $html_body]);
+                    $stmt->execute([$name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at]);
                     $campaign_id = $db->lastInsertId();
                     $message = 'Campaign created successfully';
                 }
@@ -98,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['send_prefill'][$campaign_id] = [
                         'mode' => $recipient_mode === 'subscribers' ? 'all' : 'custom',
                         'custom_emails' => implode("\n", $emails),
+                        'recipients' => is_array($recipients) ? $recipients : [],
                         'token' => $prefill_token
                     ];
                     header('Location: send.php?id=' . $campaign_id . '&prefill=' . urlencode($prefill_token));
@@ -201,21 +225,43 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
                     placeholder="Email subject">
             </div>
 
+            <input type="hidden" id="template-type" name="template-type" value="default">
+
             <div class="form-group">
-                <label for="html_body">Email Content (HTML) *</label>
-                <div style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button type="button" class="template-btn" onclick="insertTemplate()">Insert Default Template</button>
-                    <button type="button" class="template-btn" onclick="insertPromo()">Insert Promo Template</button>
-                    <button type="button" class="template-btn" id="preview-toggle" onclick="togglePreview()" style="background: #4f46e5; color: white; border: none;">Show Preview</button>
-                </div>
-                <textarea id="html_body" name="html_body" required placeholder="Enter HTML email content..."><?php echo htmlspecialchars($campaign['html_body'] ?? ''); ?></textarea>
+                <label for="greeting">Greeting *</label>
+                <input type="text" id="greeting" name="greeting" required
+                    value="<?php echo htmlspecialchars($campaign['greeting'] ?? ''); ?>"
+                    placeholder="e.g., Hello {visitor_name}, or Hi there,">
                 <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
-                    Support variables: {name}, {email}, {company}. Use tracking pixel: &lt;img src="<?php echo BASE_URL; ?>/track.php?id={tracking_id}" width="1" height="1"&gt;
+                    Available variables: {visitor_name}, {visitor_email}, {visitor_company}, {host_name}
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="html_body">Email Body *</label>
+                <div style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button type="button" class="template-btn" id="insert-template-btn" style="background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; padding: 0.5rem 1rem; font-size: 0.875rem; cursor: pointer;">Load Default Template</button>
+                    <button type="button" class="template-btn" id="insert-offer-btn" style="background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; padding: 0.5rem 1rem; font-size: 0.875rem; cursor: pointer;">Load Offer Template</button>
+                    <button type="button" class="template-btn" id="preview-toggle" onclick="togglePreview()" style="background: #4f46e5; color: white; border: none; border-radius: 4px; padding: 0.5rem 1rem; font-size: 0.875rem; cursor: pointer;">Show Preview</button>
+                </div>
+                <textarea id="html_body" name="html_body" required placeholder="Enter email body (plain text - no HTML needed)&#10;&#10;You can use line breaks to create paragraphs.&#10;Leave blank lines between paragraphs."><?php echo htmlspecialchars($campaign['html_body'] ?? ''); ?></textarea>
+                <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
+                    Write in plain text. Line breaks will be automatically converted to HTML. No HTML knowledge required!
                 </small>
                 <div id="preview-container" style="margin-top: 1rem; padding: 1rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
-                    <h3 style="margin: 0 0 1rem 0; font-size: 0.9rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Email Preview</h3>
+                    <h3 style="margin: 0 0 1rem 0; font-size: 0.9rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Email Preview (with sample data)</h3>
                     <iframe id="email-preview" style="width: 100%; height: 600px; border: 1px solid #e5e7eb; border-radius: 4px; background: white; display: block;"></iframe>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label for="signature">Signature *</label>
+                <input type="text" id="signature" name="signature" required
+                    value="<?php echo htmlspecialchars($campaign['signature'] ?? ''); ?>"
+                    placeholder="e.g., Best regards, {host_name} or Thanks, The Team">
+                <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
+                    Available variables: {visitor_name}, {visitor_email}, {visitor_company}, {host_name}
+                </small>
             </div>
 
             <div class="form-group">
@@ -229,6 +275,40 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
                 <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
                     Sends the current subject and HTML to the test address without saving changes.
                 </small>
+            </div>
+
+            <div class="form-group">
+                <label>Send Settings *</label>
+                <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Choose when and how to send this campaign</p>
+
+                <?php
+                $send_method = $campaign['send_method'] ?? 'queue';
+                $scheduled_at = $campaign['scheduled_at'] ?? '';
+                ?>
+
+                <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="send_method" id="send-queue" value="queue" <?php echo $send_method === 'queue' ? 'checked' : ''; ?> style="cursor: pointer;">
+                        <span>Queue for automatic sending (cron will send)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="send_method" id="send-immediate" value="immediate" <?php echo $send_method === 'immediate' ? 'checked' : ''; ?> style="cursor: pointer;">
+                        <span>Send immediately</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="send_method" id="send-scheduled" value="scheduled" <?php echo $send_method === 'scheduled' ? 'checked' : ''; ?> style="cursor: pointer;">
+                        <span>Schedule for specific time</span>
+                    </label>
+                </div>
+
+                <div id="scheduled-input-section" style="display: <?php echo $send_method === 'scheduled' ? 'block' : 'none'; ?>; margin-bottom: 1rem;">
+                    <input type="datetime-local" id="scheduled_at" name="scheduled_at" value="<?php echo htmlspecialchars($scheduled_at); ?>" style="padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                    <small style="color: #6b7280; margin-top: 0.5rem; display: block;">Campaign will start sending at this time</small>
+                </div>
+
+                <div id="queue-info" style="padding: 1rem; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-size: 0.875rem;">
+                    Emails will be queued and sent automatically via cron job (every 5 minutes in batches of 10).
+                </div>
             </div>
 
             <div class="form-group">
@@ -325,346 +405,86 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
         const baseUrl = '<?php echo htmlspecialchars(BASE_URL); ?>';
         const publicUrl = '<?php echo htmlspecialchars(PUBLIC_URL); ?>';
 
-        function getDefaultTemplate() {
-            return `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f8f9fa;
-            line-height: 1.5;
-            color: #333;
-        }
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-collapse: collapse;
-        }
-        .header {
-            padding: 32px 32px 24px;
-            border-bottom: 3px solid #4338ca;
-            text-align: left;
-        }
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-        .logo-section img {
-            height: 32px;
-            width: auto;
-        }
-        .brand-wordmark {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 0;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-            line-height: 1;
-            text-transform: lowercase;
-        }
-        .brand-wordmark-flo {
-            color: #4338ca;
-        }
-        .brand-wordmark-invite {
-            color: #10b981;
-        }
-        .company-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #111;
-            margin: 0;
-        }
-        .content {
-            padding: 32px;
-            color: #333;
-        }
-        .greeting {
-            font-size: 16px;
-            margin: 0 0 24px 0;
-            font-weight: 500;
-        }
-        .content h2 {
-            color: #111;
-            font-size: 22px;
-            margin: 0 0 16px 0;
-            font-weight: 600;
-        }
-        .content p {
-            font-size: 16px;
-            margin: 0 0 16px 0;
-            line-height: 1.6;
-        }
-        .cta-button {
-            display: inline-block;
-            background: #4338ca;
-            color: white;
-            padding: 12px 32px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 600;
-            margin: 24px 0;
-            font-size: 16px;
-            line-height: 1;
-            border: none;
-            cursor: pointer;
-        }
-        .cta-button:hover {
-            background: #3730a3;
-        }
-        .footer {
-            padding: 24px 32px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 13px;
-            color: #666;
-            line-height: 1.6;
-        }
-        .footer p {
-            margin: 0 0 8px 0;
-        }
-        .footer a {
-            color: #4338ca;
-            text-decoration: none;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        @media (max-width: 600px) {
-            .email-container { width: 100% !important; }
-            .header { padding: 24px 20px 16px; }
-            .content { padding: 24px 20px; }
-            .footer { padding: 20px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="email-container">
-        <div class="header">
-            <div class="logo-section">
-                <img src="${logoUrl}" alt="floinvite">
-                <div class="company-name"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></div>
-            </div>
-        </div>
-        <div class="content">
-            <p class="greeting">Hello {name},</p>
-            <h2>Welcome to <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></h2>
-            <p>We're excited to connect with you. Here's an important update for your visit.</p>
-            <p>Your content goes here. Edit this message to customize your email.</p>
-            <a href="#" class="cta-button">Learn More</a>
-            <p style="color: #666; font-size: 14px; margin-top: 32px;">If you have any questions, don't hesitate to reach out.</p>
-        </div>
-        <div class="footer">
-            <p><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong><br>Professional Visitor Management</p>
-            <p>Email: {email}<br>Company: {company}</p>
-            <p><a href="${baseUrl}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="${publicUrl}/contact">Contact Us</a></p>
-        </div>
-    </div>
-</body>
-</html>`;
-        }
-
-        function insertTemplate() {
-            const template = getDefaultTemplate();
-            document.getElementById('html_body').value = template;
-            updatePreview();
-        }
-
-        function insertPromo() {
-            const template = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f8f9fa;
-            line-height: 1.5;
-            color: #333;
-        }
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-        }
-        .header {
-            padding: 24px 32px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-        }
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .logo-section img {
-            height: 32px;
-            width: auto;
-        }
-        .brand-wordmark {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 0;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-            line-height: 1;
-            text-transform: lowercase;
-        }
-        .brand-wordmark-flo {
-            color: #4338ca;
-        }
-        .brand-wordmark-invite {
-            color: #10b981;
-        }
-        .company-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #111;
-            margin: 0;
-        }
-        .hero {
-            background: #dc2626;
-            color: white;
-            padding: 48px 32px;
-            text-align: center;
-        }
-        .hero h1 {
-            font-size: 32px;
-            margin: 0 0 12px 0;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-        .hero p {
-            font-size: 18px;
-            margin: 0 0 28px 0;
-            opacity: 0.95;
-        }
-        .cta {
-            display: inline-block;
-            background: white;
-            color: #dc2626;
-            padding: 14px 40px;
-            text-decoration: none;
-            font-weight: 700;
-            border-radius: 4px;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-        }
-        .cta:hover {
-            background: #f3f4f6;
-        }
-        .content {
-            padding: 32px;
-            color: #333;
-        }
-        .content p {
-            font-size: 16px;
-            margin: 0 0 16px 0;
-            line-height: 1.6;
-        }
-        .content p:first-child {
-            font-weight: 500;
-            margin-bottom: 24px;
-        }
-        .footer {
-            padding: 24px 32px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 13px;
-            color: #666;
-            line-height: 1.6;
-        }
-        .footer p {
-            margin: 0 0 8px 0;
-        }
-        .footer a {
-            color: #4338ca;
-            text-decoration: none;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        .badge {
-            display: inline-block;
-            background: #fef3c7;
-            color: #92400e;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-        @media (max-width: 600px) {
-            .email-container { width: 100% !important; }
-            .header { padding: 20px; }
-            .hero { padding: 36px 20px; }
-            .hero h1 { font-size: 28px; }
-            .content { padding: 20px; }
-            .footer { padding: 20px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="email-container">
-        <div class="header">
-            <div class="logo-section">
-                <img src="${logoUrl}" alt="floinvite">
-                <div class="company-name"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></div>
-            </div>
-        </div>
-        <div class="hero">
-            <div class="badge">Limited Time Offer</div>
-            <h1>Special Offer Just For You!</h1>
-            <p>Get 20% off on your next visit</p>
-            <a href="#" class="cta">Claim Offer Now</a>
-        </div>
-        <div class="content">
-            <p>Hi {name},</p>
-            <p>We have a special exclusive offer just for our valued customers like you.</p>
-            <p>This limited-time offer is a token of our appreciation. Don't miss out!</p>
-            <p>Thank you for choosing <span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span>!</p>
-        </div>
-        <div class="footer">
-            <p><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong><br>Professional Visitor Management</p>
-            <p><a href="${baseUrl}/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="${publicUrl}/contact">Contact Us</a></p>
-        </div>
-    </div>
-</body>
-</html>`;
-            document.getElementById('html_body').value = template;
-            updatePreview();
-        }
-
         let previewOpen = false;
         let previewReady = false;
-        let textarea, preview, previewContainer, previewBtn;
+        let greetingInput, bodyInput, signatureInput, preview, previewContainer, previewBtn;
+
+        function loadDefaultTemplate() {
+            const greeting = document.getElementById('greeting');
+            const body = document.getElementById('html_body');
+            const signature = document.getElementById('signature');
+            const templateType = document.getElementById('template-type');
+
+            greeting.value = 'Hello {visitor_name},';
+            body.value = 'We are delighted to have you visit us today.\n\nThis is a professional email template with a company header and footer.\n\nYour content and message go here. Write naturally - line breaks will be converted to HTML.';
+            signature.value = 'Best regards,\n{host_name}';
+            if (templateType) {
+                templateType.value = 'default';
+            }
+
+            if (previewOpen) {
+                updatePreview();
+            }
+        }
+
+        function loadOfferTemplate() {
+            const greeting = document.getElementById('greeting');
+            const body = document.getElementById('html_body');
+            const signature = document.getElementById('signature');
+            const templateType = document.getElementById('template-type');
+
+            greeting.value = 'Hi {visitor_name},';
+            body.value = 'We have an exclusive special offer just for you!\n\nTake advantage of this limited-time promotion and enjoy amazing benefits.\n\nDon\'t miss out - this offer won\'t last long!';
+            signature.value = 'Thank you,\nThe {host_name} Team';
+            if (templateType) {
+                templateType.value = 'offer';
+            }
+
+            if (previewOpen) {
+                updatePreview();
+            }
+        }
 
         function initializePreview() {
-            textarea = document.getElementById('html_body');
+            greetingInput = document.getElementById('greeting');
+            bodyInput = document.getElementById('html_body');
+            signatureInput = document.getElementById('signature');
             preview = document.getElementById('email-preview');
             previewContainer = document.getElementById('preview-container');
             previewBtn = document.getElementById('preview-toggle');
+            const insertTemplateBtn = document.getElementById('insert-template-btn');
+            const insertOfferBtn = document.getElementById('insert-offer-btn');
 
-            if (textarea && preview && previewContainer && previewBtn) {
-                // Load default template on page load
-                if (!textarea.value) {
-                    textarea.value = getDefaultTemplate();
-                    previewOpen = true;
+            if (greetingInput && bodyInput && signatureInput && preview && previewContainer && previewBtn) {
+                // Attach template button listeners
+                if (insertTemplateBtn) {
+                    insertTemplateBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        loadDefaultTemplate();
+                    });
+                }
+                if (insertOfferBtn) {
+                    insertOfferBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        loadOfferTemplate();
+                    });
                 }
 
                 // Initial preview render
                 updatePreview();
 
-                textarea.addEventListener('input', function() {
+                // Update preview on any input change
+                greetingInput.addEventListener('input', function() {
+                    if (previewOpen) {
+                        updatePreview();
+                    }
+                });
+                bodyInput.addEventListener('input', function() {
+                    if (previewOpen) {
+                        updatePreview();
+                    }
+                });
+                signatureInput.addEventListener('input', function() {
                     if (previewOpen) {
                         updatePreview();
                     }
@@ -688,21 +508,54 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
         }
 
         function updatePreview() {
-            if (!textarea || !preview) {
+            if (!greetingInput || !bodyInput || !signatureInput || !preview) {
                 return;
             }
-            let html = textarea.value || '<p style="color: #999; padding: 20px; text-align: center;">Email preview will appear here...</p>';
 
-            // Substitute template variables with actual values
-            html = html.replace(/\$\{logoUrl\}/g, logoUrl);
-            html = html.replace(/\$\{baseUrl\}/g, baseUrl);
-            html = html.replace(/\$\{publicUrl\}/g, publicUrl);
+            const greeting = greetingInput.value || '';
+            const body = bodyInput.value || '';
+            const signature = signatureInput.value || '';
+            const templateType = document.getElementById('template-type').value || 'default';
 
-            // Use document.write to render HTML in iframe
-            const iframeDoc = preview.contentDocument || preview.contentWindow.document;
-            iframeDoc.open();
-            iframeDoc.write(html);
-            iframeDoc.close();
+            // Fetch preview from server
+            fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-preview-email.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    greeting: greeting,
+                    body: body,
+                    signature: signature,
+                    template_type: templateType,
+                    sample_name: 'John Smith',
+                    sample_email: 'john@example.com',
+                    sample_company: 'ABC Corp',
+                    sample_host: 'Mary Johnson',
+                    sample_host_email: 'mary@example.com'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.html) {
+                    const iframeDoc = preview.contentDocument || preview.contentWindow.document;
+                    iframeDoc.open();
+                    iframeDoc.write(data.data.html);
+                    iframeDoc.close();
+                } else {
+                    const iframeDoc = preview.contentDocument || preview.contentWindow.document;
+                    iframeDoc.open();
+                    iframeDoc.write('<p style="color: #999; padding: 20px; text-align: center;">Error generating preview. Please try again.</p>');
+                    iframeDoc.close();
+                }
+            })
+            .catch(error => {
+                console.error('Preview error:', error);
+                const iframeDoc = preview.contentDocument || preview.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write('<p style="color: #999; padding: 20px; text-align: center;">Error generating preview</p>');
+                iframeDoc.close();
+            });
         }
 
         // Initialize when DOM is ready
@@ -886,14 +739,38 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
         function serializeRecipients(recipients) {
             recipientsJsonField.value = JSON.stringify(recipients);
         }
+
+        // Handle send method selection
+        const sendQueueRadio = document.getElementById('send-queue');
+        const sendImmediateRadio = document.getElementById('send-immediate');
+        const sendScheduledRadio = document.getElementById('send-scheduled');
+        const scheduledInputSection = document.getElementById('scheduled-input-section');
+        const scheduledAtInput = document.getElementById('scheduled_at');
+        const queueInfo = document.getElementById('queue-info');
+
+        const updateSendMethodUI = () => {
+            if (sendScheduledRadio.checked) {
+                scheduledInputSection.style.display = 'block';
+                queueInfo.style.display = 'none';
+                scheduledAtInput.required = true;
+            } else {
+                scheduledInputSection.style.display = 'none';
+                scheduledAtInput.required = false;
+                if (sendQueueRadio.checked) {
+                    queueInfo.style.display = 'block';
+                } else {
+                    queueInfo.style.display = 'none';
+                }
+            }
+        };
+
+        if (sendQueueRadio) sendQueueRadio.addEventListener('change', updateSendMethodUI);
+        if (sendImmediateRadio) sendImmediateRadio.addEventListener('change', updateSendMethodUI);
+        if (sendScheduledRadio) sendScheduledRadio.addEventListener('change', updateSendMethodUI);
+
+        // Initialize UI on page load
+        updateSendMethodUI();
     </script>
 
-    <!-- Footer -->
-    <div class="container">
-        <div style="text-align: center; padding: 2rem 0; border-top: 1px solid #e5e7eb; margin-top: 2rem; color: #6b7280; font-size: 0.875rem;">
-            <p style="margin: 0;"><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong> Email Marketing Platform</p>
-            <p style="margin: 0.25rem 0 0 0;"><?php echo date('M d, Y'); ?></p>
-        </div>
-    </div>
 </body>
 </html>
