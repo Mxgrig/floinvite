@@ -123,6 +123,379 @@ function validate_email($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
+// Replace Email Template Placeholders
+function replace_template_placeholders($html, $name = '', $email = '', $company = '', $unsubscribe_token = '') {
+    // Replace personalization placeholders
+    $html = str_replace('{name}', htmlspecialchars($name ?: $email), $html);
+    $html = str_replace('{email}', htmlspecialchars($email), $html);
+    $html = str_replace('{company}', htmlspecialchars($company ?: ''), $html);
+    $html = str_replace('{unsubscribe_token}', htmlspecialchars($unsubscribe_token), $html);
+
+    return $html;
+}
+
+// Convert Plain Text to HTML Email Format
+// Handles greeting + body + signature sections
+function create_email_from_text($greeting = '', $body = '', $signature = '', $name = '', $email = '', $company = '', $host_name = '', $host_email = '', $template_type = 'default') {
+    // Get logo URL
+    $logo_url = get_logo_url(PUBLIC_URL);
+    $public_url = PUBLIC_URL;
+    $base_url = BASE_URL;
+
+    // Replace visitor/host placeholders in greeting and signature
+    $greeting = str_replace('{visitor_name}', htmlspecialchars($name ?: $email), $greeting);
+    $greeting = str_replace('{visitor_email}', htmlspecialchars($email), $greeting);
+    $greeting = str_replace('{visitor_company}', htmlspecialchars($company ?: ''), $greeting);
+    $greeting = str_replace('{host_name}', htmlspecialchars($host_name), $greeting);
+    $greeting = str_replace('{host_email}', htmlspecialchars($host_email), $greeting);
+
+    $signature = str_replace('{visitor_name}', htmlspecialchars($name ?: $email), $signature);
+    $signature = str_replace('{visitor_email}', htmlspecialchars($email), $signature);
+    $signature = str_replace('{visitor_company}', htmlspecialchars($company ?: ''), $signature);
+    $signature = str_replace('{host_name}', htmlspecialchars($host_name), $signature);
+    $signature = str_replace('{host_email}', htmlspecialchars($host_email), $signature);
+
+    // Convert body plain text to HTML
+    // Split by double line breaks (paragraphs)
+    $body = htmlspecialchars(trim($body));
+    $paragraphs = preg_split('/\n\s*\n/', $body);
+    $body_html = '';
+    foreach ($paragraphs as $para) {
+        if (trim($para)) {
+            // Convert single line breaks to <br>
+            $para = str_replace("\n", "<br>\n", $para);
+            $body_html .= "<p>" . $para . "</p>\n";
+        }
+    }
+
+    // For offer template, return special HTML with red hero section
+    if ($template_type === 'offer') {
+        if (function_exists('create_offer_email_html')) {
+            return create_offer_email_html($logo_url, $greeting, $body_html, $signature, $public_url, $base_url);
+        }
+    }
+
+    // Build complete email HTML with template styling
+    $html = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            line-height: 1.5;
+            color: #333;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-collapse: collapse;
+        }
+        .header {
+            padding: 32px 32px 24px;
+            border-bottom: 3px solid #4338ca;
+            text-align: left;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .logo-section img {
+            height: 32px;
+            width: auto;
+        }
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+        .brand-wordmark-flo {
+            color: #4338ca;
+        }
+        .brand-wordmark-invite {
+            color: #10b981;
+        }
+        .company-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111;
+            margin: 0;
+        }
+        .content {
+            padding: 32px;
+            color: #333;
+        }
+        .greeting {
+            font-size: 16px;
+            margin: 0 0 24px 0;
+            font-weight: 500;
+        }
+        .body {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .body p {
+            margin: 0 0 16px 0;
+        }
+        .body p:last-child {
+            margin-bottom: 0;
+        }
+        .signature {
+            font-size: 14px;
+            color: #666;
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+            white-space: pre-wrap;
+        }
+        .footer {
+            padding: 24px 32px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .footer p {
+            margin: 0 0 8px 0;
+        }
+        .footer a {
+            color: #4338ca;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 600px) {
+            .email-container { width: 100% !important; }
+            .header { padding: 24px 20px 16px; }
+            .content { padding: 24px 20px; }
+            .footer { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo-section">
+                <img src="$logo_url" alt="floinvite">
+                <div class="company-name"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="greeting">$greeting</div>
+            <div class="body">$body_html</div>
+            <div class="signature">$signature</div>
+        </div>
+        <div class="footer">
+            <p><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong><br>Professional Visitor Management</p>
+            <p><a href="$base_url/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="$public_url/contact">Contact Us</a></p>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+    return $html;
+}
+
+// Create Offer Email HTML with Red Hero Section
+function create_offer_email_html($logo_url, $greeting, $body_html, $signature, $public_url, $base_url) {
+    $html = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            line-height: 1.5;
+            color: #333;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+        }
+        .header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-section img {
+            height: 32px;
+            width: auto;
+        }
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+        .brand-wordmark-flo {
+            color: #4338ca;
+        }
+        .brand-wordmark-invite {
+            color: #10b981;
+        }
+        .company-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111;
+            margin: 0;
+        }
+        .hero {
+            background: #dc2626;
+            color: white;
+            padding: 48px 32px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 32px;
+            margin: 0 0 12px 0;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .hero p {
+            font-size: 18px;
+            margin: 0 0 28px 0;
+            opacity: 0.95;
+        }
+        .hero .cta {
+            display: inline-block;
+            background: white;
+            color: #dc2626;
+            padding: 14px 40px;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 4px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+        .hero .cta:hover {
+            background: #f3f4f6;
+        }
+        .badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .content {
+            padding: 32px;
+            color: #333;
+        }
+        .greeting {
+            font-size: 16px;
+            margin: 0 0 24px 0;
+            font-weight: 500;
+        }
+        .body {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .body p {
+            margin: 0 0 16px 0;
+        }
+        .body p:last-child {
+            margin-bottom: 0;
+        }
+        .signature {
+            font-size: 14px;
+            color: #666;
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+            white-space: pre-wrap;
+        }
+        .footer {
+            padding: 24px 32px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .footer p {
+            margin: 0 0 8px 0;
+        }
+        .footer a {
+            color: #4338ca;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 600px) {
+            .email-container { width: 100% !important; }
+            .header { padding: 20px; }
+            .hero { padding: 36px 20px; }
+            .hero h1 { font-size: 28px; }
+            .content { padding: 24px 20px; }
+            .footer { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo-section">
+                <img src="$logo_url" alt="floinvite">
+                <div class="company-name"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></div>
+            </div>
+        </div>
+        <div class="hero">
+            <div class="badge">Special Offer</div>
+            <h1>Exclusive Offer For You!</h1>
+            <p>Limited time opportunity - don't miss out</p>
+            <a href="$public_url" class="cta" target="_blank">Claim Offer Now</a>
+        </div>
+        <div class="content">
+            <div class="greeting">$greeting</div>
+            <div class="body">$body_html</div>
+            <div class="signature">$signature</div>
+        </div>
+        <div class="footer">
+            <p><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong><br>Professional Visitor Management</p>
+            <p><a href="$base_url/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="$public_url/contact">Contact Us</a></p>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+    return $html;
+}
+
 // Log Activity
 function log_activity($action, $details = []) {
     $file = __DIR__ . '/logs/activity.log';

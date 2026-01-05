@@ -1,19 +1,71 @@
 <?php
+require_once 'config.php';
 require_once 'logo.php';
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+
+define('LOGIN_MAX_ATTEMPTS', 5);
+define('LOGIN_WINDOW_SECONDS', 900);
+define('LOGIN_LOCKOUT_SECONDS', 900);
+
+function get_client_ip() {
+    return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+}
+
+function load_rate_limit($path) {
+    if (!is_readable($path)) {
+        return ['count' => 0, 'first' => 0, 'lock_until' => 0];
+    }
+    $data = json_decode(@file_get_contents($path), true);
+    if (!is_array($data)) {
+        return ['count' => 0, 'first' => 0, 'lock_until' => 0];
+    }
+    return array_merge(['count' => 0, 'first' => 0, 'lock_until' => 0], $data);
+}
+
+function save_rate_limit($path, $data) {
+    @file_put_contents($path, json_encode($data), LOCK_EX);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
+    $ip = get_client_ip();
+    $rate_file = __DIR__ . '/logs/login_rate_' . sha1($ip) . '.json';
+    $rate = load_rate_limit($rate_file);
+    $now = time();
 
-    // Simple password check
-    if ($password === 'admin@fl0invitE') {
-        $_SESSION['admin_logged_in'] = true;
-        header('Location: index.php');
-        exit;
+    if (!empty($rate['lock_until']) && $rate['lock_until'] > $now) {
+        $minutes = max(1, (int) ceil(($rate['lock_until'] - $now) / 60));
+        $error = "Too many attempts. Try again in {$minutes} minute(s).";
     } else {
-        $error = 'Invalid password';
+        $admin_password = getenv('MAIL_ADMIN_PASSWORD') ?: getenv('ADMIN_PASSWORD') ?: 'admin@fl0invitE';
+        $admin_password_hash = getenv('MAIL_ADMIN_PASSWORD_HASH') ?: getenv('ADMIN_PASSWORD_HASH') ?: '';
+        $valid_login = false;
+
+        if ($admin_password_hash) {
+            $valid_login = password_verify($password, $admin_password_hash);
+        } else {
+            $valid_login = hash_equals($admin_password, $password);
+        }
+
+        if ($valid_login) {
+            $_SESSION['admin_logged_in'] = true;
+            @unlink($rate_file);
+            header('Location: index.php');
+            exit;
+        }
+
+        if (empty($rate['first']) || ($now - (int) $rate['first']) > LOGIN_WINDOW_SECONDS) {
+            $rate = ['count' => 0, 'first' => $now, 'lock_until' => 0];
+        }
+
+        $rate['count'] = (int) $rate['count'] + 1;
+        if ($rate['count'] >= LOGIN_MAX_ATTEMPTS) {
+            $rate['lock_until'] = $now + LOGIN_LOCKOUT_SECONDS;
+        }
+
+        save_rate_limit($rate_file, $rate);
+        $error = $rate['lock_until'] > $now
+            ? 'Too many attempts. Try again later.'
+            : 'Invalid password';
     }
 }
 ?>
