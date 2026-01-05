@@ -157,14 +157,15 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
 
     // Convert body plain text to HTML
     // Split by double line breaks (paragraphs)
-    $body = htmlspecialchars(trim($body));
+    $body = trim($body);
     $paragraphs = preg_split('/\n\s*\n/', $body);
     $body_html = '';
     foreach ($paragraphs as $para) {
         if (trim($para)) {
-            // Convert single line breaks to <br>
-            $para = str_replace("\n", "<br>\n", $para);
-            $body_html .= "<p>" . $para . "</p>\n";
+            // Convert URLs to links, then preserve line breaks
+            $para_html = linkify_plain_text($para);
+            $para_html = str_replace("\n", "<br>\n", $para_html);
+            $body_html .= "<p>" . $para_html . "</p>\n";
         }
     }
 
@@ -309,6 +310,27 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
 HTML;
 
     return $html;
+}
+
+// Convert plain text to HTML with clickable links
+function linkify_plain_text($text) {
+    $pattern = '/\bhttps?:\/\/[^\s<>()]+/i';
+    $result = '';
+    $offset = 0;
+
+    if (preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE)) {
+        foreach ($matches[0] as $match) {
+            $url = $match[0];
+            $pos = $match[1];
+            $result .= htmlspecialchars(substr($text, $offset, $pos - $offset));
+            $safe_url = htmlspecialchars($url);
+            $result .= '<a href="' . $safe_url . '" target="_blank" rel="noopener noreferrer">' . $safe_url . '</a>';
+            $offset = $pos + strlen($url);
+        }
+    }
+
+    $result .= htmlspecialchars(substr($text, $offset));
+    return $result;
 }
 
 // Create Offer Email HTML with Red Hero Section
