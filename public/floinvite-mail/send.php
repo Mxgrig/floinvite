@@ -146,7 +146,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'start') {
         $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
-        $parsed = parse_custom_emails($custom_emails_raw);
+
+        // Try to get recipients from session (CSV/manual with name/company)
+        $prefill = $_SESSION['send_prefill'][$campaign_id] ?? null;
+        $recipients_from_session = $prefill['recipients'] ?? [];
+
+        // If we have recipients from session (CSV/manual), use those with name/company
+        if (!empty($recipients_from_session)) {
+            $invalid = 0;
+            $invalid_samples = [];
+            $emails = [];
+            $recipients = [];
+
+            foreach ($recipients_from_session as $recipient) {
+                $email = strtolower(trim($recipient['email'] ?? ''));
+                if ($email === '' || !validate_email($email)) {
+                    $invalid++;
+                    if (count($invalid_samples) < 20 && $email !== '') {
+                        $invalid_samples[] = $email;
+                    }
+                    continue;
+                }
+                if (isset($emails[$email])) {
+                    continue;
+                }
+                $emails[$email] = true;
+                $recipients[] = [
+                    'email' => $email,
+                    'name' => $recipient['name'] ?? '',
+                    'company' => $recipient['company'] ?? ''
+                ];
+            }
+
+            $parsed = [
+                'emails' => array_keys($emails),
+                'invalid' => $invalid,
+                'invalid_samples' => $invalid_samples,
+                'recipients' => $recipients
+            ];
+        } else {
+            // Fallback to parsing custom emails text (for backwards compatibility)
+            $parsed = parse_custom_emails($custom_emails_raw);
+            // Convert email array to recipients array format
+            $parsed['recipients'] = array_map(function($email) {
+                return ['email' => $email, 'name' => '', 'company' => ''];
+            }, $parsed['emails']);
+        }
 
         try {
             $db->beginTransaction();
@@ -167,23 +212,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $find_stmt = $db->prepare("SELECT id, status FROM subscribers WHERE email = ?");
                 $insert_stmt = $db->prepare("
-                    INSERT INTO subscribers (email, status)
-                    VALUES (?, 'active')
+                    INSERT INTO subscribers (email, name, company, status)
+                    VALUES (?, ?, ?, 'active')
                 ");
                 $activate_stmt = $db->prepare("
                     UPDATE subscribers SET status = 'active'
                     WHERE id = ?
                 ");
 
+                // Create email to recipient mapping for quick lookup
+                $recipient_map = [];
+                foreach ($parsed['recipients'] as $recipient) {
+                    $email_key = strtolower($recipient['email'] ?? '');
+                    $recipient_map[$email_key] = $recipient;
+                }
+
                 foreach ($parsed['emails'] as $email) {
-                    $find_stmt->execute([$email]);
+                    $email_lower = strtolower($email);
+                    $recipient = $recipient_map[$email_lower] ?? ['email' => $email, 'name' => '', 'company' => ''];
+
+                    $find_stmt->execute([$email_lower]);
                     $existing = $find_stmt->fetch();
 
                     if ($existing) {
                         if ($existing['status'] === 'unsubscribed') {
                             if ($allow_reactivate) {
                                 $activate_stmt->execute([$existing['id']]);
-                                $subscribers[] = ['id' => $existing['id'], 'email' => $email];
+                                $subscribers[] = [
+                                    'id' => $existing['id'],
+                                    'email' => $email_lower,
+                                    'name' => $recipient['name'] ?? '',
+                                    'company' => $recipient['company'] ?? ''
+                                ];
                             } else {
                                 $skipped['unsubscribed']++;
                             }
@@ -196,13 +256,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             }
                             $activate_stmt->execute([$existing['id']]);
                         }
-                        $subscribers[] = ['id' => $existing['id'], 'email' => $email];
+                        $subscribers[] = [
+                            'id' => $existing['id'],
+                            'email' => $email_lower,
+                            'name' => $recipient['name'] ?? '',
+                            'company' => $recipient['company'] ?? ''
+                        ];
                         continue;
                     }
 
                     if ($allow_new) {
-                        $insert_stmt->execute([$email]);
-                        $subscribers[] = ['id' => $db->lastInsertId(), 'email' => $email];
+                        $insert_stmt->execute([
+                            $email_lower,
+                            $recipient['name'] ?? '',
+                            $recipient['company'] ?? ''
+                        ]);
+                        $subscribers[] = [
+                            'id' => $db->lastInsertId(),
+                            'email' => $email_lower,
+                            'name' => $recipient['name'] ?? '',
+                            'company' => $recipient['company'] ?? ''
+                        ];
                     } else {
                         $skipped['new']++;
                     }
@@ -232,13 +306,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmt = $db->prepare("
                     INSERT INTO campaign_sends (
-                        campaign_id, subscriber_id, email, tracking_id, unsubscribe_token, status
-                    ) VALUES (?, ?, ?, ?, ?, 'pending')
+                        campaign_id, subscriber_id, email, name, company, tracking_id, unsubscribe_token, status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
                 ");
                 $stmt->execute([
                     $campaign_id,
                     $sub['id'],
                     $sub['email'],
+                    $sub['name'] ?? '',
+                    $sub['company'] ?? '',
                     $tracking_id,
                     $unsubscribe_token
                 ]);

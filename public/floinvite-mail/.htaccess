@@ -1,15 +1,22 @@
-# Allow unsubscribe.php to be accessed without authentication
-<Files "unsubscribe.php">
-    Require all granted
-</Files>
+# Basic auth protection
+AuthType Basic
+AuthName "Floinvite Mail"
+AuthUserFile /home/u958180753/domains/floinvite.com/public_html/floinvite-mail/.htpasswd
 
-# Allow tracking endpoints without authentication
-<Files "track.php">
-    Require all granted
-</Files>
+# Allow public endpoints to bypass auth
+SetEnvIf Request_URI "^/floinvite-mail/(track|unsubscribe)\.php$" noauth=1
+<RequireAny>
+    Require env noauth
+    Require valid-user
+</RequireAny>
 
 # Deny access to config files
 <Files "config.php">
+    Require all denied
+</Files>
+
+# Deny access to htpasswd
+<Files ".htpasswd">
     Require all denied
 </Files>
 

@@ -31,7 +31,7 @@ if (!empty($_GET['id'])) {
             $stmt->execute([$send['send_id']]);
 
             // Update campaign open count
-            $db->query("
+            $stmt = $db->prepare("
                 UPDATE campaigns
                 SET opened_count = (
                     SELECT COUNT(*) FROM campaign_sends
@@ -39,6 +39,7 @@ if (!empty($_GET['id'])) {
                 )
                 WHERE id = ?
             ");
+            $stmt->execute([$send['campaign_id'], $send['campaign_id']]);
 
             // Log analytics
             $stmt = $db->prepare("
@@ -81,7 +82,7 @@ if (!empty($_GET['link'])) {
             $stmt->execute([$send['send_id']]);
 
             // Update campaign click count
-            $db->query("
+            $stmt = $db->prepare("
                 UPDATE campaigns
                 SET clicked_count = (
                     SELECT COUNT(*) FROM campaign_sends
@@ -89,6 +90,7 @@ if (!empty($_GET['link'])) {
                 )
                 WHERE id = ?
             ");
+            $stmt->execute([$send['campaign_id'], $send['campaign_id']]);
 
             // Log analytics with link
             $stmt = $db->prepare("
@@ -108,7 +110,16 @@ if (!empty($_GET['link'])) {
     }
 }
 
-// Return 1x1 transparent GIF pixel
+// Redirect for click tracking when link param is provided
+if (!empty($_GET['link'])) {
+    $destination = trim($_GET['link']);
+    if (filter_var($destination, FILTER_VALIDATE_URL)) {
+        header('Location: ' . $destination, true, 302);
+        exit;
+    }
+}
+
+// Return 1x1 transparent GIF pixel (open tracking)
 header('Content-Type: image/gif');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 echo base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
