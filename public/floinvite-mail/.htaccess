@@ -30,6 +30,9 @@ SetEnvIf Request_URI "^/floinvite-mail/(track|unsubscribe)\.php$" noauth=1
     RewriteEngine On
     RewriteBase /floinvite-mail/
 
+    # Block direct access to logs
+    RewriteRule ^logs/ - [F,L]
+
     # Redirect trailing slashes
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)/$ $1 [L,R=301]
