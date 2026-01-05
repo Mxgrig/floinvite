@@ -1,6 +1,6 @@
 /**
- * Pricing Service - REVISED
- * Starter now includes WhatsApp notifications!
+ * Pricing Service
+ * Starter and Compliance+ aligned to $29/$40 pricing.
  */
 
 export interface PricingTier {
@@ -31,17 +31,17 @@ export const PRICING_TIERS: PricingTier[] = [
     description: 'Everything a small organisation needs to know who is on site',
     highlighted: false,
     stripePriceId: 'price_1SkJhFIB0Mi9CiIRq7m1oZB6',
-    buttonText: 'Get Started',
+    buttonText: 'Book a demo',
     buttonColor: 'slate',
     features: [
       // Core Features
       {
-        text: 'Up to 20 hosts/visitors',
+        text: 'Unlimited visitor records',
         included: true,
         category: 'core'
       },
       {
-        text: 'Guest check-in',
+        text: 'Visitor check-in / check-out',
         included: true,
         category: 'core'
       },
@@ -51,12 +51,12 @@ export const PRICING_TIERS: PricingTier[] = [
         category: 'core'
       },
       {
-        text: 'Visitor logbook',
+        text: 'Live on-site list',
         included: true,
         category: 'core'
       },
       {
-        text: 'Search & filtering',
+        text: 'Evacuation list',
         included: true,
         category: 'core'
       },
@@ -85,12 +85,12 @@ export const PRICING_TIERS: PricingTier[] = [
 
       // Data & Storage
       {
-        text: 'Data export',
-        included: false,
+        text: 'Exports (PDF/CSV, last 90 days)',
+        included: true,
         category: 'data'
       },
       {
-        text: 'Cloud backup',
+        text: 'Automatic backups',
         included: false,
         category: 'data'
       },
@@ -98,7 +98,7 @@ export const PRICING_TIERS: PricingTier[] = [
       // Support
       {
         text: 'Email support',
-        included: false,
+        included: true,
         category: 'support'
       }
     ]
@@ -107,17 +107,17 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'compliance',
     name: 'Compliance+',
-    price: 49,
+    price: 40,
     billingCycle: 'month',
     description: 'For estates and organisations that must retain records and stay audit-ready',
     highlighted: true,
     stripePriceId: 'price_1SkJhGIB0Mi9CiIRyZn3B9oB',
-    buttonText: 'Upgrade to Compliance+',
+    buttonText: 'Book a demo',
     buttonColor: 'indigo',
     features: [
       // Core Features
       {
-        text: 'Unlimited guest check-ins',
+        text: 'Unlimited visitor records',
         included: true,
         category: 'core'
       },
@@ -171,12 +171,22 @@ export const PRICING_TIERS: PricingTier[] = [
 
       // Data & Storage
       {
-        text: 'Data export (CSV/JSON)',
+        text: 'Exports (PDF/CSV, full history)',
         included: true,
         category: 'data'
       },
       {
-        text: 'Cloud backup',
+        text: 'Automatic backups',
+        included: true,
+        category: 'data'
+      },
+      {
+        text: '7-year record retention',
+        included: true,
+        category: 'data'
+      },
+      {
+        text: 'Audit-ready compliance reports',
         included: true,
         category: 'data'
       },
@@ -184,6 +194,11 @@ export const PRICING_TIERS: PricingTier[] = [
       // Support
       {
         text: 'Email support',
+        included: true,
+        category: 'support'
+      },
+      {
+        text: 'Priority support',
         included: true,
         category: 'support'
       }
@@ -198,12 +213,12 @@ export const PRICING_TIERS: PricingTier[] = [
     description: 'Custom integrations and advanced features. Contact sales.',
     highlighted: false,
     stripePriceId: 'price_enterprise_monthly',
-    buttonText: 'Contact Sales',
+    buttonText: 'Contact sales',
     buttonColor: 'emerald',
     features: [
       // Core Features
       {
-        text: 'Everything in Professional',
+        text: 'Everything in Compliance+',
         included: true,
         category: 'core'
       },
@@ -306,19 +321,19 @@ export const STRIPE_PRICES: PaymentOption[] = [
   {
     tier: 'starter',
     priceId: import.meta.env.VITE_STRIPE_STARTER_YEARLY || 'price_1SkJhFIB0Mi9CiIRbhu1w0nX',
-    amount: 34800,
+    amount: 27840,
     interval: 'year'
   },
   {
     tier: 'compliance',
     priceId: import.meta.env.VITE_STRIPE_COMPLIANCE_MONTHLY || 'price_1SkJhGIB0Mi9CiIRyZn3B9oB',
-    amount: 4900,
+    amount: 4000,
     interval: 'month'
   },
   {
     tier: 'compliance',
     priceId: import.meta.env.VITE_STRIPE_COMPLIANCE_YEARLY || 'price_1SkJhGIB0Mi9CiIRaSZNXzSh',
-    amount: 58800,
+    amount: 38400,
     interval: 'year'
   },
   {

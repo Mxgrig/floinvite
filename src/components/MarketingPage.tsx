@@ -26,18 +26,14 @@ import {
   Heart,
 } from 'lucide-react';
 import { PRICING_TIERS } from '../services/pricingService';
-import { PaymentService } from '../services/paymentService';
 import './MarketingPage.css';
 
 interface MarketingPageProps {
   onNavigate: (page: string) => void;
-  onStartCheckIn: () => void;
 }
 
-export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps) {
+export function MarketingPage({ onNavigate }: MarketingPageProps) {
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -47,21 +43,14 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
   const [contactStatus, setContactStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [contactError, setContactError] = useState('');
 
-  const handleUpgrade = async (tierId: string) => {
-    if (tierId === 'starter') {
-      onStartCheckIn();
-      return;
-    }
-
-    setSelectedTier(tierId);
-    setLoading(true);
-    try {
-      await PaymentService.createCheckoutSession(tierId, billingCycle);
-    } catch (error) {
-      console.error('Payment error:', error);
-      alert('Failed to initiate checkout. Please try again.');
-      setLoading(false);
-    }
+  const requestDemo = (tierId?: string) => {
+    const tier = PRICING_TIERS.find((plan) => plan.id === tierId);
+    const subject = tier ? `Demo request - ${tier.name}` : 'Demo request';
+    setContactForm((prev) => ({ ...prev, subject }));
+    setContactStatus('idle');
+    setContactError('');
+    const contactSection = document.getElementById('contact');
+    contactSection?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleContactChange = (field: keyof typeof contactForm, value: string) => {
@@ -107,100 +96,100 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
   };
 
   const stats = [
-    { value: '30s', label: 'Average Check-in' },
-    { value: '100%', label: 'Offline Ready' },
-    { value: 'Multi', label: 'Channel Alerts' },
+    { value: 'Seconds', label: 'On-site list updates' },
+    { value: 'Always', label: 'Evacuation-ready' },
+    { value: '7 Years', label: 'Record retention (Compliance+)' },
   ];
 
   const features = [
     {
       icon: ClipboardList,
-      title: 'Smart Check-In',
+      title: 'Fast Visitor Capture',
       description:
-        'Two-path flow optimized for both walk-ins and expected visitors. Get guests checked in in under 30 seconds.',
+        'Check in walk-ins or expected guests in seconds with a clean, two-path flow.',
     },
     {
       icon: Bell,
-      title: 'Instant Alerts',
+      title: 'Arrival Notifications',
       description:
-        'Hosts get notified immediately when guests arrive. Email, SMS, or WhatsApp - your choice.',
+        'Notify hosts immediately when someone arrives. Email included; SMS where enabled.',
     },
     {
       icon: BookOpen,
-      title: 'Complete Records',
+      title: 'Audit-Ready Records',
       description:
-        'Searchable visitor logbook with advanced filtering and export options. CSV, JSON, and more.',
+        'Searchable visitor history, exports, and compliance-ready records when you need them.',
     },
     {
       icon: Users,
-      title: 'Host Management',
+      title: 'Evacuation Accountability',
       description:
-        'Easy employee directory with customizable notification preferences and bulk import from CSV.',
+        'Know who is on site right now and generate evacuation lists instantly.',
     },
   ];
 
   const useCases = [
     {
       icon: Building2,
-      title: 'Offices & Corporate',
-      description: 'Streamline visitor check-in across multiple floors and departments',
+      title: 'Estates & Shared Buildings',
+      description: 'Keep a clear, live list of who is on site across multiple tenants.',
     },
     {
       icon: GraduationCap,
-      title: 'Schools & Universities',
-      description: 'Enhance campus security and visitor management with ease',
+      title: 'Small Offices',
+      description: 'Run a simple, fast check-in without kiosks, badges, or hardware.',
     },
     {
       icon: Hammer,
-      title: 'Construction Sites',
-      description: 'Track contractors, suppliers, and site visitors efficiently',
+      title: 'Contractors & Suppliers',
+      description: 'Track external visitors and keep clean records for audits.',
     },
     {
       icon: Calendar,
-      title: 'Events & Conferences',
-      description: 'Manage large-scale visitor registration and tracking',
+      title: 'Meeting Venues',
+      description: 'Create expected guest lists and keep front desk flow smooth.',
     },
     {
       icon: Shield,
-      title: 'Security Teams',
-      description: 'Complete audit trails and compliance documentation',
+      title: 'Facilities Managers',
+      description: 'Instant evacuation lists and retention-ready records.',
     },
     {
       icon: Heart,
-      title: 'Hospitals & Healthcare',
-      description: 'Secure visitor management with privacy compliance',
+      title: 'Property Managers',
+      description: 'Meet compliance needs without enterprise complexity.',
     },
   ];
 
   const steps = [
     {
       number: '1',
-      title: 'Create Account',
-      description: 'Sign up in seconds with just a password. No credit card required.',
+      title: 'Book a Demo',
+      description: 'See the flow end-to-end and map it to your building or site.',
     },
     {
       number: '2',
-      title: 'Set Up Site',
-      description: 'Add your business details and import your employee directory via CSV.',
+      title: 'Set Up Your Site',
+      description: 'Configure your site and import your host list in minutes.',
     },
     {
       number: '3',
-      title: 'Register Visitors',
-      description: 'Guests check in with a two-path flow: walk-ins or expected visitors.',
+      title: 'Run Check-ins',
+      description: 'Capture visitors and notify hosts with a simple two-path flow.',
     },
     {
       number: '4',
-      title: 'Monitor & Export',
-      description: 'View complete logs, send notifications, and export reports anytime.',
+      title: 'Export & Prove',
+      description: 'Generate exports and reports when compliance requires it.',
     },
   ];
 
   const trustPoints = [
-    'Secure cloud storage with encryption',
-    'Role-based access control',
+    'Secure storage with encryption',
     'Complete audit trails for compliance',
-    'Automatic backup & recovery',
-    'GDPR-ready architecture',
+    'Automatic backups (Compliance+)',
+    '7-year record retention (Compliance+)',
+    'GDPR-ready data handling',
     'Password-protected access',
   ];
 
@@ -242,31 +231,28 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
               </div>
 
               <h1 className="display-4 fw-bold mb-4 lh-1 text-dark">
-                Visitor Management
+                On-site Accountability
                 <br />
-                <span className="text-primary">That Actually Works</span>
+                <span className="text-primary">Without Enterprise Complexity</span>
               </h1>
 
               <div className="hero-copy">
                 <p className="fs-5 mb-4 lh-base text-secondary">
-                  Check in guests in seconds, notify hosts instantly, and maintain
-                  complete visitor records. Built for businesses that care about
-                  their guests.
+                  Know who is on site, notify hosts instantly, and export audit-ready
+                  records when compliance demands it.
                 </p>
 
                 <p className="fs-5 mb-4 lh-base text-secondary">
-                  Whether you're managing a busy office, school, construction site, or special event,
-                  floinvite streamlines your visitor management process. Get real-time notifications,
-                  keep complete records, and ensure your guests have the best experience from the moment
-                  they arrive.
+                  Floinvite is built for small organisations, estates, and shared buildings that
+                  need clear visitor accountability without hardware or complex setups.
                 </p>
 
                 <div className="hero-cta-row">
                   <button
                     className="btn btn-primary btn-lg fw-semibold px-4 py-3 d-flex align-items-center gap-2"
-                    onClick={onStartCheckIn}
+                    onClick={() => requestDemo()}
                   >
-                    Start Free Check-In
+                    Book a demo
                     <span className="fs-5">→</span>
                   </button>
                   <button
@@ -276,7 +262,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                       pricingSection?.scrollIntoView({ behavior: 'smooth' });
                     }}
                   >
-                    View Pricing
+                    See pricing
                   </button>
                 </div>
               </div>
@@ -285,19 +271,19 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                 <div className="col-12">
                   <div className="d-flex align-items-center gap-3">
                     <Check size={20} className="text-success" />
-                    <span className="text-secondary">No credit card required</span>
+                    <span className="text-secondary">No hardware required</span>
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="d-flex align-items-center gap-3">
                     <Check size={20} className="text-success" />
-                    <span className="text-secondary">Works on all devices</span>
+                    <span className="text-secondary">Works offline and on any device</span>
                   </div>
                 </div>
                 <div className="col-12">
                   <div className="d-flex align-items-center gap-3">
                     <Check size={20} className="text-success" />
-                    <span className="text-secondary">Offline ready</span>
+                    <span className="text-secondary">Exports for audits and incidents</span>
                   </div>
                 </div>
               </div>
@@ -306,7 +292,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
             <div className="col-lg-5 col-12 mt-4 mt-lg-0">
               <div className="hero-panel">
                 <div className="hero-panel-header">
-                  Built for busy front desks
+                  Built for small sites and estates
                 </div>
                 <div className="hero-panel-list">
                   <div className="hero-panel-item">
@@ -314,8 +300,8 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                       <Zap size={20} />
                     </div>
                     <div>
-                      <h6>30-second check-ins</h6>
-                      <p>Fast two-path flow for walk-ins and expected visitors.</p>
+                      <h6>Fast check-ins</h6>
+                      <p>Two-path flow for walk-ins and expected visitors.</p>
                     </div>
                   </div>
                   <div className="hero-panel-item">
@@ -324,7 +310,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                     </div>
                     <div>
                       <h6>Instant host alerts</h6>
-                      <p>Email, SMS, or WhatsApp notifications in real time.</p>
+                      <p>Email notifications with optional SMS where enabled.</p>
                     </div>
                   </div>
                   <div className="hero-panel-item">
@@ -332,13 +318,13 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                       <Shield size={20} />
                     </div>
                     <div>
-                      <h6>Audit-ready records</h6>
-                      <p>Secure visitor logs with search and export options.</p>
+                      <h6>Evacuation accountability</h6>
+                      <p>Live on-site list and exportable records.</p>
                     </div>
                   </div>
                 </div>
                 <div className="hero-panel-footer">
-                  <span className="text-success">✓</span> No credit card required to start
+                  <span className="text-success">✓</span> See a live demo in minutes
                 </div>
               </div>
             </div>
@@ -427,7 +413,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">Who It's For</h2>
-            <p className="fs-5 text-muted mb-0">Perfect for any organization managing visitors</p>
+            <p className="fs-5 text-muted mb-0">Built for smaller teams who need accountability</p>
           </div>
 
           <div className="row g-4">
@@ -459,8 +445,8 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
             <div className="col-lg-6 col-12 mb-4 mb-lg-0">
               <h2 className="display-5 fw-bold mb-4">Trust & Compliance</h2>
               <p className="fs-5 text-muted mb-4">
-                Your visitor data is secure. We prioritize security, compliance, and privacy
-                from day one.
+                Your visitor data is secure and retention-ready. Floinvite is built for
+                inspections, audits, and incident reporting.
               </p>
 
               <div className="row g-3">
@@ -502,7 +488,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
             <span className="badge bg-primary mb-3">Plans & Pricing</span>
             <h2 id="pricing-heading" className="display-5 fw-bold mb-3">Simple, Transparent Pricing</h2>
             <p className="fs-5 text-muted mb-4 mx-auto" style={{ maxWidth: '600px' }}>
-              All plans include powerful visitor management. Notifications set them apart.
+              All plans include visitor check-in and live on-site lists. Retention and compliance scale with each tier.
             </p>
 
             <div className="btn-group mb-5" role="group">
@@ -576,10 +562,9 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                         className={`btn ${
                           tier.buttonColor === 'primary' ? 'btn-primary' : 'btn-outline-primary'
                         } btn-lg w-100 fw-semibold mb-4`}
-                        onClick={() => handleUpgrade(tier.id)}
-                        disabled={loading && selectedTier === tier.id}
+                        onClick={() => requestDemo(tier.id)}
                       >
-                        {loading && selectedTier === tier.id ? 'Processing...' : tier.buttonText}
+                        {tier.buttonText}
                       </button>
 
                       <div className="border-top pt-4">
@@ -659,9 +644,9 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* CONTACT SECTION */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section className="contact-section py-5 bg-light" aria-labelledby="contact-heading">
+      <section id="contact" className="contact-section py-5 bg-light" aria-labelledby="contact-heading">
         <div className="container">
-          <h2 id="contact-heading" className="display-5 fw-bold text-center mb-5">Get in Touch</h2>
+          <h2 id="contact-heading" className="display-5 fw-bold text-center mb-5">Book a Demo</h2>
 
           <div className="row g-4 mb-5">
             <div className="col-lg-4 col-md-6 col-12">
@@ -720,7 +705,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
 
           <div className="row">
             <div className="col-lg-8 col-12 mx-auto">
-              <h3 className="fw-bold mb-4">Send us a Message</h3>
+              <h3 className="fw-bold mb-4">Tell us about your site</h3>
               <form
                 className="contact-form"
                 onSubmit={handleContactSubmit}
@@ -821,16 +806,16 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         <div className="container text-center position-relative">
           <div className="cta-content mx-auto" style={{ maxWidth: '600px' }}>
             <h2 className="display-5 fw-bold mb-3 text-white">
-              Ready to transform your visitor management?
+              Ready for clear on-site accountability?
             </h2>
             <p className="fs-5 mb-4 text-white">
-              Join businesses that have simplified their check-in process and improved guest experience.
+              Book a demo to see how Floinvite fits your site and compliance needs.
             </p>
             <button
               className="btn btn-primary btn-lg fw-semibold px-5 py-3 d-inline-flex align-items-center gap-2"
-              onClick={onStartCheckIn}
+              onClick={() => requestDemo()}
             >
-              Get Started Free
+              Book a demo
               <span className="fs-5">→</span>
             </button>
           </div>
