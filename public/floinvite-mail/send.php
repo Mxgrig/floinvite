@@ -183,36 +183,32 @@ function validate_action_request($action, $campaign, $csrf_token) {
 }
 
 function requeue_cancelled_sends($db, $campaign_id) {
-    $insert_stmt = $db->prepare("
-        INSERT INTO send_queue (send_id, campaign_id, email, status, attempts, max_attempts, error_message)
-        SELECT q.send_id, q.campaign_id, q.email, 'queued', 0, q.max_attempts, NULL
-        FROM send_queue q
-        WHERE q.campaign_id = ?
-          AND q.status = 'failed'
-          AND q.error_message = 'Cancelled by admin'
-          AND NOT EXISTS (
-              SELECT 1 FROM send_queue q2
-              WHERE q2.send_id = q.send_id
-                AND q2.status IN ('queued', 'processing')
-          )
+    // Update failed queue entries back to 'queued' status
+    $update_queue_stmt = $db->prepare("
+        UPDATE send_queue
+        SET status = 'queued', attempts = 0, error_message = NULL
+        WHERE campaign_id = ?
+          AND status = 'failed'
+          AND error_message = 'Cancelled by admin'
     ");
-    $insert_stmt->execute([$campaign_id]);
-    $requeued = $insert_stmt->rowCount();
+    $update_queue_stmt->execute([$campaign_id]);
+    $requeued = $update_queue_stmt->rowCount();
 
     if ($requeued > 0) {
-        $update_stmt = $db->prepare("
+        // Update campaign_sends records back to 'pending'
+        $update_sends_stmt = $db->prepare("
             UPDATE campaign_sends
             SET status = 'pending'
             WHERE campaign_id = ?
               AND status = 'failed'
               AND id IN (
-                  SELECT send_id FROM send_queue
+                  SELECT DISTINCT send_id FROM send_queue
                   WHERE campaign_id = ?
                     AND status = 'queued'
                     AND error_message IS NULL
               )
         ");
-        $update_stmt->execute([$campaign_id, $campaign_id]);
+        $update_sends_stmt->execute([$campaign_id, $campaign_id]);
     }
 
     return $requeued;
