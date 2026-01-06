@@ -108,6 +108,30 @@ function verify_csrf_token($token) {
     return hash_equals($session_token, $token);
 }
 
+function register_csrf_failure() {
+    $window = 60;
+    $max_failures = 10;
+    $now = time();
+    $state = $_SESSION['csrf_failures'] ?? null;
+
+    if (!is_array($state) || !isset($state['window_start'], $state['count'])) {
+        $state = ['window_start' => $now, 'count' => 0];
+    }
+
+    if ($now - $state['window_start'] > $window) {
+        $state = ['window_start' => $now, 'count' => 0];
+    }
+
+    $state['count']++;
+    $_SESSION['csrf_failures'] = $state;
+
+    return $state['count'] <= $max_failures;
+}
+
+function clear_csrf_failures() {
+    unset($_SESSION['csrf_failures']);
+}
+
 function sanitize_log_value($value) {
     return preg_replace('/[\\x00-\\x1F\\x7F]+/', ' ', (string) $value);
 }
@@ -139,9 +163,14 @@ function validate_action_request($action, $campaign, $csrf_token) {
     }
 
     if (!verify_csrf_token($csrf_token)) {
-        return ['ok' => false, 'message' => 'Invalid session token. Please reload and try again.'];
+        $allowed = register_csrf_failure();
+        $message = $allowed
+            ? 'Invalid session token. Please reload and try again.'
+            : 'Too many invalid requests. Please wait a minute and try again.';
+        return ['ok' => false, 'message' => $message];
     }
 
+    clear_csrf_failures();
     return ['ok' => true];
 }
 

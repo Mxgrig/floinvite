@@ -33,12 +33,24 @@ define('BATCH_SIZE', 50);
 define('BASE_URL', getenv('BASE_URL') ?: 'https://floinvite.com/floinvite-mail');
 define('PUBLIC_URL', getenv('PUBLIC_URL') ?: 'https://floinvite.com');
 
+function is_request_https() {
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        return true;
+    }
+    $forwarded_proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+    if (strtolower($forwarded_proto) === 'https') {
+        return true;
+    }
+    $forwarded_ssl = $_SERVER['HTTP_X_FORWARDED_SSL'] ?? '';
+    return strtolower($forwarded_ssl) === 'on';
+}
+
 // Session Configuration
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.use_strict_mode', 1);
     ini_set('session.cookie_httponly', 1);
-    ini_set('session.cookie_samesite', 'Lax');
-    $secure_cookie = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    ini_set('session.cookie_samesite', 'Strict');
+    $secure_cookie = is_request_https();
     ini_set('session.cookie_secure', $secure_cookie ? 1 : 0);
     session_start();
 }
@@ -48,6 +60,9 @@ if (!headers_sent()) {
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: same-origin');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
 }
 
 // Response Helper
