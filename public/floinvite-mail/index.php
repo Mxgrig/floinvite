@@ -44,11 +44,12 @@ $result = $db->query("
 $row = $result->fetch();
 $stats['open_rate'] = $row['total'] > 0 ? round(($row['opens'] / $row['total']) * 100, 1) : 0;
 
-// Queue status
-$result = $db->query("SELECT COUNT(*) as count FROM send_queue WHERE status = 'queued'");
+// Outstanding emails (not yet sent across all campaigns)
+$result = $db->query("SELECT COUNT(*) as count FROM campaign_sends WHERE status IN ('pending', 'failed')");
 $stats['queue_pending'] = $result->fetch()['count'] ?? 0;
 
-$result = $db->query("SELECT COUNT(*) as count FROM send_queue WHERE status = 'sent'");
+// Total emails sent across all campaigns
+$result = $db->query("SELECT COUNT(*) as count FROM campaign_sends WHERE status = 'sent'");
 $stats['queue_sent'] = $result->fetch()['count'] ?? 0;
 
 // Recent campaigns
