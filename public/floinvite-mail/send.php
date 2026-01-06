@@ -658,6 +658,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $outstanding_stmt->execute([$campaign_id]);
             $outstanding_count = $outstanding_stmt->fetch()['count'] ?? 0;
 
+            // If all emails are done (no pending), mark campaign as completed
+            if ($outstanding_count === 0) {
+                $complete_stmt = $db->prepare("
+                    UPDATE campaigns
+                    SET status = 'completed', completed_at = NOW()
+                    WHERE id = ? AND status = 'sending'
+                ");
+                $complete_stmt->execute([$campaign_id]);
+            }
+
             $_SESSION['send_notice'] = [
                 'type' => 'success',
                 'message' => "Batch processed: {$result['sent']} sent, {$result['failed']} failed."
