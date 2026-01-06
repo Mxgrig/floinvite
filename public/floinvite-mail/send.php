@@ -75,6 +75,31 @@ function fetch_subscriber_statuses($db, $emails) {
     return $found;
 }
 
+function wants_json_response() {
+    if (!empty($_GET['api'])) {
+        return true;
+    }
+    $requested_with = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+    if (strtolower($requested_with) === 'xmlhttprequest') {
+        return true;
+    }
+    $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+    return stripos($accept, 'application/json') !== false;
+}
+
+function respond_or_redirect($success, $data, $message, $campaign_id) {
+    if (wants_json_response()) {
+        respond($success, $data, $message);
+    }
+
+    $_SESSION['send_notice'] = [
+        'type' => $success ? 'success' : 'error',
+        'message' => $message
+    ];
+    header('Location: index.php');
+    exit;
+}
+
 $preview = null;
 $preview_error = null;
 $prefill = $_SESSION['send_prefill'][$campaign_id] ?? null;
@@ -144,6 +169,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'cancel') {
+        try {
+            $db->beginTransaction();
+
+            $update_campaign = $db->prepare("
+                UPDATE campaigns
+                SET status = 'paused'
+                WHERE id = ? AND status IN ('sending', 'scheduled')
+            ");
+            $update_campaign->execute([$campaign_id]);
+
+            $cancel_queue = $db->prepare("
+                UPDATE send_queue
+                SET status = 'failed', error_message = 'Cancelled by admin'
+                WHERE campaign_id = ? AND status = 'queued'
+            ");
+            $cancel_queue->execute([$campaign_id]);
+            $cancelled = $cancel_queue->rowCount();
+
+            $cancel_sends = $db->prepare("
+                UPDATE campaign_sends
+                SET status = 'failed'
+                WHERE campaign_id = ?
+                AND status = 'pending'
+                AND id IN (
+                    SELECT send_id FROM send_queue
+                    WHERE campaign_id = ? AND status = 'failed'
+                )
+            ");
+            $cancel_sends->execute([$campaign_id, $campaign_id]);
+
+            $db->commit();
+
+            $message = "Campaign paused. {$cancelled} queued emails cancelled.";
+            respond_or_redirect(true, ['cancelled' => $cancelled], $message, $campaign_id);
+        } catch (Exception $e) {
+            $db->rollBack();
+            respond_or_redirect(false, null, 'Error cancelling campaign: ' . $e->getMessage(), $campaign_id);
+        }
+    }
+
     if ($action === 'start') {
         $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
 
@@ -207,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($send_mode === 'custom') {
                 if (empty($parsed['emails'])) {
                     $db->rollBack();
-                    respond(false, null, 'Provide at least one valid email address.');
+                    respond_or_redirect(false, null, 'Provide at least one valid email address.', $campaign_id);
                 }
 
                 $find_stmt = $db->prepare("SELECT id, status FROM subscribers WHERE email = ?");
@@ -294,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (empty($subscribers)) {
                 $db->rollBack();
-                respond(false, null, 'No active subscribers to send to');
+                respond_or_redirect(false, null, 'No active subscribers to send to', $campaign_id);
             }
 
             $count = 0;
@@ -360,10 +426,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message .= ' (' . implode(', ', $details) . ')';
                 }
             }
-            respond(true, ['queued' => $count], $message);
+            respond_or_redirect(true, ['queued' => $count], $message, $campaign_id);
         } catch (Exception $e) {
             $db->rollBack();
-            respond(false, null, 'Error starting campaign: ' . $e->getMessage());
+            respond_or_redirect(false, null, 'Error starting campaign: ' . $e->getMessage(), $campaign_id);
         }
     }
 }
@@ -395,6 +461,11 @@ $selected_send_mode = $_POST['send_mode'] ?? ($prefill_mode ?: 'all');
 $custom_emails_display = $_POST['custom_emails'] ?? $prefill_custom;
 $allow_new_checked = !empty($_POST['allow_new']);
 $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
+
+$flash_notice = $_SESSION['send_notice'] ?? null;
+if ($flash_notice) {
+    unset($_SESSION['send_notice']);
+}
 
 if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
     unset($_SESSION['send_prefill'][$campaign_id]);
@@ -560,6 +631,25 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
         .warning-box strong {
             display: block;
             margin-bottom: 0.5rem;
+        }
+
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            color: #065f46;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
         }
 
         .progress-bar {
@@ -817,6 +907,12 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
             Once you start sending, this campaign cannot be paused. Emails will be sent at a rate of up to <?php echo RATE_LIMIT_PER_HOUR; ?> per hour to comply with Hostinger limits.
         </div>
 
+        <?php if ($flash_notice): ?>
+            <div class="message <?php echo htmlspecialchars($flash_notice['type']); ?>">
+                <?php echo htmlspecialchars($flash_notice['message']); ?>
+            </div>
+        <?php endif; ?>
+
         <!-- Start Sending -->
         <?php if ($campaign['status'] === 'draft'): ?>
             <div class="section">
@@ -978,6 +1074,13 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                         <div class="success-box">
                             Campaign completed successfully!
                         </div>
+                    <?php elseif ($campaign['status'] === 'sending'): ?>
+                        <form method="POST" style="margin-top: 1rem;">
+                            <input type="hidden" name="action" value="cancel">
+                            <button type="submit" class="btn-secondary" onclick="return confirm('Cancel sending this campaign? This will stop queued emails from sending.')">
+                                Cancel Sending
+                            </button>
+                        </form>
                     <?php endif; ?>
                 <?php else: ?>
                     <p>No subscribers queued.</p>

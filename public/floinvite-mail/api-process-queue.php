@@ -42,6 +42,7 @@ try {
         JOIN campaigns c ON q.campaign_id = c.id
         WHERE q.status = 'queued'
         AND q.attempts < q.max_attempts
+        AND c.status IN ('sending', 'scheduled')
         AND (
             c.send_method = 'queue'
             OR (c.send_method = 'scheduled' AND c.scheduled_at IS NOT NULL AND c.scheduled_at <= NOW())

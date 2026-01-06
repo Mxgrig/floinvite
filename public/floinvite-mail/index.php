@@ -56,7 +56,7 @@ $result = $db->query("
     SELECT id, name, status, recipient_count, sent_count, opened_count, created_at
     FROM campaigns
     ORDER BY created_at DESC
-    LIMIT 5
+    LIMIT 10
 ");
 $recent_campaigns = $result->fetchAll();
 
@@ -76,6 +76,11 @@ if (!empty($_GET['logout'])) {
     session_destroy();
     header('Location: login.php');
     exit;
+}
+
+$flash_notice = $_SESSION['send_notice'] ?? null;
+if ($flash_notice) {
+    unset($_SESSION['send_notice']);
 }
 
 ?>
@@ -112,6 +117,11 @@ if (!empty($_GET['logout'])) {
 
     <!-- Main Content -->
     <div class="container">
+        <?php if ($flash_notice): ?>
+            <div class="message <?php echo htmlspecialchars($flash_notice['type']); ?>">
+                <?php echo htmlspecialchars($flash_notice['message']); ?>
+            </div>
+        <?php endif; ?>
         <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -156,6 +166,7 @@ if (!empty($_GET['logout'])) {
                                 <th>Sent</th>
                                 <th>Opens</th>
                                 <th>Created</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -171,6 +182,21 @@ if (!empty($_GET['logout'])) {
                                     <td><?php echo $campaign['sent_count']; ?></td>
                                     <td><?php echo $campaign['opened_count']; ?></td>
                                     <td><?php echo date('M d, Y', strtotime($campaign['created_at'])); ?></td>
+                                    <td>
+                                        <?php
+                                            $status = $campaign['status'];
+                                            if (in_array($status, ['draft', 'scheduled'], true)) {
+                                                $action_label = 'Edit';
+                                                $action_href = 'compose.php?id=' . $campaign['id'];
+                                            } else {
+                                                $action_label = $status === 'sending' ? 'View Progress' : 'View';
+                                                $action_href = 'send.php?id=' . $campaign['id'];
+                                            }
+                                        ?>
+                                        <a href="<?php echo htmlspecialchars($action_href); ?>" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                                            <?php echo htmlspecialchars($action_label); ?>
+                                        </a>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
