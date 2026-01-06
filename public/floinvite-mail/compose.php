@@ -22,6 +22,10 @@ if ($campaign_id) {
 
     if (!$campaign) {
         $message = 'Campaign not found';
+    } elseif (isset($_GET['resumed'])) {
+        $message = 'Campaign resumed. Review settings and save or send.';
+    } elseif (isset($_GET['send_now'])) {
+        $message = 'Send method changed to immediate. Review settings and save or send.';
     }
 }
 
