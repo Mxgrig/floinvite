@@ -67,6 +67,15 @@
    - SMTP host: smtp.hostinger.com
    - Password not configured - may be empty (NEEDS VERIFICATION)
 
+## CAMPAIGN STATUS WORKFLOW
+
+- **draft** → created or edited in `compose.php`; ready to send.
+- **scheduled** → reserved for future sends (send_method = scheduled); treated like active.
+- **sending** → queue created and actively processing.
+- **completed** → queue finished sending.
+- **paused** → sending cancelled by admin; queued emails marked failed; processing stops.
+- **failed** → reserved for system failures (not currently set automatically).
+
 ---
 
 ## NEXT STEPS
