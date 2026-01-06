@@ -71,6 +71,33 @@ if (!empty($_GET['api'])) {
     exit;
 }
 
+// Handle campaign deletion
+if (!empty($_GET['delete_campaign'])) {
+    $campaign_id = intval($_GET['delete_campaign']);
+    try {
+        $db->beginTransaction();
+        
+        // Delete campaign (cascade deletes related records via foreign keys)
+        $stmt = $db->prepare("DELETE FROM campaigns WHERE id = ?");
+        $stmt->execute([$campaign_id]);
+        
+        $db->commit();
+        
+        $_SESSION['send_notice'] = [
+            'type' => 'success',
+            'message' => 'Campaign deleted successfully.'
+        ];
+    } catch (Exception $e) {
+        $db->rollBack();
+        $_SESSION['send_notice'] = [
+            'type' => 'error',
+            'message' => 'Error deleting campaign: ' . $e->getMessage()
+        ];
+    }
+    header('Location: index.php');
+    exit;
+}
+
 // Handle logout
 if (!empty($_GET['logout'])) {
     session_destroy();
@@ -193,9 +220,14 @@ if ($flash_notice) {
                                                 $action_href = 'send.php?id=' . $campaign['id'];
                                             }
                                         ?>
-                                        <a href="<?php echo htmlspecialchars($action_href); ?>" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
-                                            <?php echo htmlspecialchars($action_label); ?>
-                                        </a>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <a href="<?php echo htmlspecialchars($action_href); ?>" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                                                <?php echo htmlspecialchars($action_label); ?>
+                                            </a>
+                                            <a href="index.php?delete_campaign=<?php echo $campaign['id']; ?>" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: #fecaca; border-color: #fca5a5; color: #991b1b;" onclick="return confirm('Delete this campaign? This cannot be undone.');">
+                                                Delete
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
