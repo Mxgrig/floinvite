@@ -156,31 +156,7 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $campaign_id ? 'Edit Campaign' : 'Compose Campaign'; ?> - floinvite Mail</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .container {
-            max-width: 1000px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .template-btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            background: #f3f4f6;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .template-btn:hover {
-            background: #e5e7eb;
-        }
-    </style>
+    
 </head>
 <body>
     <header class="mail-hero">
