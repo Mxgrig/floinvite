@@ -495,9 +495,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $requeued = requeue_cancelled_sends($db, $campaign_id);
             $db->commit();
 
-            // Redirect to edit page to allow user to review/change settings before sending
-            header("Location: compose.php?id={$campaign_id}&resumed=1");
-            exit;
+            $message = "Campaign resumed. {$requeued} emails re-queued for sending.";
+            respond_or_redirect(true, ['requeued' => $requeued], $message, $campaign_id);
         } catch (Exception $e) {
             $db->rollBack();
             log_campaign_error('resume', $campaign_id, $e->getMessage());
@@ -527,15 +526,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $requeued = 0;
             }
 
+            // Process a batch immediately
+            $result = process_campaign_queue($db, $campaign_id, BATCH_SIZE);
             $db->commit();
 
-            // Redirect to edit page to allow user to review/change settings before sending
-            header("Location: compose.php?id={$campaign_id}&send_now=1");
-            exit;
+            $message = "Batch processing triggered: {$result['sent']} sent, {$result['failed']} failed.";
+            respond_or_redirect(true, $result, $message, $campaign_id);
         } catch (Exception $e) {
             $db->rollBack();
             log_campaign_error('send_now', $campaign_id, $e->getMessage());
-            respond_or_redirect(false, null, 'Error preparing send: ' . $e->getMessage(), $campaign_id);
+            respond_or_redirect(false, null, 'Error processing send: ' . $e->getMessage(), $campaign_id);
         }
     }
 
