@@ -215,9 +215,25 @@ function requeue_cancelled_sends($db, $campaign_id) {
 }
 
 function ensure_send_queue_exists($db, $campaign_id) {
+    // Requeue failed send_queue records that correspond to pending campaign_sends
+    // This handles cases where emails were cancelled/failed but campaign_sends are still pending
+    $requeue_stmt = $db->prepare("
+        UPDATE send_queue
+        SET status = 'queued', attempts = 0, error_message = NULL
+        WHERE campaign_id = ?
+          AND status = 'failed'
+          AND send_id IN (
+              SELECT id FROM campaign_sends
+              WHERE campaign_id = ?
+                AND status IN ('pending', 'failed')
+          )
+    ");
+    $requeue_stmt->execute([$campaign_id, $campaign_id]);
+    $requeued = $requeue_stmt->rowCount();
+
     // Create missing send_queue records for pending campaign_sends
     // This fixes cases where send_queue records weren't created during campaign start
-    $stmt = $db->prepare("
+    $insert_stmt = $db->prepare("
         INSERT INTO send_queue (send_id, campaign_id, email, status)
         SELECT id, campaign_id, email, 'queued'
         FROM campaign_sends
@@ -228,8 +244,10 @@ function ensure_send_queue_exists($db, $campaign_id) {
               WHERE campaign_id = ?
           )
     ");
-    $stmt->execute([$campaign_id, $campaign_id]);
-    return $stmt->rowCount();
+    $insert_stmt->execute([$campaign_id, $campaign_id]);
+    $inserted = $insert_stmt->rowCount();
+
+    return $requeued + $inserted;
 }
 
 function process_campaign_queue($db, $campaign_id, $limit) {
@@ -601,6 +619,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Ensure send_queue records exist for all pending emails
             $created = ensure_send_queue_exists($db, $campaign_id);
             $result = process_campaign_queue($db, $campaign_id, BATCH_SIZE);
+            error_log("DEBUG: Created " . $created . " send_queue records for campaign_id " . $campaign_id);
             $db->commit();
 
             $_SESSION['send_notice'] = [
