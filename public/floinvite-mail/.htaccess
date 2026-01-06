@@ -1,26 +1,12 @@
-# Basic auth protection
-AuthType Basic
-AuthName "Floinvite Mail"
-AuthUserFile /home/u958180753/domains/floinvite.com/public_html/floinvite-mail/.htpasswd
-
-# Allow public endpoints to bypass auth
-SetEnvIf Request_URI "^/floinvite-mail/(track|unsubscribe)\.php$" noauth=1
-<RequireAny>
-    Require env noauth
-    Require valid-user
-</RequireAny>
-
-# Deny access to config files
+# Deny access to sensitive files
 <Files "config.php">
     Require all denied
 </Files>
 
-# Deny access to htpasswd
 <Files ".htpasswd">
     Require all denied
 </Files>
 
-# Deny access to .env files
 <FilesMatch "\.env$">
     Require all denied
 </FilesMatch>
