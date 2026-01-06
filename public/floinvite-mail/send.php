@@ -495,12 +495,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $requeued = requeue_cancelled_sends($db, $campaign_id);
             $db->commit();
 
-            $message = "Campaign resumed. {$requeued} emails re-queued for sending.";
-            respond_or_redirect(true, ['requeued' => $requeued], $message, $campaign_id);
+            $_SESSION['send_notice'] = [
+                'type' => 'success',
+                'message' => "Campaign resumed. {$requeued} emails re-queued for sending."
+            ];
+            header("Location: send.php?id={$campaign_id}");
+            exit;
         } catch (Exception $e) {
             $db->rollBack();
             log_campaign_error('resume', $campaign_id, $e->getMessage());
-            respond_or_redirect(false, null, 'Error resuming campaign: ' . $e->getMessage(), $campaign_id);
+            $_SESSION['send_notice'] = [
+                'type' => 'error',
+                'message' => 'Error resuming campaign: ' . $e->getMessage()
+            ];
+            header("Location: send.php?id={$campaign_id}");
+            exit;
         }
     }
 
@@ -530,12 +539,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = process_campaign_queue($db, $campaign_id, BATCH_SIZE);
             $db->commit();
 
-            $message = "Batch processing triggered: {$result['sent']} sent, {$result['failed']} failed.";
-            respond_or_redirect(true, $result, $message, $campaign_id);
+            $_SESSION['send_notice'] = [
+                'type' => 'success',
+                'message' => "Batch processed: {$result['sent']} sent, {$result['failed']} failed."
+            ];
+            header("Location: send.php?id={$campaign_id}");
+            exit;
         } catch (Exception $e) {
             $db->rollBack();
             log_campaign_error('send_now', $campaign_id, $e->getMessage());
-            respond_or_redirect(false, null, 'Error processing send: ' . $e->getMessage(), $campaign_id);
+            $_SESSION['send_notice'] = [
+                'type' => 'error',
+                'message' => 'Error processing send: ' . $e->getMessage()
+            ];
+            header("Location: send.php?id={$campaign_id}");
+            exit;
         }
     }
 
