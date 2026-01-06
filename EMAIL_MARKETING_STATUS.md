@@ -76,6 +76,8 @@
 - **paused** → sending cancelled by admin; queued emails marked failed; processing stops.
 - **failed** → reserved for system failures (not currently set automatically).
 
+Note: scheduled campaigns are included in queue processing once `scheduled_at` is in the past, so they can begin sending at the configured time.
+
 ---
 
 ## NEXT STEPS
