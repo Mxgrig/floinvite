@@ -76,14 +76,73 @@ function fetch_subscriber_statuses($db, $emails) {
 }
 
 function get_csrf_token() {
-    if (empty($_SESSION['csrf_token'])) {
+    $now = time();
+    $token = $_SESSION['csrf_token'] ?? null;
+    $created_at = $_SESSION['csrf_token_created_at'] ?? 0;
+    $expired = !$created_at || ($now - $created_at) > 3600;
+
+    if (!is_string($token) || strlen($token) !== 32 || !ctype_xdigit($token) || $expired) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
+        $_SESSION['csrf_token_created_at'] = $now;
     }
+
     return $_SESSION['csrf_token'];
 }
 
 function verify_csrf_token($token) {
-    return is_string($token) && isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+    $session_token = $_SESSION['csrf_token'] ?? null;
+    $created_at = $_SESSION['csrf_token_created_at'] ?? 0;
+
+    if (!is_string($token) || !is_string($session_token)) {
+        return false;
+    }
+    if (strlen($token) !== 32 || !ctype_xdigit($token)) {
+        return false;
+    }
+    if (strlen($session_token) !== 32 || !ctype_xdigit($session_token)) {
+        return false;
+    }
+    if (!$created_at || (time() - $created_at) > 3600) {
+        return false;
+    }
+    return hash_equals($session_token, $token);
+}
+
+function sanitize_log_value($value) {
+    return preg_replace('/[\\x00-\\x1F\\x7F]+/', ' ', (string) $value);
+}
+
+function log_campaign_error($action, $campaign_id, $error) {
+    $safe_action = sanitize_log_value($action);
+    $safe_error = sanitize_log_value($error);
+    error_log("CAMPAIGN_{$safe_action}_ERROR: campaign_id=" . (int) $campaign_id . ", error={$safe_error}");
+}
+
+function validate_campaign_action($action, $campaign) {
+    $status = $campaign['status'] ?? null;
+
+    if (in_array($action, ['preview', 'start'], true) && $status !== 'draft') {
+        return ['ok' => false, 'message' => 'Campaign is not in a sendable draft state.'];
+    }
+
+    if ($action === 'cancel' && !in_array($status, ['sending', 'scheduled'], true)) {
+        return ['ok' => false, 'message' => 'Campaign is not in a cancellable state.'];
+    }
+
+    return ['ok' => true];
+}
+
+function validate_action_request($action, $campaign, $csrf_token) {
+    $campaign_validation = validate_campaign_action($action, $campaign);
+    if (!$campaign_validation['ok']) {
+        return $campaign_validation;
+    }
+
+    if (!verify_csrf_token($csrf_token)) {
+        return ['ok' => false, 'message' => 'Invalid session token. Please reload and try again.'];
+    }
+
+    return ['ok' => true];
 }
 
 function wants_json_response() {
@@ -125,21 +184,21 @@ $prefill_custom = $prefill['custom_emails'] ?? '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $csrf_token = $_POST['csrf_token'] ?? '';
-    $csrf_valid = verify_csrf_token($csrf_token);
 
     $send_mode = $_POST['send_mode'] ?? 'all';
     $allow_new = !empty($_POST['allow_new']);
     $allow_reactivate = !empty($_POST['allow_reactivate']);
 
-    if (!$csrf_valid) {
+    $validation = validate_action_request($action, $campaign, $csrf_token);
+    if (!$validation['ok']) {
         if ($action === 'preview') {
-            $preview_error = 'Invalid session token. Please reload and try again.';
+            $preview_error = $validation['message'];
         } else {
-            respond_or_redirect(false, null, 'Invalid session token. Please reload and try again.', $campaign_id);
+            respond_or_redirect(false, null, $validation['message'], $campaign_id);
         }
     }
 
-    if ($action === 'preview' && $csrf_valid) {
+    if ($action === 'preview' && $validation['ok']) {
         if ($send_mode === 'custom') {
             $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
             $parsed = parse_custom_emails($custom_emails_raw);
@@ -181,26 +240,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $db->prepare("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
             $stmt->execute();
             $count = $stmt->fetch()['count'] ?? 0;
-                $preview = [
-                    'mode' => 'all',
-                    'counts' => [
-                        'active' => (int) $count
-                    ]
-                ];
+            $preview = [
+                'mode' => 'all',
+                'counts' => [
+                    'active' => (int) $count
+                ]
+            ];
         }
     }
 
     if ($action === 'cancel') {
-        if (!$csrf_valid) {
-            // Guarded above, but keep a clear exit for non-preview actions.
-            respond_or_redirect(false, null, 'Invalid session token. Please reload and try again.', $campaign_id);
-        }
         try {
-            $current_status = $campaign['status'] ?? null;
-            if (!in_array($current_status, ['sending', 'scheduled'], true)) {
-                respond_or_redirect(false, null, 'Campaign is not in a cancellable state.', $campaign_id);
-            }
-
             $db->beginTransaction();
 
             $update_campaign = $db->prepare("
@@ -236,15 +286,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             respond_or_redirect(true, ['cancelled' => $cancelled], $message, $campaign_id);
         } catch (Exception $e) {
             $db->rollBack();
-            error_log("CAMPAIGN_CANCEL_ERROR: campaign_id={$campaign_id}, error=" . $e->getMessage());
+            log_campaign_error('cancel', $campaign_id, $e->getMessage());
             respond_or_redirect(false, null, 'Error cancelling campaign: ' . $e->getMessage(), $campaign_id);
         }
     }
 
     if ($action === 'start') {
-        if (!$csrf_valid) {
-            respond_or_redirect(false, null, 'Invalid session token. Please reload and try again.', $campaign_id);
-        }
         $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
 
         // Try to get recipients from session (CSV/manual with name/company)
@@ -463,7 +510,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             respond_or_redirect(true, ['queued' => $count], $message, $campaign_id);
         } catch (Exception $e) {
             $db->rollBack();
-            error_log("CAMPAIGN_START_ERROR: campaign_id={$campaign_id}, error=" . $e->getMessage());
+            log_campaign_error('start', $campaign_id, $e->getMessage());
             respond_or_redirect(false, null, 'Error starting campaign: ' . $e->getMessage(), $campaign_id);
         }
     }

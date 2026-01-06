@@ -35,9 +35,20 @@ define('PUBLIC_URL', getenv('PUBLIC_URL') ?: 'https://floinvite.com');
 
 // Session Configuration
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.use_strict_mode', 1);
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.cookie_samesite', 'Lax');
+    $secure_cookie = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    ini_set('session.cookie_secure', $secure_cookie ? 1 : 0);
     session_start();
 }
 define('SESSION_TIMEOUT', 3600); // 1 hour
+
+if (!headers_sent()) {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: same-origin');
+}
 
 // Response Helper
 function respond($success, $data = null, $message = null) {
