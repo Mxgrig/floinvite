@@ -247,6 +247,21 @@ function ensure_send_queue_exists($db, $campaign_id) {
     $insert_stmt->execute([$campaign_id, $campaign_id]);
     $inserted = $insert_stmt->rowCount();
 
+    // Remove duplicate queued records, keeping only the oldest one per send_id
+    // This can happen if the INSERT runs multiple times or records were recreated
+    $dedupe_stmt = $db->prepare("
+        DELETE sq FROM send_queue sq
+        INNER JOIN (
+            SELECT send_id, MIN(id) as keep_id
+            FROM send_queue
+            WHERE campaign_id = ? AND status = 'queued'
+            GROUP BY send_id
+            HAVING COUNT(*) > 1
+        ) keep ON sq.send_id = keep.send_id AND sq.id > keep.keep_id
+        WHERE sq.campaign_id = ?
+    ");
+    $dedupe_stmt->execute([$campaign_id, $campaign_id]);
+
     return $requeued + $inserted;
 }
 
