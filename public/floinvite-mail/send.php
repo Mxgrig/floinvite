@@ -690,8 +690,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $prefill = $_SESSION['send_prefill'][$campaign_id] ?? null;
         $recipients_from_session = $prefill['recipients'] ?? [];
 
+        // If campaign has send_to_all_active flag, force to 'all' mode
+        if (!empty($campaign['send_to_all_active'])) {
+            $send_mode = 'all';
+        }
+
         // If we have recipients from session (CSV/manual), use those with name/company
-        if (!empty($recipients_from_session)) {
+        if (!empty($recipients_from_session) && $send_mode !== 'all') {
             $invalid = 0;
             $invalid_samples = [];
             $emails = [];
@@ -881,6 +886,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->commit();
 
             $message = "Campaign queued for sending to $count subscribers";
+            
+            // Add note if send_to_all_active is enabled
+            if (!empty($campaign['send_to_all_active'])) {
+                $message .= ' (including all active subscribers)';
+            }
+            
             if ($send_mode === 'custom') {
                 $details = [];
                 if ($skipped['invalid'] > 0) {
