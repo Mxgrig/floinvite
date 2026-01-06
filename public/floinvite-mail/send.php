@@ -648,7 +648,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Ensure send_queue records exist for all pending emails
             $created = ensure_send_queue_exists($db, $campaign_id);
             $result = process_campaign_queue($db, $campaign_id, BATCH_SIZE);
-            error_log("DEBUG: Created " . $created . " send_queue records for campaign_id " . $campaign_id);
             $db->commit();
 
             // Check if there are any remaining outstanding emails
