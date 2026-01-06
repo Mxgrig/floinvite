@@ -356,14 +356,28 @@ function process_campaign_queue($db, $campaign_id, $limit) {
             }
         } catch (Exception $e) {
             $error_message = sanitize_log_value($e->getMessage());
-            $update_stmt = $db->prepare("
-                UPDATE send_queue
-                SET status = 'failed', attempts = attempts + 1, error_message = ?
-                WHERE id = ?
-            ");
-            $update_stmt->execute([$error_message, $item['queue_id']]);
-
-            $failed++;
+            $next_attempts = $item['attempts'] + 1;
+            
+            // Only mark as permanently failed if all retry attempts are exhausted
+            // Otherwise, keep as queued for the next retry
+            if ($next_attempts >= $item['max_attempts']) {
+                // All retries exhausted - mark permanently failed
+                $update_stmt = $db->prepare("
+                    UPDATE send_queue
+                    SET status = 'failed', attempts = ?, error_message = ?
+                    WHERE id = ?
+                ");
+                $update_stmt->execute([$next_attempts, $error_message, $item['queue_id']]);
+                $failed++;
+            } else {
+                // Still have retries - keep as queued with incremented attempts
+                $update_stmt = $db->prepare("
+                    UPDATE send_queue
+                    SET status = 'queued', attempts = ?, error_message = ?
+                    WHERE id = ?
+                ");
+                $update_stmt->execute([$next_attempts, $error_message, $item['queue_id']]);
+            }
         }
 
         $processed++;
