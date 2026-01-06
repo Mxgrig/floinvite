@@ -514,6 +514,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'retry_failed') {
+        try {
+            $db->beginTransaction();
+
+            // Requeue all failed emails for this campaign
+            $update_queue = $db->prepare("
+                UPDATE send_queue
+                SET status = 'queued', attempts = 0, error_message = NULL
+                WHERE campaign_id = ? AND status = 'failed'
+            ");
+            $update_queue->execute([$campaign_id]);
+            $requeued = $update_queue->rowCount();
+
+            if ($requeued > 0) {
+                // Update campaign_sends back to pending
+                $update_sends = $db->prepare("
+                    UPDATE campaign_sends
+                    SET status = 'pending'
+                    WHERE campaign_id = ? AND status = 'failed'
+                ");
+                $update_sends->execute([$campaign_id]);
+            }
+
+            $db->commit();
+
+            $_SESSION['send_notice'] = [
+                'type' => 'success',
+                'message' => "Re-queued $requeued failed emails for retry."
+            ];
+            header("Location: send.php?id={$campaign_id}");
+            exit;
+        } catch (Exception $e) {
+            $db->rollBack();
+            log_campaign_error('retry_failed', $campaign_id, $e->getMessage());
+            $_SESSION['send_notice'] = [
+                'type' => 'error',
+                'message' => 'Error retrying failed emails: ' . $e->getMessage()
+            ];
+            header("Location: send.php?id={$campaign_id}");
+            exit;
+        }
+    }
+
     if ($action === 'send_now') {
         try {
             $db->beginTransaction();
@@ -1010,6 +1053,10 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                             <div class="stat-label">Total</div>
                         </div>
                         <div class="stat">
+                            <div class="stat-value"><?php echo ($progress['total'] - $progress['sent'] - $progress['failed']); ?></div>
+                            <div class="stat-label">Outstanding</div>
+                        </div>
+                        <div class="stat">
                             <div class="stat-value"><?php echo $progress['failed']; ?></div>
                             <div class="stat-label">Failed</div>
                         </div>
@@ -1039,10 +1086,19 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                             <form method="POST">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                                 <input type="hidden" name="action" value="send_now">
-                                <button type="submit" class="btn-secondary" onclick="return confirm('Process a send batch now? This will send up to the batch size immediately.')">
-                                    Send Now (Process Batch)
+                                <button type="submit" class="btn-secondary" onclick="return confirm('Process outstanding emails now? This will send up to the batch size immediately.')">
+                                    Send Outstanding
                                 </button>
                             </form>
+                            <?php if ($progress['failed'] > 0): ?>
+                                <form method="POST">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                                    <input type="hidden" name="action" value="retry_failed">
+                                    <button type="submit" class="btn-secondary" onclick="return confirm('Retry all <?php echo $progress['failed']; ?> failed emails?')">
+                                        Retry Failed (<?php echo $progress['failed']; ?>)
+                                    </button>
+                                </form>
+                            <?php endif; ?>
                             <form method="POST">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                                 <input type="hidden" name="action" value="cancel">
@@ -1066,10 +1122,19 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                             <form method="POST">
                                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                                 <input type="hidden" name="action" value="send_now">
-                                <button type="submit" class="btn-secondary" onclick="return confirm('Send a batch immediately and resume this campaign?')">
-                                    Resume &amp; Send Now
+                                <button type="submit" class="btn-secondary" onclick="return confirm('Send outstanding emails and resume this campaign?')">
+                                    Resume &amp; Send Outstanding
                                 </button>
                             </form>
+                            <?php if ($progress['failed'] > 0): ?>
+                                <form method="POST">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                                    <input type="hidden" name="action" value="retry_failed">
+                                    <button type="submit" class="btn-secondary" onclick="return confirm('Retry all <?php echo $progress['failed']; ?> failed emails?')">
+                                        Retry Failed (<?php echo $progress['failed']; ?>)
+                                    </button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 <?php else: ?>
