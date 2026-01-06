@@ -814,6 +814,7 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send Campaign - floinvite Mail</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
         * {
             margin: 0;
