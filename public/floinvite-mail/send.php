@@ -265,6 +265,77 @@ function ensure_send_queue_exists($db, $campaign_id) {
     return $requeued + $inserted;
 }
 
+function add_missing_all_active_subscribers($db, $campaign_id, $campaign) {
+    // Auto-include any missing active subscribers if send_to_all_active flag is set
+    if (empty($campaign['send_to_all_active'])) {
+        return 0;  // Feature not enabled, do nothing
+    }
+
+    // Find all active subscribers NOT in campaign_sends for this campaign
+    $missing_stmt = $db->prepare("
+        SELECT s.id, s.email, s.name, s.company
+        FROM subscribers s
+        WHERE s.status = 'active'
+        AND s.id NOT IN (
+            SELECT DISTINCT subscriber_id FROM campaign_sends
+            WHERE campaign_id = ?
+        )
+        ORDER BY s.id
+    ");
+    $missing_stmt->execute([$campaign_id]);
+    $missing = $missing_stmt->fetchAll();
+
+    if (empty($missing)) {
+        return 0;  // No missing subscribers
+    }
+
+    $added = 0;
+    $insert_stmt = $db->prepare("
+        INSERT INTO campaign_sends
+        (campaign_id, subscriber_id, email, name, company, tracking_id, unsubscribe_token, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
+    ");
+
+    foreach ($missing as $sub) {
+        try {
+            $tracking_id = generate_tracking_id();
+            $unsubscribe_token = generate_unsubscribe_token();
+
+            $insert_stmt->execute([
+                $campaign_id,
+                $sub['id'],
+                $sub['email'],
+                $sub['name'] ?? '',
+                $sub['company'] ?? '',
+                $tracking_id,
+                $unsubscribe_token
+            ]);
+            $added++;
+        } catch (Exception $e) {
+            // Skip this subscriber if insert fails (e.g., duplicate)
+            error_log("Failed to add subscriber {$sub['email']} to campaign {$campaign_id}: " . $e->getMessage());
+        }
+    }
+
+    // Create send_queue records for newly added pending sends
+    if ($added > 0) {
+        $queue_stmt = $db->prepare("
+            INSERT INTO send_queue (send_id, campaign_id, email, status)
+            SELECT id, campaign_id, email, 'queued'
+            FROM campaign_sends
+            WHERE campaign_id = ?
+            AND status = 'pending'
+            AND id NOT IN (
+                SELECT DISTINCT send_id FROM send_queue
+                WHERE campaign_id = ?
+            )
+        ");
+        $queue_stmt->execute([$campaign_id, $campaign_id]);
+    }
+
+    return $added;
+}
+
 function process_campaign_queue($db, $campaign_id, $limit) {
     $limit = intval($limit);
     $stmt = $db->prepare("
@@ -643,6 +714,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $update_campaign->execute([$campaign_id]);
                 $requeued = 0;
             }
+
+            // Auto-add missing active subscribers if send_to_all_active flag is enabled
+            $added_missing = add_missing_all_active_subscribers($db, $campaign_id, $campaign);
 
             // Process a batch immediately
             // Ensure send_queue records exist for all pending emails
