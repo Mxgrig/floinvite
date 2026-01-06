@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $test_email = trim($_POST['test_email'] ?? '');
     $send_method = $_POST['send_method'] ?? 'queue';
     $scheduled_at = !empty($_POST['scheduled_at']) ? $_POST['scheduled_at'] : null;
+    $send_to_all_active = !empty($_POST['send_to_all_active']) ? 1 : 0;
 
     if ($action === 'test') {
         if (!validate_email($test_email)) {
@@ -92,18 +93,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Update existing
                     $stmt = $db->prepare("
                         UPDATE campaigns
-                        SET name = ?, subject = ?, from_name = ?, greeting = ?, html_body = ?, signature = ?, send_method = ?, scheduled_at = ?
+                        SET name = ?, subject = ?, from_name = ?, greeting = ?, html_body = ?, signature = ?, send_method = ?, scheduled_at = ?, send_to_all_active = ?
                         WHERE id = ?
                     ");
-                    $stmt->execute([$name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $campaign_id]);
+                    $stmt->execute([$name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active, $campaign_id]);
                     $message = 'Campaign updated successfully';
                 } else {
                     // Create new
                     $stmt = $db->prepare("
-                        INSERT INTO campaigns (name, subject, from_name, greeting, html_body, signature, send_method, scheduled_at, status)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft')
+                        INSERT INTO campaigns (name, subject, from_name, greeting, html_body, signature, send_method, scheduled_at, send_to_all_active, status)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')
                     ");
-                    $stmt->execute([$name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at]);
+                    $stmt->execute([$name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active]);
                     $campaign_id = $db->lastInsertId();
                     $message = 'Campaign created successfully';
                 }
@@ -264,6 +265,7 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
                 <?php
                 $send_method = $campaign['send_method'] ?? 'queue';
                 $scheduled_at = $campaign['scheduled_at'] ?? '';
+                $send_to_all_active = $campaign['send_to_all_active'] ?? 0;
                 ?>
 
                 <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
@@ -284,6 +286,16 @@ $subscriber_count = $result->fetch()['count'] ?? 0;
                 <div id="scheduled-input-section" style="display: <?php echo $send_method === 'scheduled' ? 'block' : 'none'; ?>; margin-bottom: 1rem;">
                     <input type="datetime-local" id="scheduled_at" name="scheduled_at" value="<?php echo htmlspecialchars($scheduled_at); ?>" style="padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                     <small style="color: #6b7280; margin-top: 0.5rem; display: block;">Campaign will start sending at this time</small>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="send_to_all_active" id="send-to-all-active" value="1" <?php echo $send_to_all_active ? 'checked' : ''; ?> style="cursor: pointer; width: 18px; height: 18px;">
+                        <span style="font-weight: 500;">Send to all active subscribers (current + future)</span>
+                    </label>
+                    <small style="color: #6b7280; margin-top: 0.5rem; display: block; margin-left: 1.5rem;">
+                        When enabled, all active subscribers at the time of sending will automatically be added to this campaign. New subscribers added after campaign creation will also be included.
+                    </small>
                 </div>
 
                 <div id="queue-info" style="padding: 1rem; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; color: #1e40af; font-size: 0.875rem;">
