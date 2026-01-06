@@ -214,6 +214,24 @@ function requeue_cancelled_sends($db, $campaign_id) {
     return $requeued;
 }
 
+function ensure_send_queue_exists($db, $campaign_id) {
+    // Create missing send_queue records for pending campaign_sends
+    // This fixes cases where send_queue records weren't created during campaign start
+    $stmt = $db->prepare("
+        INSERT INTO send_queue (send_id, campaign_id, email, status)
+        SELECT id, campaign_id, email, 'queued'
+        FROM campaign_sends
+        WHERE campaign_id = ?
+          AND status IN ('pending', 'failed')
+          AND id NOT IN (
+              SELECT DISTINCT send_id FROM send_queue
+              WHERE campaign_id = ?
+          )
+    ");
+    $stmt->execute([$campaign_id, $campaign_id]);
+    return $stmt->rowCount();
+}
+
 function process_campaign_queue($db, $campaign_id, $limit) {
     $limit = intval($limit);
     $stmt = $db->prepare("
@@ -580,6 +598,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Process a batch immediately
+            // Ensure send_queue records exist for all pending emails
+            $created = ensure_send_queue_exists($db, $campaign_id);
             $result = process_campaign_queue($db, $campaign_id, BATCH_SIZE);
             $db->commit();
 
@@ -1075,6 +1095,24 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                                     });
                             }, 30000);
                         </script>
+                    </div>
+
+                    <!-- Debug info -->
+                    <?php
+                        $debug_pending = $db->prepare("SELECT COUNT(*) as count FROM campaign_sends WHERE campaign_id = ? AND status = 'pending'");
+                        $debug_pending->execute([$campaign_id]);
+                        $pending_count = $debug_pending->fetch()['count'] ?? 0;
+
+                        $debug_queued = $db->prepare("SELECT COUNT(*) as count FROM send_queue WHERE campaign_id = ? AND status = 'queued'");
+                        $debug_queued->execute([$campaign_id]);
+                        $queued_count = $debug_queued->fetch()['count'] ?? 0;
+                    ?>
+                    <div style="background: #f3f4f6; border: 1px solid #e5e7eb; padding: 0.75rem; margin-top: 1rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.875rem;">
+                        <strong>Debug Info:</strong><br>
+                        Campaign Status: <?php echo htmlspecialchars($campaign['status']); ?><br>
+                        Pending in campaign_sends: <?php echo $pending_count; ?><br>
+                        Queued in send_queue: <?php echo $queued_count; ?><br>
+                        Send Method: <?php echo htmlspecialchars($campaign['send_method'] ?? 'null'); ?>
                     </div>
 
                     <?php if ($campaign['status'] === 'completed'): ?>
