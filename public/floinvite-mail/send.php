@@ -24,6 +24,20 @@ if (!$campaign) {
     handle_error('Campaign not found', 404);
 }
 
+// Auto-correct campaign status: if marked completed but has pending/failed emails, revert to sending
+if ($campaign['status'] === 'completed') {
+    $pending_check = $db->prepare("SELECT COUNT(*) as count FROM campaign_sends WHERE campaign_id = ? AND status IN ('pending', 'failed')");
+    $pending_check->execute([$campaign_id]);
+    $pending_count = $pending_check->fetch()['count'] ?? 0;
+    
+    if ($pending_count > 0) {
+        // Status is wrong - update it back to sending
+        $fix_status = $db->prepare("UPDATE campaigns SET status = 'sending', completed_at = NULL WHERE id = ?");
+        $fix_status->execute([$campaign_id]);
+        $campaign['status'] = 'sending';  // Refresh local copy
+    }
+}
+
 function parse_custom_emails($raw) {
     $invalid = 0;
     $invalid_samples = [];
