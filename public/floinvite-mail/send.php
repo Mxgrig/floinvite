@@ -215,6 +215,7 @@ function requeue_cancelled_sends($db, $campaign_id) {
 }
 
 function process_campaign_queue($db, $campaign_id, $limit) {
+    $limit = intval($limit);
     $stmt = $db->prepare("
         SELECT
             q.id as queue_id,
@@ -244,9 +245,9 @@ function process_campaign_queue($db, $campaign_id, $limit) {
               OR (c.send_method = 'scheduled' AND c.scheduled_at IS NOT NULL AND c.scheduled_at <= NOW())
           )
         ORDER BY q.created_at ASC
-        LIMIT ?
+        LIMIT $limit
     ");
-    $stmt->execute([$campaign_id, $limit]);
+    $stmt->execute([$campaign_id]);
     $queued = $stmt->fetchAll();
 
     if (empty($queued)) {
