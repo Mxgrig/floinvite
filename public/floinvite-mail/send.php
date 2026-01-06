@@ -651,11 +651,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("DEBUG: Created " . $created . " send_queue records for campaign_id " . $campaign_id);
             $db->commit();
 
+            // Check if there are any remaining outstanding emails
+            $outstanding_stmt = $db->prepare("
+                SELECT COUNT(*) as count FROM campaign_sends
+                WHERE campaign_id = ? AND status IN ('pending', 'failed')
+            ");
+            $outstanding_stmt->execute([$campaign_id]);
+            $outstanding_count = $outstanding_stmt->fetch()['count'] ?? 0;
+
             $_SESSION['send_notice'] = [
                 'type' => 'success',
                 'message' => "Batch processed: {$result['sent']} sent, {$result['failed']} failed."
             ];
-            header("Location: send.php?id={$campaign_id}");
+
+            // If no outstanding emails remain, redirect to dashboard
+            // Otherwise, stay on send page with updated button state
+            if ($outstanding_count === 0) {
+                header('Location: index.php');
+            } else {
+                header("Location: send.php?id={$campaign_id}");
+            }
             exit;
         } catch (Exception $e) {
             $db->rollBack();
