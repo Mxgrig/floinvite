@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   html_body LONGTEXT NOT NULL,
   text_body LONGTEXT,
   status ENUM('draft', 'scheduled', 'sending', 'completed', 'paused', 'failed') DEFAULT 'draft',
+  send_to_all_active TINYINT(1) DEFAULT 0,
   recipient_count INT DEFAULT 0,
   sent_count INT DEFAULT 0,
   failed_count INT DEFAULT 0,
