@@ -75,6 +75,17 @@ function fetch_subscriber_statuses($db, $emails) {
     return $found;
 }
 
+function get_csrf_token() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function verify_csrf_token($token) {
+    return is_string($token) && isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
 function wants_json_response() {
     if (!empty($_GET['api'])) {
         return true;
@@ -113,12 +124,22 @@ $prefill_custom = $prefill['custom_emails'] ?? '';
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    $csrf_valid = verify_csrf_token($csrf_token);
 
     $send_mode = $_POST['send_mode'] ?? 'all';
     $allow_new = !empty($_POST['allow_new']);
     $allow_reactivate = !empty($_POST['allow_reactivate']);
 
-    if ($action === 'preview') {
+    if (!$csrf_valid) {
+        if ($action === 'preview') {
+            $preview_error = 'Invalid session token. Please reload and try again.';
+        } else {
+            respond_or_redirect(false, null, 'Invalid session token. Please reload and try again.', $campaign_id);
+        }
+    }
+
+    if ($action === 'preview' && $csrf_valid) {
         if ($send_mode === 'custom') {
             $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
             $parsed = parse_custom_emails($custom_emails_raw);
@@ -160,17 +181,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $db->prepare("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
             $stmt->execute();
             $count = $stmt->fetch()['count'] ?? 0;
-            $preview = [
-                'mode' => 'all',
-                'counts' => [
-                    'active' => (int) $count
-                ]
-            ];
+                $preview = [
+                    'mode' => 'all',
+                    'counts' => [
+                        'active' => (int) $count
+                    ]
+                ];
         }
     }
 
     if ($action === 'cancel') {
+        if (!$csrf_valid) {
+            // Guarded above, but keep a clear exit for non-preview actions.
+            respond_or_redirect(false, null, 'Invalid session token. Please reload and try again.', $campaign_id);
+        }
         try {
+            $current_status = $campaign['status'] ?? null;
+            if (!in_array($current_status, ['sending', 'scheduled'], true)) {
+                respond_or_redirect(false, null, 'Campaign is not in a cancellable state.', $campaign_id);
+            }
+
             $db->beginTransaction();
 
             $update_campaign = $db->prepare("
@@ -206,11 +236,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             respond_or_redirect(true, ['cancelled' => $cancelled], $message, $campaign_id);
         } catch (Exception $e) {
             $db->rollBack();
+            error_log("CAMPAIGN_CANCEL_ERROR: campaign_id={$campaign_id}, error=" . $e->getMessage());
             respond_or_redirect(false, null, 'Error cancelling campaign: ' . $e->getMessage(), $campaign_id);
         }
     }
 
     if ($action === 'start') {
+        if (!$csrf_valid) {
+            respond_or_redirect(false, null, 'Invalid session token. Please reload and try again.', $campaign_id);
+        }
         $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
 
         // Try to get recipients from session (CSV/manual with name/company)
@@ -429,6 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             respond_or_redirect(true, ['queued' => $count], $message, $campaign_id);
         } catch (Exception $e) {
             $db->rollBack();
+            error_log("CAMPAIGN_START_ERROR: campaign_id={$campaign_id}, error=" . $e->getMessage());
             respond_or_redirect(false, null, 'Error starting campaign: ' . $e->getMessage(), $campaign_id);
         }
     }
@@ -461,6 +496,7 @@ $selected_send_mode = $_POST['send_mode'] ?? ($prefill_mode ?: 'all');
 $custom_emails_display = $_POST['custom_emails'] ?? $prefill_custom;
 $allow_new_checked = !empty($_POST['allow_new']);
 $allow_reactivate_checked = !empty($_POST['allow_reactivate']);
+$csrf_token = get_csrf_token();
 
 $flash_notice = $_SESSION['send_notice'] ?? null;
 if ($flash_notice) {
@@ -974,6 +1010,7 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                 <?php endif; ?>
 
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                     <div class="send-mode">
                         <div class="send-option">
                             <input type="radio" id="send-all" name="send_mode" value="all" <?php echo $selected_send_mode === 'all' ? 'checked' : ''; ?>>
@@ -1076,6 +1113,7 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                         </div>
                     <?php elseif ($campaign['status'] === 'sending'): ?>
                         <form method="POST" style="margin-top: 1rem;">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                             <input type="hidden" name="action" value="cancel">
                             <button type="submit" class="btn-secondary" onclick="return confirm('Cancel sending this campaign? This will stop queued emails from sending.')">
                                 Cancel Sending
