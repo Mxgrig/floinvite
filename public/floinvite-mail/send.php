@@ -495,10 +495,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $requeued = requeue_cancelled_sends($db, $campaign_id);
             $db->commit();
 
-            $message = $requeued > 0
-                ? "Campaign resumed. {$requeued} emails re-queued."
-                : 'Campaign resumed.';
-            respond_or_redirect(true, ['requeued' => $requeued], $message, $campaign_id);
+            // Redirect to edit page to allow user to review/change settings before sending
+            header("Location: compose.php?id={$campaign_id}&resumed=1");
+            exit;
         } catch (Exception $e) {
             $db->rollBack();
             log_campaign_error('resume', $campaign_id, $e->getMessage());
@@ -530,17 +529,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $db->commit();
 
-            $result = process_campaign_queue($db, $campaign_id, BATCH_SIZE);
-            $details = "Processed {$result['processed']} (sent {$result['sent']}, failed {$result['failed']}).";
-            if ($requeued > 0) {
-                $details = "Re-queued {$requeued}. " . $details;
-            }
-
-            respond_or_redirect(true, $result, $details, $campaign_id);
+            // Redirect to edit page to allow user to review/change settings before sending
+            header("Location: compose.php?id={$campaign_id}&send_now=1");
+            exit;
         } catch (Exception $e) {
             $db->rollBack();
             log_campaign_error('send_now', $campaign_id, $e->getMessage());
-            respond_or_redirect(false, null, 'Error sending now: ' . $e->getMessage(), $campaign_id);
+            respond_or_redirect(false, null, 'Error preparing send: ' . $e->getMessage(), $campaign_id);
         }
     }
 
