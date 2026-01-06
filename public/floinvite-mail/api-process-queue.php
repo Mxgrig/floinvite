@@ -44,7 +44,7 @@ try {
         AND q.attempts < q.max_attempts
         AND c.status IN ('sending', 'scheduled')
         AND (
-            c.send_method = 'queue'
+            c.send_method IN ('queue', 'immediate')
             OR (c.send_method = 'scheduled' AND c.scheduled_at IS NOT NULL AND c.scheduled_at <= NOW())
         )
         ORDER BY q.created_at ASC

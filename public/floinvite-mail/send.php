@@ -153,6 +153,14 @@ function validate_campaign_action($action, $campaign) {
         return ['ok' => false, 'message' => 'Campaign is not in a cancellable state.'];
     }
 
+    if ($action === 'resume' && $status !== 'paused') {
+        return ['ok' => false, 'message' => 'Campaign is not paused.'];
+    }
+
+    if ($action === 'send_now' && !in_array($status, ['sending', 'paused'], true)) {
+        return ['ok' => false, 'message' => 'Campaign is not in a sendable state.'];
+    }
+
     return ['ok' => true];
 }
 
@@ -172,6 +180,157 @@ function validate_action_request($action, $campaign, $csrf_token) {
 
     clear_csrf_failures();
     return ['ok' => true];
+}
+
+function requeue_cancelled_sends($db, $campaign_id) {
+    $insert_stmt = $db->prepare("
+        INSERT INTO send_queue (send_id, campaign_id, email, status, attempts, max_attempts, error_message)
+        SELECT q.send_id, q.campaign_id, q.email, 'queued', 0, q.max_attempts, NULL
+        FROM send_queue q
+        WHERE q.campaign_id = ?
+          AND q.status = 'failed'
+          AND q.error_message = 'Cancelled by admin'
+          AND NOT EXISTS (
+              SELECT 1 FROM send_queue q2
+              WHERE q2.send_id = q.send_id
+                AND q2.status IN ('queued', 'processing')
+          )
+    ");
+    $insert_stmt->execute([$campaign_id]);
+    $requeued = $insert_stmt->rowCount();
+
+    if ($requeued > 0) {
+        $update_stmt = $db->prepare("
+            UPDATE campaign_sends
+            SET status = 'pending'
+            WHERE campaign_id = ?
+              AND status = 'failed'
+              AND id IN (
+                  SELECT send_id FROM send_queue
+                  WHERE campaign_id = ?
+                    AND status = 'queued'
+                    AND error_message IS NULL
+              )
+        ");
+        $update_stmt->execute([$campaign_id, $campaign_id]);
+    }
+
+    return $requeued;
+}
+
+function process_campaign_queue($db, $campaign_id, $limit) {
+    $stmt = $db->prepare("
+        SELECT
+            q.id as queue_id,
+            q.send_id,
+            q.attempts,
+            s.email,
+            s.name,
+            s.company,
+            s.tracking_id,
+            s.unsubscribe_token,
+            c.greeting,
+            c.html_body,
+            c.signature,
+            c.from_name,
+            c.subject,
+            c.send_method,
+            c.scheduled_at
+        FROM send_queue q
+        JOIN campaign_sends s ON q.send_id = s.id
+        JOIN campaigns c ON q.campaign_id = c.id
+        WHERE q.status = 'queued'
+          AND q.attempts < q.max_attempts
+          AND q.campaign_id = ?
+          AND c.status IN ('sending', 'scheduled')
+          AND (
+              c.send_method IN ('queue', 'immediate')
+              OR (c.send_method = 'scheduled' AND c.scheduled_at IS NOT NULL AND c.scheduled_at <= NOW())
+          )
+        ORDER BY q.created_at ASC
+        LIMIT ?
+    ");
+    $stmt->execute([$campaign_id, $limit]);
+    $queued = $stmt->fetchAll();
+
+    if (empty($queued)) {
+        return ['processed' => 0, 'sent' => 0, 'failed' => 0];
+    }
+
+    $processed = 0;
+    $sent = 0;
+    $failed = 0;
+
+    foreach ($queued as $item) {
+        try {
+            $update_stmt = $db->prepare("UPDATE send_queue SET status = 'processing' WHERE id = ?");
+            $update_stmt->execute([$item['queue_id']]);
+
+            $html_body = create_email_from_text(
+                $item['greeting'] ?? '',
+                $item['html_body'] ?? '',
+                $item['signature'] ?? '',
+                $item['name'] ?? $item['email'],
+                $item['email'],
+                $item['company'] ?? '',
+                'Host Name',
+                'host@floinvite.com',
+                'default'
+            );
+
+            $from_email = SMTP_USER ?: 'admin@floinvite.com';
+            $from_name = $item['from_name'] ?: 'floinvite';
+            $subject = preg_replace('/[\r\n]+/', ' ', $item['subject']);
+
+            $headers = "MIME-Version: 1.0\r\n";
+            $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+            $headers .= "From: {$from_name} <{$from_email}>\r\n";
+            $headers .= "Reply-To: {$from_email}\r\n";
+
+            if (@mail($item['email'], $subject, $html_body, $headers)) {
+                $update_send = $db->prepare("
+                    UPDATE campaign_sends
+                    SET status = 'sent', sent_at = NOW()
+                    WHERE id = ?
+                ");
+                $update_send->execute([$item['send_id']]);
+
+                $update_queue = $db->prepare("
+                    UPDATE send_queue
+                    SET status = 'sent', attempts = attempts + 1
+                    WHERE id = ?
+                ");
+                $update_queue->execute([$item['queue_id']]);
+
+                $sent++;
+            } else {
+                throw new Exception("mail() returned false");
+            }
+        } catch (Exception $e) {
+            $error_message = sanitize_log_value($e->getMessage());
+            $update_stmt = $db->prepare("
+                UPDATE send_queue
+                SET status = 'failed', attempts = attempts + 1, error_message = ?
+                WHERE id = ?
+            ");
+            $update_stmt->execute([$error_message, $item['queue_id']]);
+
+            $failed++;
+        }
+
+        $processed++;
+    }
+
+    $update_campaign = $db->prepare("
+        UPDATE campaigns
+        SET
+            sent_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'sent'),
+            failed_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'failed')
+        WHERE id = ?
+    ");
+    $update_campaign->execute([$campaign_id, $campaign_id, $campaign_id]);
+
+    return ['processed' => $processed, 'sent' => $sent, 'failed' => $failed];
 }
 
 function wants_json_response() {
@@ -317,6 +476,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->rollBack();
             log_campaign_error('cancel', $campaign_id, $e->getMessage());
             respond_or_redirect(false, null, 'Error cancelling campaign: ' . $e->getMessage(), $campaign_id);
+        }
+    }
+
+    if ($action === 'resume') {
+        try {
+            $db->beginTransaction();
+
+            $send_method = $campaign['send_method'] ?? 'queue';
+            $scheduled_at = $campaign['scheduled_at'] ?? null;
+            $resume_status = ($send_method === 'scheduled' && $scheduled_at && strtotime($scheduled_at) > time())
+                ? 'scheduled'
+                : 'sending';
+
+            $update_campaign = $db->prepare("
+                UPDATE campaigns
+                SET status = ?
+                WHERE id = ? AND status = 'paused'
+            ");
+            $update_campaign->execute([$resume_status, $campaign_id]);
+
+            $requeued = requeue_cancelled_sends($db, $campaign_id);
+            $db->commit();
+
+            $message = $requeued > 0
+                ? "Campaign resumed. {$requeued} emails re-queued."
+                : 'Campaign resumed.';
+            respond_or_redirect(true, ['requeued' => $requeued], $message, $campaign_id);
+        } catch (Exception $e) {
+            $db->rollBack();
+            log_campaign_error('resume', $campaign_id, $e->getMessage());
+            respond_or_redirect(false, null, 'Error resuming campaign: ' . $e->getMessage(), $campaign_id);
+        }
+    }
+
+    if ($action === 'send_now') {
+        try {
+            $db->beginTransaction();
+
+            if ($campaign['status'] === 'paused') {
+                $update_campaign = $db->prepare("
+                    UPDATE campaigns
+                    SET status = 'sending', send_method = 'immediate', scheduled_at = NULL
+                    WHERE id = ? AND status = 'paused'
+                ");
+                $update_campaign->execute([$campaign_id]);
+                $requeued = requeue_cancelled_sends($db, $campaign_id);
+            } else {
+                $update_campaign = $db->prepare("
+                    UPDATE campaigns
+                    SET send_method = 'immediate', scheduled_at = NULL
+                    WHERE id = ?
+                ");
+                $update_campaign->execute([$campaign_id]);
+                $requeued = 0;
+            }
+
+            $db->commit();
+
+            $result = process_campaign_queue($db, $campaign_id, BATCH_SIZE);
+            $details = "Processed {$result['processed']} (sent {$result['sent']}, failed {$result['failed']}).";
+            if ($requeued > 0) {
+                $details = "Re-queued {$requeued}. " . $details;
+            }
+
+            respond_or_redirect(true, $result, $details, $campaign_id);
+        } catch (Exception $e) {
+            $db->rollBack();
+            log_campaign_error('send_now', $campaign_id, $e->getMessage());
+            respond_or_redirect(false, null, 'Error sending now: ' . $e->getMessage(), $campaign_id);
         }
     }
 
@@ -1188,13 +1416,42 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                             Campaign completed successfully!
                         </div>
                     <?php elseif ($campaign['status'] === 'sending'): ?>
-                        <form method="POST" style="margin-top: 1rem;">
-                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
-                            <input type="hidden" name="action" value="cancel">
-                            <button type="submit" class="btn-secondary" onclick="return confirm('Cancel sending this campaign? This will stop queued emails from sending.')">
-                                Cancel Sending
-                            </button>
-                        </form>
+                        <div class="button-group" style="margin-top: 1rem;">
+                            <form method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                                <input type="hidden" name="action" value="send_now">
+                                <button type="submit" class="btn-secondary" onclick="return confirm('Process a send batch now? This will send up to the batch size immediately.')">
+                                    Send Now (Process Batch)
+                                </button>
+                            </form>
+                            <form method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                                <input type="hidden" name="action" value="cancel">
+                                <button type="submit" class="btn-secondary" onclick="return confirm('Cancel sending this campaign? This will stop queued emails from sending.')">
+                                    Cancel Sending
+                                </button>
+                            </form>
+                        </div>
+                    <?php elseif ($campaign['status'] === 'paused'): ?>
+                        <div class="warning-box">
+                            This campaign is paused. You can resume sending or send a batch immediately.
+                        </div>
+                        <div class="button-group" style="margin-top: 1rem;">
+                            <form method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                                <input type="hidden" name="action" value="resume">
+                                <button type="submit" class="btn-secondary">
+                                    Resume Sending
+                                </button>
+                            </form>
+                            <form method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                                <input type="hidden" name="action" value="send_now">
+                                <button type="submit" class="btn-secondary" onclick="return confirm('Send a batch immediately and resume this campaign?')">
+                                    Resume &amp; Send Now
+                                </button>
+                            </form>
+                        </div>
                     <?php endif; ?>
                 <?php else: ?>
                     <p>No subscribers queued.</p>
