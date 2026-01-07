@@ -497,6 +497,18 @@ jane@example.com,Jane Smith,Tech Inc</pre>
 
         document.addEventListener('change', function(e) {
             if (e.target.classList && e.target.classList.contains('subscriber-checkbox')) {
+                if (e.shiftKey && window.lastSubscriberCheckbox) {
+                    const boxes = Array.from(document.querySelectorAll('.subscriber-checkbox'));
+                    const start = boxes.indexOf(window.lastSubscriberCheckbox);
+                    const end = boxes.indexOf(e.target);
+                    if (start !== -1 && end !== -1) {
+                        const [from, to] = start < end ? [start, end] : [end, start];
+                        for (let i = from; i <= to; i++) {
+                            boxes[i].checked = e.target.checked;
+                        }
+                    }
+                }
+                window.lastSubscriberCheckbox = e.target;
                 updateSelectAllState();
             }
         });
