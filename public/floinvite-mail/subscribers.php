@@ -11,6 +11,49 @@ $db = get_db();
 $message = '';
 $action = $_GET['action'] ?? '';
 
+function get_csrf_token() {
+    $token = $_SESSION['csrf_token'] ?? null;
+    $created_at = $_SESSION['csrf_token_created_at'] ?? 0;
+    $now = time();
+    $expired = !is_int($created_at) || ($now - $created_at) > 3600;
+
+    if (!is_string($token) || strlen($token) !== 32 || !ctype_xdigit($token) || $expired) {
+        $token = bin2hex(random_bytes(16));
+        $_SESSION['csrf_token'] = $token;
+        $_SESSION['csrf_token_created_at'] = $now;
+    }
+
+    return $token;
+}
+
+function verify_csrf_token($token) {
+    $session_token = $_SESSION['csrf_token'] ?? null;
+    $created_at = $_SESSION['csrf_token_created_at'] ?? 0;
+    $now = time();
+    $expired = !is_int($created_at) || ($now - $created_at) > 3600;
+
+    if ($expired || !is_string($token) || !is_string($session_token)) {
+        return false;
+    }
+    if (strlen($token) !== 32 || !ctype_xdigit($token)) {
+        return false;
+    }
+    if (strlen($session_token) !== 32 || !ctype_xdigit($session_token)) {
+        return false;
+    }
+
+    return hash_equals($session_token, $token);
+}
+
+$csrf_token = get_csrf_token();
+$csrf_valid = true;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrf_valid = verify_csrf_token($_POST['csrf_token'] ?? '');
+    if (!$csrf_valid) {
+        $message = 'Invalid session token. Please reload and try again.';
+    }
+}
+
 // Get subscribers with pagination
 $page = max(1, intval($_GET['page'] ?? 1));
 $limit = 50;
@@ -32,7 +75,7 @@ $stmt->execute();
 $subscribers = $stmt->fetchAll();
 
 // Handle add subscriber
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
+if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
     $email = trim($_POST['email'] ?? '');
     $name = trim($_POST['name'] ?? '');
     $company = trim($_POST['company'] ?? '');
@@ -58,22 +101,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
     }
 }
 
-// Handle delete subscriber (single)
-if ($_GET['delete'] ?? false) {
-    $id = intval($_GET['delete']);
-    try {
-        $stmt = $db->prepare("DELETE FROM subscribers WHERE id = ?");
-        $stmt->execute([$id]);
-        $message = 'Subscriber deleted';
-        log_activity('subscriber_deleted', ['id' => $id]);
-    } catch (Exception $e) {
-        $message = 'Error deleting subscriber';
-    }
-}
-
 // Handle bulk delete (multiple selected via checkboxes)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_delete'])) {
-    $ids = array_filter(array_map('intval', $_POST['selected_ids'] ?? []), 'is_int');
+if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_delete'])) {
+    $ids = array_map('intval', $_POST['selected_ids'] ?? []);
+    $ids = array_filter($ids, function ($id) {
+        return $id > 0;
+    });
+    $ids = array_values(array_unique($ids));
 
     if (!empty($ids)) {
         try {
@@ -91,8 +125,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_delete'])) {
     }
 }
 
+// Handle delete subscriber (single)
+if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    $id = intval($_POST['delete_id']);
+    if ($id > 0) {
+        try {
+            $stmt = $db->prepare("DELETE FROM subscribers WHERE id = ?");
+            $stmt->execute([$id]);
+            $message = 'Subscriber deleted';
+            log_activity('subscriber_deleted', ['id' => $id]);
+        } catch (Exception $e) {
+            $message = 'Error deleting subscriber';
+        }
+    }
+}
+
 // Handle import CSV
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
+if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
     $file = $_FILES['csv_file'];
 
     if ($file['error'] === 0 && strpos($file['type'], 'csv') !== false) {
@@ -279,6 +328,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
             <h2>Subscribers</h2>
             <?php if (count($subscribers) > 0): ?>
                 <form method="POST" style="margin-bottom: 1rem;">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                     <div style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
                         <button type="button" onclick="selectAll()" style="padding: 0.5rem 1rem; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">Select All</button>
                         <button type="button" onclick="clearAll()" style="padding: 0.5rem 1rem; background: #9ca3af; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">Clear</button>
@@ -311,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
                                     </td>
                                     <td><?php echo date('M d, Y', strtotime($sub['created_at'])); ?></td>
                                     <td>
-                                        <a href="?delete=<?php echo $sub['id']; ?>" class="btn-danger" onclick="return confirm('Delete this subscriber?')">Delete</a>
+                                        <button type="submit" name="delete_id" value="<?php echo (int) $sub['id']; ?>" class="btn-danger" onclick="return confirm('Delete this subscriber?')">Delete</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -350,6 +400,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
         <div id="add-tab" class="section" style="display: none;">
             <h2>Add New Subscriber</h2>
             <form method="POST" action="?action=add">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="email">Email Address *</label>
@@ -374,6 +425,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
         <div id="import-tab" class="section" style="display: none;">
             <h2>Import Subscribers from CSV</h2>
             <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                 <div class="form-group">
                     <label for="csv_file">CSV File</label>
                     <div class="file-input-wrapper">
@@ -411,25 +463,45 @@ jane@example.com,Jane Smith,Tech Inc</pre>
         }
 
         // Bulk selection functions
+        function updateSelectAllState() {
+            const checkboxes = Array.from(document.querySelectorAll('.subscriber-checkbox'));
+            const selectAll = document.getElementById('select-all-checkbox');
+            if (!selectAll) {
+                return;
+            }
+            const checked = checkboxes.filter(cb => cb.checked).length;
+            selectAll.checked = checkboxes.length > 0 && checked === checkboxes.length;
+            selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
+        }
+
         function handleSelectAll(checkbox) {
             document.querySelectorAll('.subscriber-checkbox').forEach(cb => {
                 cb.checked = checkbox.checked;
             });
+            updateSelectAllState();
         }
 
         function selectAll() {
             document.querySelectorAll('.subscriber-checkbox').forEach(cb => {
                 cb.checked = true;
             });
-            document.getElementById('select-all-checkbox').checked = true;
+            updateSelectAllState();
         }
 
         function clearAll() {
             document.querySelectorAll('.subscriber-checkbox').forEach(cb => {
                 cb.checked = false;
             });
-            document.getElementById('select-all-checkbox').checked = false;
+            updateSelectAllState();
         }
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList && e.target.classList.contains('subscriber-checkbox')) {
+                updateSelectAllState();
+            }
+        });
+
+        updateSelectAllState();
 
         // Update file input label with selected file name
         document.addEventListener('change', function(e) {
