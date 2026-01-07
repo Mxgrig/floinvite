@@ -495,7 +495,8 @@ jane@example.com,Jane Smith,Tech Inc</pre>
             updateSelectAllState();
         }
 
-        document.addEventListener('change', function(e) {
+        // Handle shift-click range selection on click event
+        document.addEventListener('click', function(e) {
             if (e.target.classList && e.target.classList.contains('subscriber-checkbox')) {
                 if (e.shiftKey && window.lastSubscriberCheckbox) {
                     const boxes = Array.from(document.querySelectorAll('.subscriber-checkbox'));
@@ -509,6 +510,12 @@ jane@example.com,Jane Smith,Tech Inc</pre>
                     }
                 }
                 window.lastSubscriberCheckbox = e.target;
+            }
+        });
+
+        // Update state when checkboxes change
+        document.addEventListener('change', function(e) {
+            if (e.target.classList && e.target.classList.contains('subscriber-checkbox')) {
                 updateSelectAllState();
             }
         });
