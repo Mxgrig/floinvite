@@ -62,10 +62,10 @@ class PHPMailerHelper {
     public function send($options) {
         // Validate required fields
         $to = trim($options['to'] ?? '');
-        $subject = trim($options['subject'] ?? '');
+        $subject = $this->sanitizeHeader(trim($options['subject'] ?? ''));
         $body = $options['body'] ?? '';
         $fromEmail = trim($options['fromEmail'] ?? $this->defaultFromEmail);
-        $fromName = trim($options['fromName'] ?? $this->defaultFromName);
+        $fromName = $this->sanitizeHeader(trim($options['fromName'] ?? $this->defaultFromName));
         
         // Auto-detect if body is HTML
         $isHtml = $options['isHtml'] ?? false;
@@ -113,12 +113,11 @@ class PHPMailerHelper {
 
             // Build email headers and body
             $messageId = $this->generateMessageId();
-            $boundary = 'boundary_' . md5(uniqid());
             
             // Send SMTP commands
-            $this->sendCommand($handle, "MAIL FROM:<{$fromEmail}>");
-            $this->sendCommand($handle, "RCPT TO:<{$to}>");
-            $this->sendCommand($handle, "DATA");
+            $this->sendCommand($handle, "MAIL FROM:<{$fromEmail}>", ['250']);
+            $this->sendCommand($handle, "RCPT TO:<{$to}>", ['250', '251']);
+            $this->sendCommand($handle, "DATA", ['354']);
 
             // Build email
             $headers = "From: {$fromName} <{$fromEmail}>\r\n";
@@ -132,11 +131,12 @@ class PHPMailerHelper {
             $headers .= "To: {$to}\r\n";
 
             // Send headers and body
+            $body = $this->normalizeBody($body);
             $email = $headers . "\r\n" . $body . "\r\n.\r\n";
             fputs($handle, $email);
 
-            $response = fgets($handle, 256);
-            $this->sendCommand($handle, "QUIT");
+            $response = $this->readResponse($handle);
+            $this->sendCommand($handle, "QUIT", ['221']);
             fclose($handle);
 
             // Check response
@@ -185,12 +185,12 @@ class PHPMailerHelper {
         }
 
         // EHLO greeting
-        $this->sendCommand($handle, "EHLO " . gethostname());
+        $this->sendCommand($handle, "EHLO " . gethostname(), ['250']);
 
         // Authenticate
-        $this->sendCommand($handle, "AUTH LOGIN");
-        $this->sendCommand($handle, base64_encode($this->smtpUser));
-        $this->sendCommand($handle, base64_encode($this->smtpPass));
+        $this->sendCommand($handle, "AUTH LOGIN", ['334']);
+        $this->sendCommand($handle, base64_encode($this->smtpUser), ['334']);
+        $this->sendCommand($handle, base64_encode($this->smtpPass), ['235', '503']);
 
         return $handle;
     }
@@ -202,9 +202,9 @@ class PHPMailerHelper {
      * @param string $command Command to send
      * @return string Server response
      */
-    private function sendCommand($handle, $command) {
+    private function sendCommand($handle, $command, $expectedCodes = null) {
         fputs($handle, $command . "\r\n");
-        $response = fgets($handle, 256);
+        $response = $this->readResponse($handle);
 
         // Log for debugging
         if (getenv('DEBUG') === 'true') {
@@ -217,7 +217,60 @@ class PHPMailerHelper {
             throw new Exception("SMTP Error ({$code}): {$response}");
         }
 
+        if (is_array($expectedCodes) && !in_array($code, $expectedCodes, true)) {
+            throw new Exception("SMTP Unexpected Response ({$code}): {$response}");
+        }
+
         return $response;
+    }
+
+    /**
+     * Read single or multi-line SMTP response
+     *
+     * @param resource $handle Socket handle
+     * @return string Last response line
+     */
+    private function readResponse($handle) {
+        $response = '';
+        while (!feof($handle)) {
+            $line = fgets($handle, 512);
+            if ($line === false) {
+                break;
+            }
+            $response = $line;
+            if (strlen($line) < 4 || $line[3] !== '-') {
+                break;
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+     * Normalize body to CRLF and dot-stuff lines
+     *
+     * @param string $body
+     * @return string
+     */
+    private function normalizeBody($body) {
+        $normalized = str_replace(["\r\n", "\r"], "\n", (string) $body);
+        $normalized = str_replace("\n", "\r\n", $normalized);
+        if (strpos($normalized, ".") === 0) {
+            $normalized = "." . $normalized;
+        }
+        $normalized = str_replace("\r\n.", "\r\n..", $normalized);
+
+        return $normalized;
+    }
+
+    /**
+     * Sanitize header values to prevent header injection
+     *
+     * @param string $value
+     * @return string
+     */
+    private function sanitizeHeader($value) {
+        return str_replace(["\r", "\n"], '', $value);
     }
 
     /**

@@ -423,6 +423,7 @@ function process_campaign_queue($db, $campaign_id, $limit) {
                     'to' => $item['email'],
                     'subject' => $subject,
                     'body' => $html_body,
+                    'isHtml' => true,
                     'fromEmail' => $from_email,
                     'fromName' => $from_name
                 ]);
