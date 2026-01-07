@@ -1,13 +1,17 @@
 <?php
 /**
  * Floinvite Email API Endpoint
- * Handles visitor notification emails via Hostinger email
+ * Handles visitor notification emails via SMTP (PHPMailer)
  *
  * Deployment: Upload to public_html/api/send-email.php on Hostinger
  *
  * This endpoint accepts POST requests with visitor notification data
- * and sends emails via Hostinger's mail system.
+ * and sends emails via SMTP authentication (replaces sendmail())
  */
+
+// Load environment variables and PHPMailer helper
+require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/PHPMailerHelper.php';
 
 // Suppress all warnings/notices to prevent corrupting JSON response
 // These MUST be set BEFORE any output
@@ -178,40 +182,40 @@ $to = filter_var($input['to'], FILTER_VALIDATE_EMAIL);
 $subject = substr(htmlspecialchars($input['subject'], ENT_QUOTES, 'UTF-8'), 0, 200);
 $body = $input['body']; // Don't escape HTML - let it pass through
 
-// Email headers - check if body is HTML
-$isHtml = strpos($body, '<!DOCTYPE html>') !== false || strpos($body, '<html>') !== false;
-$contentType = $isHtml ? 'text/html' : 'text/plain';
-
-$headers = "MIME-Version: 1.0\r\n";
-$headers .= "Content-Type: " . $contentType . "; charset=UTF-8\r\n";
-$headers .= "From: " . $from_name . " <" . $from_email . ">\r\n";
-$headers .= "Reply-To: " . $from_email . "\r\n";
-$headers .= "X-Mailer: Floinvite/1.0\r\n";
-
-// Additional headers for better deliverability
-$headers .= "X-Priority: 3\r\n";
-$headers .= "Importance: Normal\r\n";
-
-// Send email using PHP mail() function
-// Note: For better reliability, consider upgrading to PHPMailer + SMTP
-$success = mail($to, $subject, $body, $headers);
-
-// Build response - always return valid JSON
+// Send email using SMTP (PHPMailer)
 $response = [];
-if ($success) {
-    http_response_code(200);
-    $response = [
-        'success' => true,
-        'message' => 'Email sent successfully',
+try {
+    $mailer = new PHPMailerHelper();
+    $result = $mailer->send([
         'to' => $to,
-        'timestamp' => date('c')
-    ];
-} else {
+        'subject' => $subject,
+        'body' => $body,
+        'fromEmail' => $from_email,
+        'fromName' => $from_name
+    ]);
+
+    if ($result['success']) {
+        http_response_code(200);
+        $response = [
+            'success' => true,
+            'message' => 'Email sent successfully',
+            'to' => $to,
+            'timestamp' => date('c')
+        ];
+    } else {
+        http_response_code(500);
+        $response = [
+            'success' => false,
+            'error' => $result['error'] ?? 'Failed to send email',
+            'details' => 'Check SMTP configuration in .env file'
+        ];
+    }
+} catch (Exception $e) {
     http_response_code(500);
     $response = [
         'success' => false,
-        'error' => 'Failed to send email',
-        'details' => 'Mail function returned false. Check Hostinger email configuration and /tmp/floinvite_email.log for details.'
+        'error' => 'SMTP Error: ' . $e->getMessage(),
+        'details' => 'Check SMTP credentials in .env file'
     ];
 }
 
@@ -220,7 +224,7 @@ $json = json_encode($response, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 if ($json === false) {
     // Fallback if JSON encoding fails
     http_response_code(500);
-    echo '{"success":false,"error":"Server error"}';
+    echo '{"success":false,"error":"JSON encoding failed"}';
 } else {
     echo $json;
 }
@@ -231,7 +235,10 @@ if ($json === false) {
 
 // Log all email requests for debugging
 $log_file = '/tmp/floinvite_email.log';
-$log_entry = date('Y-m-d H:i:s') . " | " . ($success ? 'SUCCESS' : 'FAILED') . " | Type: " . $email_type . " | Name: " . $from_name . " | Sender: " . $from_email . " | ReplyTo: " . $from_email . " | To: " . $to . " | Subject: " . $subject . "\n";
+$success = $response['success'] ?? false;
+$log_entry = date('Y-m-d H:i:s') . " | " . ($success ? 'SUCCESS' : 'FAILED') . " | Type: " . $email_type . " | From: " . $from_name . " <" . $from_email . "> | To: " . $to . " | Subject: " . $subject . " | Method: SMTP\n";
+if (!$success && isset($response['error'])) {
+    $log_entry = str_replace("\n", " | Error: " . $response['error'] . "\n", $log_entry);
+}
 @file_put_contents($log_file, $log_entry, FILE_APPEND);
 ?>
-
