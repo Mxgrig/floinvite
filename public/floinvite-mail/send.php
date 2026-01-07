@@ -6,6 +6,7 @@
 
 require_once 'config.php';
 require_once 'logo.php';
+require_once '../api/PHPMailerHelper.php';
 require_auth();
 
 $db = get_db();
@@ -415,29 +416,38 @@ function process_campaign_queue($db, $campaign_id, $limit) {
             $from_name = $item['from_name'] ?: 'floinvite';
             $subject = preg_replace('/[\r\n]+/', ' ', $item['subject']);
 
-            $headers = "MIME-Version: 1.0\r\n";
-            $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-            $headers .= "From: {$from_name} <{$from_email}>\r\n";
-            $headers .= "Reply-To: {$from_email}\r\n";
+            // Send email using SMTP (PHPMailer)
+            try {
+                $mailer = new PHPMailerHelper();
+                $result = $mailer->send([
+                    'to' => $item['email'],
+                    'subject' => $subject,
+                    'body' => $html_body,
+                    'fromEmail' => $from_email,
+                    'fromName' => $from_name
+                ]);
 
-            if (@mail($item['email'], $subject, $html_body, $headers)) {
-                $update_send = $db->prepare("
-                    UPDATE campaign_sends
-                    SET status = 'sent', sent_at = NOW()
-                    WHERE id = ?
-                ");
-                $update_send->execute([$item['send_id']]);
+                if ($result['success']) {
+                    $update_send = $db->prepare("
+                        UPDATE campaign_sends
+                        SET status = 'sent', sent_at = NOW()
+                        WHERE id = ?
+                    ");
+                    $update_send->execute([$item['send_id']]);
 
-                $update_queue = $db->prepare("
-                    UPDATE send_queue
-                    SET status = 'sent', attempts = attempts + 1
-                    WHERE id = ?
-                ");
-                $update_queue->execute([$item['queue_id']]);
+                    $update_queue = $db->prepare("
+                        UPDATE send_queue
+                        SET status = 'sent', attempts = attempts + 1
+                        WHERE id = ?
+                    ");
+                    $update_queue->execute([$item['queue_id']]);
 
-                $sent++;
-            } else {
-                throw new Exception("mail() returned false");
+                    $sent++;
+                } else {
+                    throw new Exception($result['error'] ?? 'Failed to send email via SMTP');
+                }
+            } catch (Exception $e) {
+                throw $e;
             }
         } catch (Exception $e) {
             $error_message = sanitize_log_value($e->getMessage());
