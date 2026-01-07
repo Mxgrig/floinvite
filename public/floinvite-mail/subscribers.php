@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
     }
 }
 
-// Handle delete subscriber
+// Handle delete subscriber (single)
 if ($_GET['delete'] ?? false) {
     $id = intval($_GET['delete']);
     try {
@@ -68,6 +68,26 @@ if ($_GET['delete'] ?? false) {
         log_activity('subscriber_deleted', ['id' => $id]);
     } catch (Exception $e) {
         $message = 'Error deleting subscriber';
+    }
+}
+
+// Handle bulk delete (multiple selected via checkboxes)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_delete'])) {
+    $ids = array_filter(array_map('intval', $_POST['selected_ids'] ?? []), 'is_int');
+
+    if (!empty($ids)) {
+        try {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = $db->prepare("DELETE FROM subscribers WHERE id IN ($placeholders)");
+            $stmt->execute($ids);
+            $deleted = $stmt->rowCount();
+            $message = "Deleted $deleted subscriber(s)";
+            log_activity('subscribers_bulk_deleted', ['count' => $deleted]);
+        } catch (Exception $e) {
+            $message = 'Error deleting subscribers: ' . $e->getMessage();
+        }
+    } else {
+        $message = 'No subscribers selected for deletion';
     }
 }
 
@@ -258,36 +278,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] ?? false) {
         <div id="list-tab" class="section">
             <h2>Subscribers</h2>
             <?php if (count($subscribers) > 0): ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Name</th>
-                            <th>Company</th>
-                            <th>Status</th>
-                            <th>Subscribed</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($subscribers as $sub): ?>
+                <form method="POST" style="margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
+                        <button type="button" onclick="selectAll()" style="padding: 0.5rem 1rem; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">Select All</button>
+                        <button type="button" onclick="clearAll()" style="padding: 0.5rem 1rem; background: #9ca3af; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">Clear</button>
+                        <button type="submit" name="bulk_delete" value="1" onclick="const count = document.querySelectorAll('.subscriber-checkbox:checked').length; if (count === 0) { alert('Please select subscribers to delete'); return false; } return confirm('Delete ' + count + ' subscriber(s)? This cannot be undone.');" style="padding: 0.5rem 1rem; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Delete Selected</button>
+                    </div>
+
+                    <table>
+                        <thead>
                             <tr>
-                                <td><?php echo htmlspecialchars($sub['email']); ?></td>
-                                <td><?php echo htmlspecialchars($sub['name'] ?? '-'); ?></td>
-                                <td><?php echo htmlspecialchars($sub['company'] ?? '-'); ?></td>
-                                <td>
-                                    <span class="status-badge <?php echo $sub['status'] !== 'active' ? $sub['status'] : ''; ?>">
-                                        <?php echo ucfirst($sub['status']); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo date('M d, Y', strtotime($sub['created_at'])); ?></td>
-                                <td>
-                                    <a href="?delete=<?php echo $sub['id']; ?>" class="btn-danger" onclick="return confirm('Delete this subscriber?')">Delete</a>
-                                </td>
+                                <th style="width: 40px;"><input type="checkbox" id="select-all-checkbox" onchange="handleSelectAll(this)"></th>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Subscribed</th>
+                                <th>Action</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($subscribers as $sub): ?>
+                                <tr>
+                                    <td><input type="checkbox" name="selected_ids[]" value="<?php echo $sub['id']; ?>" class="subscriber-checkbox"></td>
+                                    <td><?php echo htmlspecialchars($sub['email']); ?></td>
+                                    <td><?php echo htmlspecialchars($sub['name'] ?? '-'); ?></td>
+                                    <td><?php echo htmlspecialchars($sub['company'] ?? '-'); ?></td>
+                                    <td>
+                                        <span class="status-badge <?php echo $sub['status'] !== 'active' ? $sub['status'] : ''; ?>">
+                                            <?php echo ucfirst($sub['status']); ?>
+                                        </span>
+                                    </td>
+                                    <td><?php echo date('M d, Y', strtotime($sub['created_at'])); ?></td>
+                                    <td>
+                                        <a href="?delete=<?php echo $sub['id']; ?>" class="btn-danger" onclick="return confirm('Delete this subscriber?')">Delete</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </form>
 
                 <!-- Pagination -->
                 <div class="pagination">
@@ -378,6 +408,27 @@ jane@example.com,Jane Smith,Tech Inc</pre>
 
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             event.target.classList.add('active');
+        }
+
+        // Bulk selection functions
+        function handleSelectAll(checkbox) {
+            document.querySelectorAll('.subscriber-checkbox').forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        function selectAll() {
+            document.querySelectorAll('.subscriber-checkbox').forEach(cb => {
+                cb.checked = true;
+            });
+            document.getElementById('select-all-checkbox').checked = true;
+        }
+
+        function clearAll() {
+            document.querySelectorAll('.subscriber-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            document.getElementById('select-all-checkbox').checked = false;
         }
 
         // Update file input label with selected file name
