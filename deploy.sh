@@ -239,7 +239,13 @@ if [ "$DEPLOY_MAIL" = "true" ] || [ "$MAIL_ONLY" = "true" ]; then
   # Deploy all files EXCEPT config.php and .htpasswd (which contain credentials)
   scp -P $REMOTE_PORT -r public/floinvite-mail/* $REMOTE_USER@$REMOTE_HOST:$MAIL_DIR/ \
     2>/dev/null || true
-  
+
+  # Deploy PHPMailerHelper to API directory (required by mail system)
+  API_DIR="/home/$REMOTE_USER/domains/floinvite.com/public_html/api"
+  ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $API_DIR" 2>/dev/null || true
+  scp -P $REMOTE_PORT public/api/PHPMailerHelper.php $REMOTE_USER@$REMOTE_HOST:$API_DIR/ \
+    2>/dev/null || true
+
   # Remove uploaded config.php and .htpasswd (we don't want to overwrite server versions)
   ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
     set -e
