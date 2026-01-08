@@ -73,6 +73,38 @@ $stmt->bind_param("ii", $limit, $offset);
 $stmt->execute();
 $subscribers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+// Helper function to determine subscriber segment
+function get_subscriber_segment($db, $subscriber_id, $created_at) {
+    $segments = [];
+    
+    // Check if subscriber has never been contacted
+    $never_contacted_stmt = $db->prepare("
+        SELECT COUNT(*) as count FROM campaign_sends 
+        WHERE subscriber_id = ?
+    ");
+    $never_contacted_stmt->bind_param("i", $subscriber_id);
+    $never_contacted_stmt->execute();
+    $never_contacted_count = $never_contacted_stmt->get_result()->fetch_assoc()['count'] ?? 0;
+    
+    if ($never_contacted_count === 0 || $never_contacted_count === '0') {
+        $segments[] = 'Never Contacted';
+    }
+    
+    // Check if subscriber is a new subscriber (created after most recent campaign)
+    $new_sub_stmt = $db->prepare("
+        SELECT MAX(started_at) as last_campaign FROM campaigns 
+        WHERE status IN ('completed', 'sending') AND started_at IS NOT NULL
+    ");
+    $new_sub_stmt->execute();
+    $last_campaign = $new_sub_stmt->get_result()->fetch_assoc()['last_campaign'] ?? null;
+    
+    if ($last_campaign && strtotime($created_at) > strtotime($last_campaign)) {
+        $segments[] = 'New Subscriber';
+    }
+    
+    return !empty($segments) ? implode(', ', $segments) : '-';
+}
+
 // Handle add subscriber
 if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
     $email = trim($_POST['email'] ?? '');
@@ -350,6 +382,7 @@ if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] 
                                 <th>Company</th>
                                 <th>Status</th>
                                 <th>Subscribed</th>
+                                <th>Segment</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -366,6 +399,7 @@ if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] 
                                         </span>
                                     </td>
                                     <td><?php echo date('M d, Y', strtotime($sub['created_at'])); ?></td>
+                                    <td><?php echo htmlspecialchars(get_subscriber_segment($db, $sub['id'], $sub['created_at'])); ?></td>
                                     <td>
                                         <button type="submit" name="delete_id" value="<?php echo (int) $sub['id']; ?>" class="btn-danger" onclick="return confirm('Delete this subscriber?')">Delete</button>
                                     </td>
