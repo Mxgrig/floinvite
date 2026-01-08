@@ -10,6 +10,16 @@ ini_set('display_errors', 1);
 
 header('Content-Type: application/json; charset=utf-8');
 
+$token = getenv('MAIL_TEST_TOKEN') ?: '';
+if (php_sapi_name() !== 'cli') {
+    $provided = $_GET['token'] ?? '';
+    if (empty($token) || !hash_equals($token, $provided)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Forbidden'], JSON_PRETTY_PRINT);
+        exit;
+    }
+}
+
 $results = [];
 
 try {
@@ -28,7 +38,7 @@ try {
     try {
         $host = getenv('DB_HOST_MAIL') ?: getenv('DB_HOST') ?: 'localhost';
         $user = getenv('DB_USER_MAIL') ?: getenv('DB_USER') ?: 'u958180753_mail';
-        $pass = getenv('DB_PASS_MAIL') ?: getenv('DB_PASS') ?: 'floinvit3_Mail#';
+        $pass = getenv('DB_PASS_MAIL') ?: getenv('DB_PASS') ?: '';
         $name = getenv('DB_NAME_MAIL') ?: getenv('DB_NAME') ?: 'u958180753_mail';
 
         $pdo = new PDO(
