@@ -96,6 +96,83 @@ function fetch_subscriber_statuses($db, $emails) {
     return $found;
 }
 
+/**
+ * Get count of subscribers who have never received a campaign
+ */
+function get_never_contacted_count($db) {
+    $stmt = $db->prepare("
+        SELECT COUNT(*) as count FROM subscribers 
+        WHERE status = 'active' 
+        AND id NOT IN (SELECT DISTINCT subscriber_id FROM campaign_sends)
+    ");
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    return (int)($result['count'] ?? 0);
+}
+
+/**
+ * Get count of new subscribers (created after most recent campaign started)
+ */
+function get_new_subscribers_count($db) {
+    $stmt = $db->prepare("
+        SELECT COUNT(*) as count FROM subscribers 
+        WHERE status = 'active' 
+        AND created_at > (
+            SELECT MAX(started_at) FROM campaigns 
+            WHERE status IN ('completed', 'sending') 
+            AND started_at IS NOT NULL
+        )
+    ");
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    return (int)($result['count'] ?? 0);
+}
+
+/**
+ * Get count of all active subscribers
+ */
+function get_all_active_count($db) {
+    $stmt = $db->prepare("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    return (int)($result['count'] ?? 0);
+}
+
+/**
+ * Fetch subscribers for a given segment
+ */
+function get_segment_subscribers($db, $segment) {
+    if ($segment === 'never_contacted') {
+        $stmt = $db->prepare("
+            SELECT id, email, name, company FROM subscribers
+            WHERE status = 'active' 
+            AND id NOT IN (SELECT DISTINCT subscriber_id FROM campaign_sends)
+            ORDER BY id
+        ");
+    } elseif ($segment === 'new_subscribers') {
+        $stmt = $db->prepare("
+            SELECT id, email, name, company FROM subscribers
+            WHERE status = 'active'
+            AND created_at > (
+                SELECT MAX(started_at) FROM campaigns 
+                WHERE status IN ('completed', 'sending')
+                AND started_at IS NOT NULL
+            )
+            ORDER BY id
+        ");
+    } else {
+        // Default to all active
+        $stmt = $db->prepare("
+            SELECT id, email, name, company FROM subscribers
+            WHERE status = 'active'
+            ORDER BY id
+        ");
+    }
+    
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
 function get_csrf_token() {
     $now = time();
     $token = $_SESSION['csrf_token'] ?? null;
@@ -557,9 +634,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $csrf_token = $_POST['csrf_token'] ?? '';
 
-    $send_mode = $_POST['send_mode'] ?? 'all';
-    $allow_new = !empty($_POST['allow_new']);
-    $allow_reactivate = !empty($_POST['allow_reactivate']);
+    $send_segment = $_POST['send_segment'] ?? 'all';
 
     $validation = validate_action_request($action, $campaign, $csrf_token);
     if (!$validation['ok']) {
@@ -571,54 +646,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'preview' && $validation['ok']) {
-        if ($send_mode === 'custom') {
-            $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
-            $parsed = parse_custom_emails($custom_emails_raw);
-
-            if (empty($parsed['emails'])) {
-                $preview_error = 'Provide at least one valid email address to preview.';
-            } else {
-                $statuses = fetch_subscriber_statuses($db, $parsed['emails']);
-                $counts = [
-                    'valid' => count($parsed['emails']),
-                    'invalid' => $parsed['invalid'],
-                    'active' => 0,
-                    'inactive' => 0,
-                    'unsubscribed' => 0,
-                    'new' => 0
-                ];
-
-                foreach ($parsed['emails'] as $email) {
-                    if (isset($statuses[$email])) {
-                        if ($statuses[$email]['status'] === 'active') {
-                            $counts['active']++;
-                        } elseif ($statuses[$email]['status'] === 'unsubscribed') {
-                            $counts['unsubscribed']++;
-                        } else {
-                            $counts['inactive']++;
-                        }
-                    } else {
-                        $counts['new']++;
-                    }
-                }
-
-                $preview = [
-                    'mode' => 'custom',
-                    'counts' => $counts,
-                    'invalid_samples' => $parsed['invalid_samples']
-                ];
-            }
+        // Get subscriber counts for selected segment
+        $segment = $_POST['send_segment'] ?? 'all';
+        
+        if ($segment === 'never_contacted') {
+            $count = get_never_contacted_count($db);
+        } elseif ($segment === 'new_subscribers') {
+            $count = get_new_subscribers_count($db);
         } else {
-            $stmt = $db->prepare("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
-            $stmt->execute();
-            $count = $stmt->fetch()['count'] ?? 0;
-            $preview = [
-                'mode' => 'all',
-                'counts' => [
-                    'active' => (int) $count
-                ]
-            ];
+            $count = get_all_active_count($db);
         }
+        
+        $preview = [
+            'mode' => 'segment',
+            'segment' => $segment,
+            'counts' => [
+                'active' => $count
+            ]
+        ];
     }
 
     if ($action === 'cancel') {
@@ -845,167 +890,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             // Transaction handling below
         }
-        $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
-
-        // Try to get recipients from session (CSV/manual with name/company)
-        $prefill = $_SESSION['send_prefill'][$campaign_id] ?? null;
-        $recipients_from_session = $prefill['recipients'] ?? [];
-
-        // If campaign has send_to_all_active flag, force to 'all' mode
-        if (!empty($campaign['send_to_all_active'])) {
-            $send_mode = 'all';
-        }
-
-        // If we have recipients from session (CSV/manual), use those with name/company
-        if (!empty($recipients_from_session) && $send_mode !== 'all') {
-            $invalid = 0;
-            $invalid_samples = [];
-            $emails = [];
-            $recipients = [];
-
-            foreach ($recipients_from_session as $recipient) {
-                $email = strtolower(trim($recipient['email'] ?? ''));
-                if ($email === '' || !validate_email($email)) {
-                    $invalid++;
-                    if (count($invalid_samples) < 20 && $email !== '') {
-                        $invalid_samples[] = $email;
-                    }
-                    continue;
-                }
-                if (isset($emails[$email])) {
-                    continue;
-                }
-                $emails[$email] = true;
-                $recipients[] = [
-                    'email' => $email,
-                    'name' => $recipient['name'] ?? '',
-                    'company' => $recipient['company'] ?? ''
-                ];
-            }
-
-            $parsed = [
-                'emails' => array_keys($emails),
-                'invalid' => $invalid,
-                'invalid_samples' => $invalid_samples,
-                'recipients' => $recipients
-            ];
-        } else {
-            // Fallback to parsing custom emails text (for backwards compatibility)
-            $parsed = parse_custom_emails($custom_emails_raw);
-            // Convert email array to recipients array format
-            $parsed['recipients'] = array_map(function($email) {
-                return ['email' => $email, 'name' => '', 'company' => ''];
-            }, $parsed['emails']);
-        }
+        
+        // Get segment from form
+        $segment = $_POST['send_segment'] ?? 'all';
+        $subscribers = get_segment_subscribers($db, $segment);
 
         $transaction_started = false;
         try {
             $db->begin_transaction();
             $transaction_started = true;
 
-            $subscribers = [];
-            $skipped = [
-                'unsubscribed' => 0,
-                'inactive' => 0,
-                'new' => 0,
-                'invalid' => $parsed['invalid']
-            ];
-
-            if ($send_mode === 'custom') {
-                if (empty($parsed['emails'])) {
-                    if ($transaction_started) $db->rollback();
-                    respond_or_redirect(false, null, 'Provide at least one valid email address.', $campaign_id);
-                }
-
-                $find_stmt = $db->prepare("SELECT id, status FROM subscribers WHERE email = ?");
-                $insert_stmt = $db->prepare("
-                    INSERT INTO subscribers (email, name, company, status)
-                    VALUES (?, ?, ?, 'active')
-                ");
-                $activate_stmt = $db->prepare("
-                    UPDATE subscribers SET status = 'active'
-                    WHERE id = ?
-                ");
-
-                // Create email to recipient mapping for quick lookup
-                $recipient_map = [];
-                foreach ($parsed['recipients'] as $recipient) {
-                    $email_key = strtolower($recipient['email'] ?? '');
-                    $recipient_map[$email_key] = $recipient;
-                }
-
-                foreach ($parsed['emails'] as $email) {
-                    $email_lower = strtolower($email);
-                    $recipient = $recipient_map[$email_lower] ?? ['email' => $email, 'name' => '', 'company' => ''];
-
-                    $find_stmt->bind_param("s", $email_lower);
-                    $find_stmt->execute();
-                    $existing = $find_stmt->get_result()->fetch_assoc();
-
-                    if ($existing) {
-                        if ($existing['status'] === 'unsubscribed') {
-                            if ($allow_reactivate) {
-                                $existing_id = $existing['id'];
-                                $activate_stmt->bind_param("i", $existing_id);
-                                $activate_stmt->execute();
-                                $subscribers[] = [
-                                    'id' => $existing['id'],
-                                    'email' => $email_lower,
-                                    'name' => $recipient['name'] ?? '',
-                                    'company' => $recipient['company'] ?? ''
-                                ];
-                            } else {
-                                $skipped['unsubscribed']++;
-                            }
-                            continue;
-                        }
-                        if ($existing['status'] !== 'active') {
-                            if (!$allow_reactivate) {
-                                $skipped['inactive']++;
-                                continue;
-                            }
-                            $existing_id = $existing['id'];
-                            $activate_stmt->bind_param("i", $existing_id);
-                            $activate_stmt->execute();
-                        }
-                        $subscribers[] = [
-                            'id' => $existing['id'],
-                            'email' => $email_lower,
-                            'name' => $recipient['name'] ?? '',
-                            'company' => $recipient['company'] ?? ''
-                        ];
-                        continue;
-                    }
-
-                    if ($allow_new) {
-                        $recipient_name = $recipient['name'] ?? '';
-                        $recipient_company = $recipient['company'] ?? '';
-                        $insert_stmt->bind_param("sss", $email_lower, $recipient_name, $recipient_company);
-                        $insert_stmt->execute();
-                        $subscribers[] = [
-                            'id' => $db->insert_id,
-                            'email' => $email_lower,
-                            'name' => $recipient['name'] ?? '',
-                            'company' => $recipient['company'] ?? ''
-                        ];
-                    } else {
-                        $skipped['new']++;
-                    }
-                }
-            } else {
-                // Get active subscribers
-                $stmt = $db->prepare("
-                    SELECT id, email, name, company FROM subscribers
-                    WHERE status = 'active'
-                    ORDER BY id
-                ");
-                $stmt->execute();
-                $subscribers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-            }
-
+            // Subscribers already fetched by get_segment_subscribers()
             if (empty($subscribers)) {
                 if ($transaction_started) $db->rollback();
-                respond_or_redirect(false, null, 'No active subscribers to send to', $campaign_id);
+                respond_or_redirect(false, null, 'No subscribers in selected segment.', $campaign_id);
             }
 
             $count = 0;
@@ -1111,10 +1009,9 @@ if (!empty($_GET['api'])) {
     exit;
 }
 
-$selected_send_mode = $_POST['send_mode'] ?? ($prefill_mode ?: 'all');
+$selected_segment = $_POST['send_segment'] ?? 'all';
 $custom_emails_display = $_POST['custom_emails'] ?? $prefill_custom;
-$allow_new_checked = !empty($_POST['allow_new']);
-$allow_reactivate_checked = !empty($_POST['allow_reactivate']);
+
 $csrf_token = get_csrf_token();
 
 $flash_notice = $_SESSION['send_notice'] ?? null;
@@ -1182,16 +1079,11 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
             <div class="section">
                 <h2>Ready to Send?</h2>
                 <p style="margin-bottom: 1rem; color: #6b7280;">
-                    Choose whether to send to all active subscribers or a custom list.
+                    Choose which segment to send to.
                 </p>
 
-                <div class="recipient-count">
-                    <?php
-                        $stmt = $db->prepare("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
-                        $stmt->execute();
-                        $count = $stmt->fetch()['count'];
-                        echo number_format($count);
-                    ?> Recipients
+                <div class="recipient-count" id="segment-count">
+                    Loading segment counts...
                 </div>
 
                 <?php if ($preview_error): ?>
@@ -1199,38 +1091,18 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                 <?php elseif ($preview): ?>
                     <div class="preview-box">
                         <strong>Recipient preview</strong>
-                        <?php if ($preview['mode'] === 'all'): ?>
+                        <?php if ($preview && $preview['mode'] === 'segment'): ?>
                             <div class="preview-grid">
                                 <div class="preview-item">
                                     <?php echo number_format($preview['counts']['active']); ?>
-                                    <span>Active subscribers</span>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <div class="preview-grid">
-                                <div class="preview-item">
-                                    <?php echo number_format($preview['counts']['valid']); ?>
-                                    <span>Valid emails</span>
-                                </div>
-                                <div class="preview-item">
-                                    <?php echo number_format($preview['counts']['invalid']); ?>
-                                    <span>Invalid entries</span>
-                                </div>
-                                <div class="preview-item">
-                                    <?php echo number_format($preview['counts']['active']); ?>
-                                    <span>Active subscribers</span>
-                                </div>
-                                <div class="preview-item">
-                                    <?php echo number_format($preview['counts']['inactive']); ?>
-                                    <span>Inactive subscribers</span>
-                                </div>
-                                <div class="preview-item">
-                                    <?php echo number_format($preview['counts']['unsubscribed']); ?>
-                                    <span>Unsubscribed</span>
-                                </div>
-                                <div class="preview-item">
-                                    <?php echo number_format($preview['counts']['new']); ?>
-                                    <span>New addresses</span>
+                                    <span><?php 
+                                        $segment_labels = [
+                                            'all' => 'All Active Subscribers',
+                                            'never_contacted' => 'Never Contacted',
+                                            'new_subscribers' => 'New Subscribers'
+                                        ];
+                                        echo $segment_labels[$preview['segment']] ?? 'Recipients';
+                                    ?></span>
                                 </div>
                             </div>
                         <?php endif; ?>
@@ -1240,37 +1112,29 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                     <div class="send-mode">
-                        <div class="send-option">
-                            <input type="radio" id="send-all" name="send_mode" value="all" <?php echo $selected_send_mode === 'all' ? 'checked' : ''; ?>>
-                            <label for="send-all">Send to all active subscribers (<?php echo number_format($count); ?>)</label>
-                        </div>
-                        <div class="send-option">
-                            <input type="radio" id="send-custom" name="send_mode" value="custom" <?php echo $selected_send_mode === 'custom' ? 'checked' : ''; ?>>
-                            <label for="send-custom">Send to specific email addresses</label>
-                        </div>
-                        <div class="custom-only">
+                        <label for="send_segment" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                            Select segment:
+                        </label>
+                        <select name="send_segment" id="send_segment" style="padding: 0.5rem; font-size: 1rem; border: 1px solid #ddd; border-radius: 4px; width: 100%; max-width: 400px; margin-bottom: 1rem;">
+                            <?php
+                                $all_count = get_all_active_count($db);
+                                $never_contacted_count = get_never_contacted_count($db);
+                                $new_count = get_new_subscribers_count($db);
+                                $selected_segment = $_POST['send_segment'] ?? 'all';
+                            ?>
+                            <option value="all" <?php echo $selected_segment === 'all' ? 'selected' : ''; ?>>
+                                All Active Subscribers (<?php echo number_format($all_count); ?>)
+                            </option>
+                            <option value="never_contacted" <?php echo $selected_segment === 'never_contacted' ? 'selected' : ''; ?>>
+                                Never Contacted (<?php echo number_format($never_contacted_count); ?>)
+                            </option>
+                            <option value="new_subscribers" <?php echo $selected_segment === 'new_subscribers' ? 'selected' : ''; ?>>
+                                New Subscribers (<?php echo number_format($new_count); ?>)
+                            </option>
+                        </select>
+                        <div class="custom-only" style="display: none;">
                             <textarea class="custom-emails" name="custom_emails" placeholder="name@company.com, another@domain.com&#10;one@more.com"><?php echo htmlspecialchars($custom_emails_display); ?></textarea>
                             <div class="helper-text">Comma, space, or newline separated.</div>
-                            <?php if ($preview && $preview['mode'] === 'custom' && $preview['counts']['invalid'] > 0): ?>
-                                <div class="invalid-list">
-                                    Invalid entries (first <?php echo count($preview['invalid_samples']); ?>):
-                                    <?php echo htmlspecialchars(implode(', ', $preview['invalid_samples'])); ?>
-                                    <?php
-                                        $remaining_invalid = $preview['counts']['invalid'] - count($preview['invalid_samples']);
-                                        if ($remaining_invalid > 0):
-                                    ?>
-                                        <span class="invalid-count">And <?php echo $remaining_invalid; ?> more.</span>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endif; ?>
-                            <label class="send-option" style="margin-top: 0.75rem;">
-                                <input type="checkbox" name="allow_new" <?php echo $allow_new_checked ? 'checked' : ''; ?>>
-                                Allow new addresses (create subscribers)
-                            </label>
-                            <label class="send-option">
-                                <input type="checkbox" name="allow_reactivate" <?php echo $allow_reactivate_checked ? 'checked' : ''; ?>>
-                                Allow reactivation of inactive or unsubscribed addresses
-                            </label>
                         </div>
                     </div>
                     <div class="button-group">
@@ -1281,8 +1145,8 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                             $disable_send_reason = '';
                             if ($preview_error) {
                                 $disable_send_reason = 'Fix preview errors before sending.';
-                            } elseif ($preview && $preview['mode'] === 'custom' && $preview['counts']['valid'] === 0) {
-                                $disable_send_reason = 'No valid recipients to send.';
+                            } elseif ($preview && $preview['counts']['active'] === 0) {
+                                $disable_send_reason = 'No recipients in selected segment.';
                             }
                             $disable_send = $disable_send_reason !== '';
                         ?>
@@ -1428,32 +1292,7 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
         <?php endif; ?>
     </div>
 
-    <script>
-        const sendAll = document.getElementById('send-all');
-        const sendCustom = document.getElementById('send-custom');
-        const customSection = document.querySelector('.custom-only');
-
-        function updateSendMode() {
-            if (!sendAll || !sendCustom || !customSection) {
-                return;
-            }
-            const isCustom = sendCustom.checked;
-            customSection.style.display = isCustom ? 'block' : 'none';
-            const textarea = customSection.querySelector('textarea');
-            if (textarea) {
-                textarea.disabled = !isCustom;
-            }
-            customSection.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-                input.disabled = !isCustom;
-            });
-        }
-
-        if (sendAll && sendCustom && customSection) {
-            sendAll.addEventListener('change', updateSendMode);
-            sendCustom.addEventListener('change', updateSendMode);
-            updateSendMode();
-        }
-    </script>
+    <!-- Segment mode: no custom JavaScript needed -->
 
     <!-- Footer -->
     <div class="container">
