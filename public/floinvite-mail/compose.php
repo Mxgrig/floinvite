@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         SET name = ?, subject = ?, from_name = ?, greeting = ?, html_body = ?, signature = ?, send_method = ?, scheduled_at = ?, send_to_all_active = ?
                         WHERE id = ?
                     ");
-                    $stmt->bind_param("ssssssisii", $name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active, $campaign_id);
+                    $stmt->bind_param("ssssssssii", $name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active, $campaign_id);
                     $stmt->execute();
                     $message = 'Campaign updated successfully';
                 } else {
@@ -106,8 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         INSERT INTO campaigns (name, subject, from_name, greeting, html_body, signature, send_method, scheduled_at, send_to_all_active, status)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')
                     ");
-                    $draft_status = 'draft';
-                    $stmt->bind_param("ssssssssis", $name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active, $draft_status);
+                    $stmt->bind_param("ssssssssi", $name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active);
                     $stmt->execute();
                     $campaign_id = $db->insert_id;
                     $message = 'Campaign created successfully';
