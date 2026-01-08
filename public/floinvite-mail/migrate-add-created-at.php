@@ -15,8 +15,10 @@ try {
     // Check if column already exists
     $check_stmt = $db->prepare("
         SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_NAME = 'subscribers' AND COLUMN_NAME = 'created_at'
+        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'subscribers' AND COLUMN_NAME = 'created_at'
     ");
+    $db_name = DB_NAME;
+    $check_stmt->bind_param("s", $db_name);
     $check_stmt->execute();
     $exists = $check_stmt->get_result()->fetch_assoc();
 

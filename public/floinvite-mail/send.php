@@ -111,18 +111,58 @@ function get_never_contacted_count($db) {
 }
 
 /**
+ * Check if subscribers.created_at exists (migration applied).
+ */
+function has_subscriber_created_at($db) {
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
+
+    $stmt = $db->prepare("
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'subscribers' AND COLUMN_NAME = 'created_at'
+        LIMIT 1
+    ");
+    $db_name = DB_NAME;
+    $stmt->bind_param("s", $db_name);
+    $stmt->execute();
+    $cached = (bool) $stmt->get_result()->fetch_assoc();
+    return $cached;
+}
+
+/**
+ * Get the most recent campaign start timestamp, if any.
+ */
+function get_last_campaign_started_at($db) {
+    $stmt = $db->prepare("
+        SELECT MAX(started_at) as last_campaign FROM campaigns
+        WHERE status IN ('completed', 'sending') AND started_at IS NOT NULL
+    ");
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return $row['last_campaign'] ?? null;
+}
+
+/**
  * Get count of new subscribers (created after most recent campaign started)
  */
 function get_new_subscribers_count($db) {
+    if (!has_subscriber_created_at($db)) {
+        return 0;
+    }
+
+    $last_campaign = get_last_campaign_started_at($db);
+    if (!$last_campaign) {
+        return 0;
+    }
+
     $stmt = $db->prepare("
         SELECT COUNT(*) as count FROM subscribers 
         WHERE status = 'active' 
-        AND created_at > (
-            SELECT MAX(started_at) FROM campaigns 
-            WHERE status IN ('completed', 'sending') 
-            AND started_at IS NOT NULL
-        )
+        AND created_at > ?
     ");
+    $stmt->bind_param("s", $last_campaign);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
     return (int)($result['count'] ?? 0);
@@ -150,16 +190,20 @@ function get_segment_subscribers($db, $segment) {
             ORDER BY id
         ");
     } elseif ($segment === 'new_subscribers') {
+        if (!has_subscriber_created_at($db)) {
+            return [];
+        }
+        $last_campaign = get_last_campaign_started_at($db);
+        if (!$last_campaign) {
+            return [];
+        }
         $stmt = $db->prepare("
             SELECT id, email, name, company FROM subscribers
             WHERE status = 'active'
-            AND created_at > (
-                SELECT MAX(started_at) FROM campaigns 
-                WHERE status IN ('completed', 'sending')
-                AND started_at IS NOT NULL
-            )
+            AND created_at > ?
             ORDER BY id
         ");
+        $stmt->bind_param("s", $last_campaign);
     } else {
         // Default to all active
         $stmt = $db->prepare("
