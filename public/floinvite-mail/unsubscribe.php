@@ -22,8 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || !empty($token)) {
                 SELECT subscriber_id FROM campaign_sends
                 WHERE unsubscribe_token = ? LIMIT 1
             ");
-            $stmt->execute([$token]);
-            $record = $stmt->fetch();
+            $stmt->bind_param("s", $token);
+            $stmt->execute();
+            $record = $stmt->get_result()->fetch_assoc();
 
             if (!$record) {
                 $message = 'Invalid or expired unsubscribe link';
@@ -34,27 +35,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || !empty($token)) {
                     SET status = 'unsubscribed'
                     WHERE id = ?
                 ");
-                $stmt->execute([$record['subscriber_id']]);
+                $subscriber_id = $record['subscriber_id'];
+                $stmt->bind_param("i", $subscriber_id);
+                $stmt->execute();
 
                 // Log analytics
                 $stmt = $db->prepare("
                     SELECT campaign_id, id as send_id FROM campaign_sends
                     WHERE unsubscribe_token = ?
                 ");
-                $stmt->execute([$token]);
-                $send = $stmt->fetch();
+                $stmt->bind_param("s", $token);
+                $stmt->execute();
+                $send = $stmt->get_result()->fetch_assoc();
 
                 if ($send) {
                     $stmt = $db->prepare("
                         INSERT INTO analytics (campaign_id, send_id, event_type, ip_address, user_agent)
                         VALUES (?, ?, 'unsubscribed', ?, ?)
                     ");
-                    $stmt->execute([
-                        $send['campaign_id'],
-                        $send['send_id'],
-                        $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                        $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
-                    ]);
+                    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+                    $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+                    $stmt->bind_param("iiss", $send['campaign_id'], $send['send_id'], $ip, $ua);
+                    $stmt->execute();
                 }
 
                 $message = 'You have been successfully unsubscribed';

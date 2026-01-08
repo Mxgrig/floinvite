@@ -60,7 +60,7 @@ $limit = 50;
 $offset = ($page - 1) * $limit;
 
 $result = $db->query("SELECT COUNT(*) as count FROM subscribers");
-$total = $result->fetch()['count'] ?? 0;
+$total = $result->fetch_assoc()['count'] ?? 0;
 $pages = ceil($total / $limit);
 
 $stmt = $db->prepare("
@@ -69,10 +69,9 @@ $stmt = $db->prepare("
     ORDER BY created_at DESC
     LIMIT ? OFFSET ?
 ");
-$stmt->bindValue(1, $limit, PDO::PARAM_INT);
-$stmt->bindValue(2, $offset, PDO::PARAM_INT);
+$stmt->bind_param("ii", $limit, $offset);
 $stmt->execute();
-$subscribers = $stmt->fetchAll();
+$subscribers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Handle add subscriber
 if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
@@ -88,11 +87,13 @@ if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
                 INSERT INTO subscribers (email, name, company, status)
                 VALUES (?, ?, ?, 'active')
             ");
-            $stmt->execute([$email, $name, $company]);
+            $active_status = 'active';
+            $stmt->bind_param("sss", $email, $name, $company);
+            $stmt->execute();
             $message = 'Subscriber added successfully';
             log_activity('subscriber_added', ['email' => $email]);
-        } catch (PDOException $e) {
-            if (strpos($e->getMessage(), 'UNIQUE') !== false) {
+        } catch (Exception $e) {
+            if (strpos($e->getMessage(), 'UNIQUE') !== false || strpos($e->getMessage(), 'Duplicate') !== false) {
                 $message = 'This email is already subscribed';
             } else {
                 $message = 'Error adding subscriber';
@@ -113,8 +114,10 @@ if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_d
         try {
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
             $stmt = $db->prepare("DELETE FROM subscribers WHERE id IN ($placeholders)");
-            $stmt->execute($ids);
-            $deleted = $stmt->rowCount();
+            $types = str_repeat('i', count($ids));
+            $stmt->bind_param($types, ...$ids);
+            $stmt->execute();
+            $deleted = $stmt->affected_rows;
             $message = "Deleted $deleted subscriber(s)";
             log_activity('subscribers_bulk_deleted', ['count' => $deleted]);
         } catch (Exception $e) {
@@ -131,7 +134,8 @@ if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete
     if ($id > 0) {
         try {
             $stmt = $db->prepare("DELETE FROM subscribers WHERE id = ?");
-            $stmt->execute([$id]);
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
             $message = 'Subscriber deleted';
             log_activity('subscriber_deleted', ['id' => $id]);
         } catch (Exception $e) {
@@ -166,9 +170,11 @@ if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] 
                         INSERT INTO subscribers (email, name, company, status)
                         VALUES (?, ?, ?, 'active')
                     ");
-                    $stmt->execute([$email, $name, $company]);
+                    $active_status = 'active';
+                    $stmt->bind_param("sss", $email, $name, $company);
+                    $stmt->execute();
                     $count++;
-                } catch (PDOException $e) {
+                } catch (Exception $e) {
                     $skipped++;
                 }
             } else {
@@ -309,7 +315,7 @@ if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] 
                 <div class="stat-value">
                     <?php
                         $result = $db->query("SELECT COUNT(*) as count FROM subscribers WHERE status = 'unsubscribed'");
-                        echo number_format($result->fetch()['count'] ?? 0);
+                        echo number_format($result->fetch_assoc()['count'] ?? 0);
                     ?>
                 </div>
                 <div class="stat-label">Unsubscribed</div>

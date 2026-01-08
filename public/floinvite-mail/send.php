@@ -18,8 +18,9 @@ if (!$campaign_id) {
 
 // Get campaign
 $stmt = $db->prepare("SELECT * FROM campaigns WHERE id = ?");
-$stmt->execute([$campaign_id]);
-$campaign = $stmt->fetch();
+$stmt->bind_param("i", $campaign_id);
+$stmt->execute();
+$campaign = $stmt->get_result()->fetch_assoc();
 
 if (!$campaign) {
     handle_error('Campaign not found', 404);
@@ -28,13 +29,15 @@ if (!$campaign) {
 // Auto-correct campaign status: if marked completed but has pending/failed emails, revert to sending
 if ($campaign['status'] === 'completed') {
     $pending_check = $db->prepare("SELECT COUNT(*) as count FROM campaign_sends WHERE campaign_id = ? AND status IN ('pending', 'failed')");
-    $pending_check->execute([$campaign_id]);
-    $pending_count = $pending_check->fetch()['count'] ?? 0;
+    $pending_check->bind_param("i", $campaign_id);
+    $pending_check->execute();
+    $pending_count = $pending_check->get_result()->fetch_assoc()['count'] ?? 0;
     
     if ($pending_count > 0) {
         // Status is wrong - update it back to sending
         $fix_status = $db->prepare("UPDATE campaigns SET status = 'sending', completed_at = NULL WHERE id = ?");
-        $fix_status->execute([$campaign_id]);
+        $fix_status->bind_param("i", $campaign_id);
+        $fix_status->execute();
         $campaign['status'] = 'sending';  // Refresh local copy
     }
 }
@@ -78,8 +81,11 @@ function fetch_subscriber_statuses($db, $emails) {
     foreach (array_chunk($emails, 200) as $chunk) {
         $placeholders = implode(',', array_fill(0, count($chunk), '?'));
         $stmt = $db->prepare("SELECT id, email, status FROM subscribers WHERE email IN ($placeholders)");
-        $stmt->execute($chunk);
-        foreach ($stmt->fetchAll() as $row) {
+        $types = str_repeat('s', count($chunk));
+        $stmt->bind_param($types, ...$chunk);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
             $found[strtolower($row['email'])] = [
                 'id' => $row['id'],
                 'status' => $row['status']
@@ -206,8 +212,9 @@ function requeue_cancelled_sends($db, $campaign_id) {
           AND status = 'failed'
           AND error_message = 'Cancelled by admin'
     ");
-    $update_queue_stmt->execute([$campaign_id]);
-    $requeued = $update_queue_stmt->rowCount();
+    $update_queue_stmt->bind_param("i", $campaign_id);
+    $update_queue_stmt->execute();
+    $requeued = $update_queue_stmt->affected_rows;
 
     if ($requeued > 0) {
         // Update campaign_sends records back to 'pending'
@@ -223,7 +230,8 @@ function requeue_cancelled_sends($db, $campaign_id) {
                     AND error_message IS NULL
               )
         ");
-        $update_sends_stmt->execute([$campaign_id, $campaign_id]);
+        $update_sends_stmt->bind_param("ii", $campaign_id, $campaign_id);
+        $update_sends_stmt->execute();
     }
 
     return $requeued;
@@ -243,8 +251,9 @@ function ensure_send_queue_exists($db, $campaign_id) {
                 AND status IN ('pending', 'failed')
           )
     ");
-    $requeue_stmt->execute([$campaign_id, $campaign_id]);
-    $requeued = $requeue_stmt->rowCount();
+    $requeue_stmt->bind_param("ii", $campaign_id, $campaign_id);
+    $requeue_stmt->execute();
+    $requeued = $requeue_stmt->affected_rows;
 
     // Create missing send_queue records for pending campaign_sends
     // This fixes cases where send_queue records weren't created during campaign start
@@ -259,8 +268,9 @@ function ensure_send_queue_exists($db, $campaign_id) {
               WHERE campaign_id = ?
           )
     ");
-    $insert_stmt->execute([$campaign_id, $campaign_id]);
-    $inserted = $insert_stmt->rowCount();
+    $insert_stmt->bind_param("ii", $campaign_id, $campaign_id);
+    $insert_stmt->execute();
+    $inserted = $insert_stmt->affected_rows;
 
     // Remove duplicate queued records, keeping only the oldest one per send_id
     // This can happen if the INSERT runs multiple times or records were recreated
@@ -275,7 +285,8 @@ function ensure_send_queue_exists($db, $campaign_id) {
         ) keep ON sq.send_id = keep.send_id AND sq.id > keep.keep_id
         WHERE sq.campaign_id = ?
     ");
-    $dedupe_stmt->execute([$campaign_id, $campaign_id]);
+    $dedupe_stmt->bind_param("ii", $campaign_id, $campaign_id);
+    $dedupe_stmt->execute();
 
     return $requeued + $inserted;
 }
@@ -297,8 +308,9 @@ function add_missing_all_active_subscribers($db, $campaign_id, $campaign) {
         )
         ORDER BY s.id
     ");
-    $missing_stmt->execute([$campaign_id]);
-    $missing = $missing_stmt->fetchAll();
+    $missing_stmt->bind_param("i", $campaign_id);
+    $missing_stmt->execute();
+    $missing = $missing_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     if (empty($missing)) {
         return 0;  // No missing subscribers
@@ -315,16 +327,14 @@ function add_missing_all_active_subscribers($db, $campaign_id, $campaign) {
         try {
             $tracking_id = generate_tracking_id();
             $unsubscribe_token = generate_unsubscribe_token();
+            $sub_id = $sub['id'];
+            $sub_email = $sub['email'];
+            $sub_name = $sub['name'] ?? '';
+            $sub_company = $sub['company'] ?? '';
+            $status = 'pending';
 
-            $insert_stmt->execute([
-                $campaign_id,
-                $sub['id'],
-                $sub['email'],
-                $sub['name'] ?? '',
-                $sub['company'] ?? '',
-                $tracking_id,
-                $unsubscribe_token
-            ]);
+            $insert_stmt->bind_param("iisssss", $campaign_id, $sub_id, $sub_email, $sub_name, $sub_company, $tracking_id, $unsubscribe_token);
+            $insert_stmt->execute();
             $added++;
         } catch (Exception $e) {
             // Skip this subscriber if insert fails (e.g., duplicate)
@@ -345,7 +355,8 @@ function add_missing_all_active_subscribers($db, $campaign_id, $campaign) {
                 WHERE campaign_id = ?
             )
         ");
-        $queue_stmt->execute([$campaign_id, $campaign_id]);
+        $queue_stmt->bind_param("ii", $campaign_id, $campaign_id);
+        $queue_stmt->execute();
     }
 
     return $added;
@@ -382,10 +393,11 @@ function process_campaign_queue($db, $campaign_id, $limit) {
               OR (c.send_method = 'scheduled' AND c.scheduled_at IS NOT NULL AND c.scheduled_at <= NOW())
           )
         ORDER BY q.created_at ASC
-        LIMIT $limit
+        LIMIT ?
     ");
-    $stmt->execute([$campaign_id]);
-    $queued = $stmt->fetchAll();
+    $stmt->bind_param("ii", $campaign_id, $limit);
+    $stmt->execute();
+    $queued = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     if (empty($queued)) {
         return ['processed' => 0, 'sent' => 0, 'failed' => 0];
@@ -398,7 +410,9 @@ function process_campaign_queue($db, $campaign_id, $limit) {
     foreach ($queued as $item) {
         try {
             $update_stmt = $db->prepare("UPDATE send_queue SET status = 'processing' WHERE id = ?");
-            $update_stmt->execute([$item['queue_id']]);
+            $queue_id = $item['queue_id'];
+            $update_stmt->bind_param("i", $queue_id);
+            $update_stmt->execute();
 
             $html_body = create_email_from_text(
                 $item['greeting'] ?? '',
@@ -434,14 +448,18 @@ function process_campaign_queue($db, $campaign_id, $limit) {
                         SET status = 'sent', sent_at = NOW()
                         WHERE id = ?
                     ");
-                    $update_send->execute([$item['send_id']]);
+                    $send_id = $item['send_id'];
+                    $update_send->bind_param("i", $send_id);
+                    $update_send->execute();
 
                     $update_queue = $db->prepare("
                         UPDATE send_queue
                         SET status = 'sent', attempts = attempts + 1
                         WHERE id = ?
                     ");
-                    $update_queue->execute([$item['queue_id']]);
+                    $queue_id = $item['queue_id'];
+                    $update_queue->bind_param("i", $queue_id);
+                    $update_queue->execute();
 
                     $sent++;
                 } else {
@@ -463,7 +481,9 @@ function process_campaign_queue($db, $campaign_id, $limit) {
                     SET status = 'failed', attempts = ?, error_message = ?
                     WHERE id = ?
                 ");
-                $update_stmt->execute([$next_attempts, $error_message, $item['queue_id']]);
+                $queue_id = $item['queue_id'];
+                $update_stmt->bind_param("isi", $next_attempts, $error_message, $queue_id);
+                $update_stmt->execute();
                 $failed++;
             } else {
                 // Still have retries - keep as queued with incremented attempts
@@ -472,7 +492,9 @@ function process_campaign_queue($db, $campaign_id, $limit) {
                     SET status = 'queued', attempts = ?, error_message = ?
                     WHERE id = ?
                 ");
-                $update_stmt->execute([$next_attempts, $error_message, $item['queue_id']]);
+                $queue_id = $item['queue_id'];
+                $update_stmt->bind_param("isi", $next_attempts, $error_message, $queue_id);
+                $update_stmt->execute();
             }
         }
 
@@ -486,7 +508,11 @@ function process_campaign_queue($db, $campaign_id, $limit) {
             failed_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'failed')
         WHERE id = ?
     ");
-    $update_campaign->execute([$campaign_id, $campaign_id, $campaign_id]);
+    $cid1 = $campaign_id;
+    $cid2 = $campaign_id;
+    $cid3 = $campaign_id;
+    $update_campaign->bind_param("iii", $cid1, $cid2, $cid3);
+    $update_campaign->execute();
 
     return ['processed' => $processed, 'sent' => $sent, 'failed' => $failed];
 }
@@ -597,22 +623,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'cancel') {
         try {
-            $db->beginTransaction();
+            $db->begin_transaction();
 
             $update_campaign = $db->prepare("
                 UPDATE campaigns
                 SET status = 'paused'
                 WHERE id = ? AND status IN ('sending', 'scheduled')
             ");
-            $update_campaign->execute([$campaign_id]);
+            $cid = $campaign_id;
+            $update_campaign->bind_param("i", $cid);
+            $update_campaign->execute();
 
             $cancel_queue = $db->prepare("
                 UPDATE send_queue
                 SET status = 'failed', error_message = 'Cancelled by admin'
                 WHERE campaign_id = ? AND status = 'queued'
             ");
-            $cancel_queue->execute([$campaign_id]);
-            $cancelled = $cancel_queue->rowCount();
+            $cid = $campaign_id;
+            $cancel_queue->bind_param("i", $cid);
+            $cancel_queue->execute();
+            $cancelled = $cancel_queue->affected_rows;
 
             $cancel_sends = $db->prepare("
                 UPDATE campaign_sends
@@ -624,14 +654,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     WHERE campaign_id = ? AND status = 'failed'
                 )
             ");
-            $cancel_sends->execute([$campaign_id, $campaign_id]);
+            $cid1 = $campaign_id;
+            $cid2 = $campaign_id;
+            $cancel_sends->bind_param("ii", $cid1, $cid2);
+            $cancel_sends->execute();
 
             $db->commit();
 
             $message = "Campaign paused. {$cancelled} queued emails cancelled.";
             respond_or_redirect(true, ['cancelled' => $cancelled], $message, $campaign_id);
         } catch (Exception $e) {
-            $db->rollBack();
+            $db->rollback();
             log_campaign_error('cancel', $campaign_id, $e->getMessage());
             respond_or_redirect(false, null, 'Error cancelling campaign: ' . $e->getMessage(), $campaign_id);
         }
@@ -639,7 +672,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'resume') {
         try {
-            $db->beginTransaction();
+            $db->begin_transaction();
 
             $send_method = $campaign['send_method'] ?? 'queue';
             $scheduled_at = $campaign['scheduled_at'] ?? null;
@@ -652,7 +685,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 SET status = ?
                 WHERE id = ? AND status = 'paused'
             ");
-            $update_campaign->execute([$resume_status, $campaign_id]);
+            $cid = $campaign_id;
+            $update_campaign->bind_param("si", $resume_status, $cid);
+            $update_campaign->execute();
 
             $requeued = requeue_cancelled_sends($db, $campaign_id);
             $db->commit();
@@ -664,7 +699,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: send.php?id={$campaign_id}");
             exit;
         } catch (Exception $e) {
-            $db->rollBack();
+            $db->rollback();
             log_campaign_error('resume', $campaign_id, $e->getMessage());
             $_SESSION['send_notice'] = [
                 'type' => 'error',
@@ -677,7 +712,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'retry_failed') {
         try {
-            $db->beginTransaction();
+            $db->begin_transaction();
 
             // Requeue all failed emails for this campaign
             $update_queue = $db->prepare("
@@ -685,8 +720,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 SET status = 'queued', attempts = 0, error_message = NULL
                 WHERE campaign_id = ? AND status = 'failed'
             ");
-            $update_queue->execute([$campaign_id]);
-            $requeued = $update_queue->rowCount();
+            $cid = $campaign_id;
+            $update_queue->bind_param("i", $cid);
+            $update_queue->execute();
+            $requeued = $update_queue->affected_rows;
 
             if ($requeued > 0) {
                 // Update campaign_sends back to pending
@@ -695,7 +732,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     SET status = 'pending'
                     WHERE campaign_id = ? AND status = 'failed'
                 ");
-                $update_sends->execute([$campaign_id]);
+                $cid = $campaign_id;
+                $update_sends->bind_param("i", $cid);
+                $update_sends->execute();
             }
 
             $db->commit();
@@ -707,7 +746,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: send.php?id={$campaign_id}");
             exit;
         } catch (Exception $e) {
-            $db->rollBack();
+            $db->rollback();
             log_campaign_error('retry_failed', $campaign_id, $e->getMessage());
             $_SESSION['send_notice'] = [
                 'type' => 'error',
@@ -720,7 +759,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'send_now') {
         try {
-            $db->beginTransaction();
+            $db->begin_transaction();
 
             if ($campaign['status'] === 'paused') {
                 $update_campaign = $db->prepare("
@@ -728,7 +767,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     SET status = 'sending', send_method = 'immediate', scheduled_at = NULL
                     WHERE id = ? AND status = 'paused'
                 ");
-                $update_campaign->execute([$campaign_id]);
+                $cid = $campaign_id;
+                $update_campaign->bind_param("i", $cid);
+                $update_campaign->execute();
                 $requeued = requeue_cancelled_sends($db, $campaign_id);
             } else {
                 $update_campaign = $db->prepare("
@@ -736,7 +777,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     SET send_method = 'immediate', scheduled_at = NULL
                     WHERE id = ?
                 ");
-                $update_campaign->execute([$campaign_id]);
+                $cid = $campaign_id;
+                $update_campaign->bind_param("i", $cid);
+                $update_campaign->execute();
                 $requeued = 0;
             }
 
@@ -754,8 +797,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 SELECT COUNT(*) as count FROM campaign_sends
                 WHERE campaign_id = ? AND status IN ('pending', 'failed')
             ");
-            $outstanding_stmt->execute([$campaign_id]);
-            $outstanding_count = $outstanding_stmt->fetch()['count'] ?? 0;
+            $cid = $campaign_id;
+            $outstanding_stmt->bind_param("i", $cid);
+            $outstanding_stmt->execute();
+            $outstanding_count = $outstanding_stmt->get_result()->fetch_assoc()['count'] ?? 0;
 
             // If all emails are done (no pending), mark campaign as completed
             if ($outstanding_count === 0) {
@@ -764,7 +809,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     SET status = 'completed', completed_at = NOW()
                     WHERE id = ? AND status = 'sending'
                 ");
-                $complete_stmt->execute([$campaign_id]);
+                $cid = $campaign_id;
+                $complete_stmt->bind_param("i", $cid);
+                $complete_stmt->execute();
             }
 
             $_SESSION['send_notice'] = [
@@ -793,6 +840,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'start') {
+        try {
+            $db->begin_transaction();
+        } catch (Exception $e) {
+            // Transaction handling below
+        }
         $custom_emails_raw = trim($_POST['custom_emails'] ?? '');
 
         // Try to get recipients from session (CSV/manual with name/company)
@@ -846,8 +898,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }, $parsed['emails']);
         }
 
+        $transaction_started = false;
         try {
-            $db->beginTransaction();
+            $db->begin_transaction();
+            $transaction_started = true;
 
             $subscribers = [];
             $skipped = [
@@ -859,7 +913,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($send_mode === 'custom') {
                 if (empty($parsed['emails'])) {
-                    $db->rollBack();
+                    if ($transaction_started) $db->rollback();
                     respond_or_redirect(false, null, 'Provide at least one valid email address.', $campaign_id);
                 }
 
@@ -884,13 +938,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $email_lower = strtolower($email);
                     $recipient = $recipient_map[$email_lower] ?? ['email' => $email, 'name' => '', 'company' => ''];
 
-                    $find_stmt->execute([$email_lower]);
-                    $existing = $find_stmt->fetch();
+                    $find_stmt->bind_param("s", $email_lower);
+                    $find_stmt->execute();
+                    $existing = $find_stmt->get_result()->fetch_assoc();
 
                     if ($existing) {
                         if ($existing['status'] === 'unsubscribed') {
                             if ($allow_reactivate) {
-                                $activate_stmt->execute([$existing['id']]);
+                                $existing_id = $existing['id'];
+                                $activate_stmt->bind_param("i", $existing_id);
+                                $activate_stmt->execute();
                                 $subscribers[] = [
                                     'id' => $existing['id'],
                                     'email' => $email_lower,
@@ -907,7 +964,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $skipped['inactive']++;
                                 continue;
                             }
-                            $activate_stmt->execute([$existing['id']]);
+                            $existing_id = $existing['id'];
+                            $activate_stmt->bind_param("i", $existing_id);
+                            $activate_stmt->execute();
                         }
                         $subscribers[] = [
                             'id' => $existing['id'],
@@ -919,13 +978,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     if ($allow_new) {
-                        $insert_stmt->execute([
-                            $email_lower,
-                            $recipient['name'] ?? '',
-                            $recipient['company'] ?? ''
-                        ]);
+                        $recipient_name = $recipient['name'] ?? '';
+                        $recipient_company = $recipient['company'] ?? '';
+                        $insert_stmt->bind_param("sss", $email_lower, $recipient_name, $recipient_company);
+                        $insert_stmt->execute();
                         $subscribers[] = [
-                            'id' => $db->lastInsertId(),
+                            'id' => $db->insert_id,
                             'email' => $email_lower,
                             'name' => $recipient['name'] ?? '',
                             'company' => $recipient['company'] ?? ''
@@ -942,11 +1000,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ORDER BY id
                 ");
                 $stmt->execute();
-                $subscribers = $stmt->fetchAll();
+                $subscribers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             }
 
             if (empty($subscribers)) {
-                $db->rollBack();
+                if ($transaction_started) $db->rollback();
                 respond_or_redirect(false, null, 'No active subscribers to send to', $campaign_id);
             }
 
@@ -962,24 +1020,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         campaign_id, subscriber_id, email, name, company, tracking_id, unsubscribe_token, status
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
                 ");
-                $stmt->execute([
-                    $campaign_id,
-                    $sub['id'],
-                    $sub['email'],
-                    $sub['name'] ?? '',
-                    $sub['company'] ?? '',
-                    $tracking_id,
-                    $unsubscribe_token
-                ]);
+                $sub_id = $sub['id'];
+                $sub_email = $sub['email'];
+                $sub_name = $sub['name'] ?? '';
+                $sub_company = $sub['company'] ?? '';
+                $status = 'pending';
+                $stmt->bind_param("iisssss", $campaign_id, $sub_id, $sub_email, $sub_name, $sub_company, $tracking_id, $unsubscribe_token);
+                $stmt->execute();
 
-                $send_id = $db->lastInsertId();
+                $send_id = $db->insert_id;
 
                 // Add to send queue
                 $stmt = $db->prepare("
                     INSERT INTO send_queue (send_id, campaign_id, email, status)
                     VALUES (?, ?, ?, 'queued')
                 ");
-                $stmt->execute([$send_id, $campaign_id, $sub['email']]);
+                $stmt->bind_param("iis", $send_id, $campaign_id, $sub_email);
+                $stmt->execute();
 
                 $count++;
             }
@@ -990,7 +1047,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 SET status = 'sending', recipient_count = ?, started_at = NOW()
                 WHERE id = ?
             ");
-            $stmt->execute([$count, $campaign_id]);
+            $stmt->bind_param("ii", $count, $campaign_id);
+            $stmt->execute();
 
             $db->commit();
 
@@ -1021,7 +1079,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             respond_or_redirect(true, ['queued' => $count], $message, $campaign_id);
         } catch (Exception $e) {
-            $db->rollBack();
+            if ($transaction_started) $db->rollback();
             log_campaign_error('start', $campaign_id, $e->getMessage());
             respond_or_redirect(false, null, 'Error starting campaign: ' . $e->getMessage(), $campaign_id);
         }
@@ -1037,8 +1095,10 @@ $stmt = $db->prepare("
     FROM campaign_sends
     WHERE campaign_id = ?
 ");
-$stmt->execute([$campaign_id]);
-$progress = $stmt->fetch();
+$cid = $campaign_id;
+$stmt->bind_param("i", $cid);
+$stmt->execute();
+$progress = $stmt->get_result()->fetch_assoc();
 
 // Check if API request
 if (!empty($_GET['api'])) {
@@ -1282,12 +1342,16 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                     <!-- Debug info -->
                     <?php
                         $debug_pending = $db->prepare("SELECT COUNT(*) as count FROM campaign_sends WHERE campaign_id = ? AND status = 'pending'");
-                        $debug_pending->execute([$campaign_id]);
-                        $pending_count = $debug_pending->fetch()['count'] ?? 0;
+                        $cid = $campaign_id;
+                        $debug_pending->bind_param("i", $cid);
+                        $debug_pending->execute();
+                        $pending_count = $debug_pending->get_result()->fetch_assoc()['count'] ?? 0;
 
                         $debug_queued = $db->prepare("SELECT COUNT(*) as count FROM send_queue WHERE campaign_id = ? AND status = 'queued'");
-                        $debug_queued->execute([$campaign_id]);
-                        $queued_count = $debug_queued->fetch()['count'] ?? 0;
+                        $cid = $campaign_id;
+                        $debug_queued->bind_param("i", $cid);
+                        $debug_queued->execute();
+                        $queued_count = $debug_queued->get_result()->fetch_assoc()['count'] ?? 0;
                     ?>
                     <div style="background: #f3f4f6; border: 1px solid #e5e7eb; padding: 0.75rem; margin-top: 1rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.875rem;">
                         <strong>Debug Info:</strong><br>
