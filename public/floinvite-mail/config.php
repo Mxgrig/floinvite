@@ -90,30 +90,28 @@ function handle_error($message, $code = 500) {
     exit;
 }
 
-// Database Connection
+// Database Connection (Using MySQLi instead of PDO)
 function get_db() {
-    static $pdo = null;
+    static $mysqli = null;
 
-    if ($pdo === null) {
+    if ($mysqli === null) {
         try {
-            $pdo = new PDO(
-                'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
-                DB_USER,
-                DB_PASS,
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_TIMEOUT => 5
-                ]
-            );
-        } catch (PDOException $e) {
-            // Log detailed error for debugging
+            $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+            if ($mysqli->connect_error) {
+                error_log("Mail DB Connection Error: Host=" . DB_HOST . ", User=" . DB_USER . ", DB=" . DB_NAME . ", Error: " . $mysqli->connect_error);
+                handle_error('Database connection failed: ' . $mysqli->connect_error);
+            }
+
+            // Set charset
+            $mysqli->set_charset('utf8mb4');
+        } catch (Exception $e) {
             error_log("Mail DB Connection Error: Host=" . DB_HOST . ", User=" . DB_USER . ", DB=" . DB_NAME . ", Error: " . $e->getMessage());
             handle_error('Database connection failed');
         }
     }
 
-    return $pdo;
+    return $mysqli;
 }
 
 // Authentication Check
@@ -568,7 +566,7 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Access-Control-Allow-Credentials: true');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
