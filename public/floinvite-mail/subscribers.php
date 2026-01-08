@@ -63,43 +63,82 @@ $result = $db->query("SELECT COUNT(*) as count FROM subscribers");
 $total = $result->fetch_assoc()['count'] ?? 0;
 $pages = ceil($total / $limit);
 
-$stmt = $db->prepare("
-    SELECT id, email, name, company, status, created_at
-    FROM subscribers
-    ORDER BY created_at DESC
-    LIMIT ? OFFSET ?
-");
+function has_subscriber_created_at($db) {
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
+
+    $stmt = $db->prepare("
+        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'subscribers' AND COLUMN_NAME = 'created_at'
+        LIMIT 1
+    ");
+    $db_name = DB_NAME;
+    $stmt->bind_param("s", $db_name);
+    $stmt->execute();
+    $cached = (bool) $stmt->get_result()->fetch_assoc();
+    return $cached;
+}
+
+function get_last_campaign_started_at($db) {
+    $stmt = $db->prepare("
+        SELECT MAX(started_at) as last_campaign FROM campaigns
+        WHERE status IN ('completed', 'sending') AND started_at IS NOT NULL
+    ");
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return $row['last_campaign'] ?? null;
+}
+
+$has_created_at = has_subscriber_created_at($db);
+
+if ($has_created_at) {
+    $stmt = $db->prepare("
+        SELECT id, email, name, company, status, created_at
+        FROM subscribers
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
+    ");
+} else {
+    $stmt = $db->prepare("
+        SELECT id, email, name, company, status, NULL as created_at
+        FROM subscribers
+        ORDER BY id DESC
+        LIMIT ? OFFSET ?
+    ");
+}
 $stmt->bind_param("ii", $limit, $offset);
 $stmt->execute();
 $subscribers = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+$last_campaign = $has_created_at ? get_last_campaign_started_at($db) : null;
+$contacted_ids = [];
+if (!empty($subscribers)) {
+    $ids = array_column($subscribers, 'id');
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $db->prepare("SELECT DISTINCT subscriber_id FROM campaign_sends WHERE subscriber_id IN ($placeholders)");
+    $types = str_repeat('i', count($ids));
+    $stmt->bind_param($types, ...$ids);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    foreach ($rows as $row) {
+        $contacted_ids[(int) $row['subscriber_id']] = true;
+    }
+}
+
 // Helper function to determine subscriber segment
-function get_subscriber_segment($db, $subscriber_id, $created_at) {
+function get_subscriber_segment($subscriber, $contacted_ids, $last_campaign) {
     $segments = [];
-    
-    // Check if subscriber has never been contacted
-    $never_contacted_stmt = $db->prepare("
-        SELECT COUNT(*) as count FROM campaign_sends 
-        WHERE subscriber_id = ?
-    ");
-    $never_contacted_stmt->bind_param("i", $subscriber_id);
-    $never_contacted_stmt->execute();
-    $never_contacted_count = $never_contacted_stmt->get_result()->fetch_assoc()['count'] ?? 0;
-    
-    if ($never_contacted_count === 0 || $never_contacted_count === '0') {
+
+    if (!isset($contacted_ids[$subscriber['id']])) {
         $segments[] = 'Never Contacted';
     }
-    
-    // Check if subscriber is a new subscriber (created after most recent campaign)
-    $new_sub_stmt = $db->prepare("
-        SELECT MAX(started_at) as last_campaign FROM campaigns 
-        WHERE status IN ('completed', 'sending') AND started_at IS NOT NULL
-    ");
-    $new_sub_stmt->execute();
-    $last_campaign = $new_sub_stmt->get_result()->fetch_assoc()['last_campaign'] ?? null;
-    
-    if ($last_campaign && strtotime($created_at) > strtotime($last_campaign)) {
-        $segments[] = 'New Subscriber';
+
+    if ($last_campaign && !empty($subscriber['created_at'])) {
+        if (strtotime($subscriber['created_at']) > strtotime($last_campaign)) {
+            $segments[] = 'New Subscriber';
+        }
     }
     
     return !empty($segments) ? implode(', ', $segments) : '-';
@@ -399,7 +438,7 @@ if ($csrf_valid && $_SERVER['REQUEST_METHOD'] === 'POST' && $_FILES['csv_file'] 
                                         </span>
                                     </td>
                                     <td><?php echo date('M d, Y', strtotime($sub['created_at'])); ?></td>
-                                    <td><?php echo htmlspecialchars(get_subscriber_segment($db, $sub['id'], $sub['created_at'])); ?></td>
+                                    <td><?php echo htmlspecialchars(get_subscriber_segment($sub, $contacted_ids, $last_campaign)); ?></td>
                                     <td>
                                         <button type="submit" name="delete_id" value="<?php echo (int) $sub['id']; ?>" class="btn-danger" onclick="return confirm('Delete this subscriber?')">Delete</button>
                                     </td>
