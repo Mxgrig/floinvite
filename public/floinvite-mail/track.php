@@ -18,8 +18,9 @@ if (!empty($_GET['id'])) {
             SELECT campaign_id, id as send_id FROM campaign_sends
             WHERE tracking_id = ?
         ");
-        $stmt->execute([$tracking_id]);
-        $send = $stmt->fetch();
+        $stmt->bind_param("s", $tracking_id);
+        $stmt->execute();
+        $send = $stmt->get_result()->fetch_assoc();
 
         if ($send) {
             // Update opened_at if not already tracked
@@ -28,7 +29,9 @@ if (!empty($_GET['id'])) {
                 SET opened_at = IF(opened_at IS NULL, NOW(), opened_at)
                 WHERE id = ?
             ");
-            $stmt->execute([$send['send_id']]);
+            $send_id = $send['send_id'];
+            $stmt->bind_param("i", $send_id);
+            $stmt->execute();
 
             // Update campaign open count
             $stmt = $db->prepare("
@@ -39,19 +42,19 @@ if (!empty($_GET['id'])) {
                 )
                 WHERE id = ?
             ");
-            $stmt->execute([$send['campaign_id'], $send['campaign_id']]);
+            $campaign_id = $send['campaign_id'];
+            $stmt->bind_param("ii", $campaign_id, $campaign_id);
+            $stmt->execute();
 
             // Log analytics
             $stmt = $db->prepare("
                 INSERT INTO analytics (campaign_id, send_id, event_type, ip_address, user_agent)
                 VALUES (?, ?, 'opened', ?, ?)
             ");
-            $stmt->execute([
-                $send['campaign_id'],
-                $send['send_id'],
-                $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
-            ]);
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+            $stmt->bind_param("iiss", $send['campaign_id'], $send['send_id'], $ip, $ua);
+            $stmt->execute();
         }
     } catch (Exception $e) {
         // Silently fail - don't expose errors
@@ -69,8 +72,9 @@ if (!empty($_GET['link'])) {
             SELECT campaign_id, id as send_id FROM campaign_sends
             WHERE tracking_id = ?
         ");
-        $stmt->execute([$tracking_id]);
-        $send = $stmt->fetch();
+        $stmt->bind_param("s", $tracking_id);
+        $stmt->execute();
+        $send = $stmt->get_result()->fetch_assoc();
 
         if ($send) {
             // Update clicked_at
@@ -79,7 +83,9 @@ if (!empty($_GET['link'])) {
                 SET clicked_at = IF(clicked_at IS NULL, NOW(), clicked_at)
                 WHERE id = ?
             ");
-            $stmt->execute([$send['send_id']]);
+            $send_id = $send['send_id'];
+            $stmt->bind_param("i", $send_id);
+            $stmt->execute();
 
             // Update campaign click count
             $stmt = $db->prepare("
@@ -90,20 +96,19 @@ if (!empty($_GET['link'])) {
                 )
                 WHERE id = ?
             ");
-            $stmt->execute([$send['campaign_id'], $send['campaign_id']]);
+            $campaign_id = $send['campaign_id'];
+            $stmt->bind_param("ii", $campaign_id, $campaign_id);
+            $stmt->execute();
 
             // Log analytics with link
             $stmt = $db->prepare("
                 INSERT INTO analytics (campaign_id, send_id, event_type, ip_address, user_agent, link_url)
                 VALUES (?, ?, 'clicked', ?, ?, ?)
             ");
-            $stmt->execute([
-                $send['campaign_id'],
-                $send['send_id'],
-                $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-                $link_url
-            ]);
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+            $stmt->bind_param("iissss", $send['campaign_id'], $send['send_id'], $ip, $ua, $link_url);
+            $stmt->execute();
         }
     } catch (Exception $e) {
         // Silently fail

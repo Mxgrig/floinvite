@@ -15,15 +15,15 @@ $stats = [];
 
 // Total subscribers
 $result = $db->query("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
-$stats['total_subscribers'] = $result->fetch()['count'] ?? 0;
+$stats['total_subscribers'] = $result->fetch_assoc()['count'] ?? 0;
 
 // Active campaigns
 $result = $db->query("SELECT COUNT(*) as count FROM campaigns WHERE status IN ('draft', 'scheduled', 'sending')");
-$stats['active_campaigns'] = $result->fetch()['count'] ?? 0;
+$stats['active_campaigns'] = $result->fetch_assoc()['count'] ?? 0;
 
 // Completed campaigns
 $result = $db->query("SELECT COUNT(*) as count FROM campaigns WHERE status = 'completed'");
-$stats['completed_campaigns'] = $result->fetch()['count'] ?? 0;
+$stats['completed_campaigns'] = $result->fetch_assoc()['count'] ?? 0;
 
 // Total emails sent (this week)
 $result = $db->query("
@@ -31,7 +31,7 @@ $result = $db->query("
     WHERE status = 'sent'
     AND sent_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
 ");
-$stats['emails_sent_week'] = $result->fetch()['count'] ?? 0;
+$stats['emails_sent_week'] = $result->fetch_assoc()['count'] ?? 0;
 
 // Average open rate
 $result = $db->query("
@@ -41,16 +41,16 @@ $result = $db->query("
     FROM campaign_sends
     WHERE status = 'sent' AND opened_at IS NOT NULL
 ");
-$row = $result->fetch();
+$row = $result->fetch_assoc();
 $stats['open_rate'] = $row['total'] > 0 ? round(($row['opens'] / $row['total']) * 100, 1) : 0;
 
 // Outstanding emails (not yet sent across all campaigns)
 $result = $db->query("SELECT COUNT(*) as count FROM campaign_sends WHERE status IN ('pending', 'failed')");
-$stats['queue_pending'] = $result->fetch()['count'] ?? 0;
+$stats['queue_pending'] = $result->fetch_assoc()['count'] ?? 0;
 
 // Total emails sent across all campaigns
 $result = $db->query("SELECT COUNT(*) as count FROM campaign_sends WHERE status = 'sent'");
-$stats['queue_sent'] = $result->fetch()['count'] ?? 0;
+$stats['queue_sent'] = $result->fetch_assoc()['count'] ?? 0;
 
 // Recent campaigns
 $result = $db->query("
@@ -59,7 +59,7 @@ $result = $db->query("
     ORDER BY created_at DESC
     LIMIT 10
 ");
-$recent_campaigns = $result->fetchAll();
+$recent_campaigns = $result->fetch_all(MYSQLI_ASSOC);
 
 // Check if API request
 if (!empty($_GET['api'])) {
@@ -76,12 +76,13 @@ if (!empty($_GET['api'])) {
 if (!empty($_GET['delete_campaign'])) {
     $campaign_id = intval($_GET['delete_campaign']);
     try {
-        $db->beginTransaction();
-        
+        $db->begin_transaction();
+
         // Delete campaign (cascade deletes related records via foreign keys)
         $stmt = $db->prepare("DELETE FROM campaigns WHERE id = ?");
-        $stmt->execute([$campaign_id]);
-        
+        $stmt->bind_param("i", $campaign_id);
+        $stmt->execute();
+
         $db->commit();
         
         $_SESSION['send_notice'] = [
@@ -89,7 +90,7 @@ if (!empty($_GET['delete_campaign'])) {
             'message' => 'Campaign deleted successfully.'
         ];
     } catch (Exception $e) {
-        $db->rollBack();
+        $db->rollback();
         $_SESSION['send_notice'] = [
             'type' => 'error',
             'message' => 'Error deleting campaign: ' . $e->getMessage()

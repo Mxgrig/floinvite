@@ -50,8 +50,9 @@ try {
         ORDER BY q.created_at ASC
         LIMIT ?
     ");
-    $stmt->execute([$batch_size]);
-    $queued = $stmt->fetchAll();
+    $stmt->bind_param("i", $batch_size);
+    $stmt->execute();
+    $queued = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     if (empty($queued)) {
         error_log("[Queue Processor] No queued emails to process");
@@ -64,7 +65,9 @@ try {
         try {
             // Mark as processing
             $update_stmt = $db->prepare("UPDATE send_queue SET status = 'processing' WHERE id = ?");
-            $update_stmt->execute([$item['queue_id']]);
+            $queue_id = $item['queue_id'];
+            $update_stmt->bind_param("i", $queue_id);
+            $update_stmt->execute();
 
             // Generate email HTML from greeting + body + signature
             $html_body = create_email_from_text(
@@ -99,7 +102,9 @@ try {
                     SET status = 'sent', sent_at = NOW()
                     WHERE id = ?
                 ");
-                $update_send->execute([$item['send_id']]);
+                $send_id = $item['send_id'];
+                $update_send->bind_param("i", $send_id);
+                $update_send->execute();
 
                 // Update queue status
                 $update_queue = $db->prepare("
@@ -107,7 +112,9 @@ try {
                     SET status = 'sent', attempts = attempts + 1
                     WHERE id = ?
                 ");
-                $update_queue->execute([$item['queue_id']]);
+                $queue_id = $item['queue_id'];
+                $update_queue->bind_param("i", $queue_id);
+                $update_queue->execute();
 
                 $sent++;
                 error_log("[Queue Processor] Sent to {$item['email']}");
@@ -123,7 +130,10 @@ try {
                 SET status = 'failed', attempts = attempts + 1, error_message = ?
                 WHERE id = ?
             ");
-            $update_stmt->execute([$e->getMessage(), $item['queue_id']]);
+            $error_msg = $e->getMessage();
+            $queue_id = $item['queue_id'];
+            $update_stmt->bind_param("si", $error_msg, $queue_id);
+            $update_stmt->execute();
 
             $failed++;
         }

@@ -17,8 +17,9 @@ $campaign = null;
 // Load existing campaign if editing
 if ($campaign_id) {
     $stmt = $db->prepare("SELECT * FROM campaigns WHERE id = ?");
-    $stmt->execute([$campaign_id]);
-    $campaign = $stmt->fetch();
+    $stmt->bind_param("i", $campaign_id);
+    $stmt->execute();
+    $campaign = $stmt->get_result()->fetch_assoc();
 
     if (!$campaign) {
         $message = 'Campaign not found';
@@ -96,7 +97,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         SET name = ?, subject = ?, from_name = ?, greeting = ?, html_body = ?, signature = ?, send_method = ?, scheduled_at = ?, send_to_all_active = ?
                         WHERE id = ?
                     ");
-                    $stmt->execute([$name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active, $campaign_id]);
+                    $stmt->bind_param("ssssssisii", $name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active, $campaign_id);
+                    $stmt->execute();
                     $message = 'Campaign updated successfully';
                 } else {
                     // Create new
@@ -104,8 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         INSERT INTO campaigns (name, subject, from_name, greeting, html_body, signature, send_method, scheduled_at, send_to_all_active, status)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')
                     ");
-                    $stmt->execute([$name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active]);
-                    $campaign_id = $db->lastInsertId();
+                    $draft_status = 'draft';
+                    $stmt->bind_param("ssssssssis", $name, $subject, $from_name, $greeting, $html_body, $signature, $send_method, $scheduled_at, $send_to_all_active, $draft_status);
+                    $stmt->execute();
+                    $campaign_id = $db->insert_id;
                     $message = 'Campaign created successfully';
                 }
 
@@ -135,8 +139,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Reload campaign data
                 $stmt = $db->prepare("SELECT * FROM campaigns WHERE id = ?");
-                $stmt->execute([$campaign_id]);
-                $campaign = $stmt->fetch();
+                $stmt->bind_param("i", $campaign_id);
+                $stmt->execute();
+                $campaign = $stmt->get_result()->fetch_assoc();
             } catch (Exception $e) {
                 $message = 'Error: ' . $e->getMessage();
             }
@@ -147,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get subscriber count
 $subscriber_count = 0;
 $result = $db->query("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
-$subscriber_count = $result->fetch()['count'] ?? 0;
+$subscriber_count = $result->fetch_assoc()['count'] ?? 0;
 
 ?>
 <!DOCTYPE html>
