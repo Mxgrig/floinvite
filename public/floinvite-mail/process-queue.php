@@ -15,6 +15,7 @@
 
 require_once 'config.php';
 require_once '../api/PHPMailerHelper.php';
+require_once 'logo.php';
 
 // For CLI execution without session, allow processing
 // For web execution, require auth (either session or cron token)
