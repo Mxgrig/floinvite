@@ -26,6 +26,7 @@ try {
             q.send_id,
             q.campaign_id,
             q.attempts,
+            q.max_attempts,
             s.email,
             s.name,
             s.company,
@@ -137,7 +138,7 @@ try {
             $next_attempts = $item['attempts'] + 1;
             
             // Only mark as permanently failed if all retry attempts are exhausted
-            if ($next_attempts >= 3) {
+            if ($next_attempts >= $item['max_attempts']) {
                 // All retries exhausted - mark permanently failed
                 $update_stmt = $db->prepare("
                     UPDATE send_queue
