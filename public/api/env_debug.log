@@ -336,3 +336,55 @@
 2026-01-10 18:58:13 | Loaded: SMTP_USER=campaigns@floinvite.com
 2026-01-10 18:58:13 | Loaded: SMTP_PASS=[REDACTED]
 2026-01-10 18:58:13 | Total variables loaded: 11
+2026-01-10 19:01:22 | Checked paths: /home/grig/Projects/floinvite/.env (EXISTS) | Loaded: /home/grig/Projects/floinvite/.env
+2026-01-10 19:01:22 | Loaded: DB_HOST=localhost
+2026-01-10 19:01:22 | Loaded: DB_USER=u958180753_floinvite
+2026-01-10 19:01:22 | Loaded: DB_PASS=[REDACTED]
+2026-01-10 19:01:22 | Loaded: DB_NAME=u958180753_floinvite
+2026-01-10 19:01:22 | Loaded: DB_PASS_MAIL=[REDACTED]
+2026-01-10 19:01:22 | Loaded: DB_USER_MAIL=u958180753_mail
+2026-01-10 19:01:22 | Loaded: DB_NAME_MAIL=u958180753_mail
+2026-01-10 19:01:22 | Loaded: SMTP_HOST=smtp.hostinger.com
+2026-01-10 19:01:22 | Loaded: SMTP_PORT=587
+2026-01-10 19:01:22 | Loaded: SMTP_USER=campaigns@floinvite.com
+2026-01-10 19:01:22 | Loaded: SMTP_PASS=[REDACTED]
+2026-01-10 19:01:22 | Total variables loaded: 11
+2026-01-10 19:01:58 | Checked paths: /home/grig/Projects/floinvite/.env (EXISTS) | Loaded: /home/grig/Projects/floinvite/.env
+2026-01-10 19:01:58 | Loaded: DB_HOST=localhost
+2026-01-10 19:01:58 | Loaded: DB_USER=u958180753_floinvite
+2026-01-10 19:01:58 | Loaded: DB_PASS=[REDACTED]
+2026-01-10 19:01:58 | Loaded: DB_NAME=u958180753_floinvite
+2026-01-10 19:01:58 | Loaded: DB_PASS_MAIL=[REDACTED]
+2026-01-10 19:01:58 | Loaded: DB_USER_MAIL=u958180753_mail
+2026-01-10 19:01:58 | Loaded: DB_NAME_MAIL=u958180753_mail
+2026-01-10 19:01:58 | Loaded: SMTP_HOST=smtp.hostinger.com
+2026-01-10 19:01:58 | Loaded: SMTP_PORT=587
+2026-01-10 19:01:58 | Loaded: SMTP_USER=campaigns@floinvite.com
+2026-01-10 19:01:58 | Loaded: SMTP_PASS=[REDACTED]
+2026-01-10 19:01:58 | Total variables loaded: 11
+2026-01-10 19:02:16 | Checked paths: /home/grig/Projects/floinvite/.env (EXISTS) | Loaded: /home/grig/Projects/floinvite/.env
+2026-01-10 19:02:16 | Loaded: DB_HOST=localhost
+2026-01-10 19:02:16 | Loaded: DB_USER=u958180753_floinvite
+2026-01-10 19:02:16 | Loaded: DB_PASS=[REDACTED]
+2026-01-10 19:02:16 | Loaded: DB_NAME=u958180753_floinvite
+2026-01-10 19:02:16 | Loaded: DB_PASS_MAIL=[REDACTED]
+2026-01-10 19:02:16 | Loaded: DB_USER_MAIL=u958180753_mail
+2026-01-10 19:02:16 | Loaded: DB_NAME_MAIL=u958180753_mail
+2026-01-10 19:02:16 | Loaded: SMTP_HOST=smtp.hostinger.com
+2026-01-10 19:02:16 | Loaded: SMTP_PORT=587
+2026-01-10 19:02:16 | Loaded: SMTP_USER=campaigns@floinvite.com
+2026-01-10 19:02:16 | Loaded: SMTP_PASS=[REDACTED]
+2026-01-10 19:02:16 | Total variables loaded: 11
+2026-01-10 19:02:23 | Checked paths: /home/grig/Projects/floinvite/.env (EXISTS) | Loaded: /home/grig/Projects/floinvite/.env
+2026-01-10 19:02:23 | Loaded: DB_HOST=localhost
+2026-01-10 19:02:23 | Loaded: DB_USER=u958180753_floinvite
+2026-01-10 19:02:23 | Loaded: DB_PASS=[REDACTED]
+2026-01-10 19:02:23 | Loaded: DB_NAME=u958180753_floinvite
+2026-01-10 19:02:23 | Loaded: DB_PASS_MAIL=[REDACTED]
+2026-01-10 19:02:23 | Loaded: DB_USER_MAIL=u958180753_mail
+2026-01-10 19:02:23 | Loaded: DB_NAME_MAIL=u958180753_mail
+2026-01-10 19:02:23 | Loaded: SMTP_HOST=smtp.hostinger.com
+2026-01-10 19:02:23 | Loaded: SMTP_PORT=587
+2026-01-10 19:02:23 | Loaded: SMTP_USER=campaigns@floinvite.com
+2026-01-10 19:02:23 | Loaded: SMTP_PASS=[REDACTED]
+2026-01-10 19:02:23 | Total variables loaded: 11

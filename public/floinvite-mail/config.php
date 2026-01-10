@@ -25,6 +25,9 @@ define('SMTP_PORT', getenv('SMTP_PORT') ?: 465);
 define('SMTP_USER', getenv('SMTP_USER') ?: 'admin@floinvite.com');
 define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
 
+// Cron Job Authentication Token (for queue processor HTTP triggers)
+define('CRON_SECRET', getenv('CRON_SECRET') ?: bin2hex(random_bytes(16)));
+
 // Rate Limiting
 define('RATE_LIMIT_PER_HOUR', 100);
 define('BATCH_SIZE', 50);
