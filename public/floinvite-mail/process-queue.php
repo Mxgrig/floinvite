@@ -79,14 +79,10 @@ try {
     $stmt->execute();
     $queued = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    if (empty($queued)) {
-        error_log("[Queue Processor] No queued emails to process");
-        exit(0);
-    }
+    if (!empty($queued)) {
+        error_log("[Queue Processor] Found " . count($queued) . " emails to send");
 
-    error_log("[Queue Processor] Found " . count($queued) . " emails to send");
-
-    foreach ($queued as $item) {
+        foreach ($queued as $item) {
         try {
             // Mark as processing
             $update_stmt = $db->prepare("UPDATE send_queue SET status = 'processing' WHERE id = ?");
@@ -188,6 +184,7 @@ try {
         }
 
         $processed++;
+        }
     }
 
     // Update campaign statistics for all campaigns that have sends
