@@ -3,7 +3,7 @@
  * Queue Processor API Endpoint
  * Trigger the queue processor via HTTP request
  *
- * GET: https://floinvite.com/floinvite-mail/api-process-queue.php?key=YOUR_SECRET_KEY
+ * GET: https://floinvite.com/floinvite-mail/api-process-queue.php
  */
 
 require_once 'config.php';
