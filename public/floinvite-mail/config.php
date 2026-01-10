@@ -26,7 +26,24 @@ define('SMTP_USER', getenv('SMTP_USER') ?: 'admin@floinvite.com');
 define('SMTP_PASS', getenv('SMTP_PASS') ?: '');
 
 // Cron Job Authentication Token (for queue processor HTTP triggers)
-define('CRON_SECRET', getenv('CRON_SECRET') ?: bin2hex(random_bytes(16)));
+// Generate once and store in .env or use this default
+// IMPORTANT: On Hostinger, add this to .env to ensure cron jobs use the same token
+$cron_secret_file = __DIR__ . '/.cron_secret';
+$cron_secret = getenv('CRON_SECRET');
+
+if (!$cron_secret) {
+    // Try to read from persistent file
+    if (file_exists($cron_secret_file)) {
+        $cron_secret = trim(file_get_contents($cron_secret_file));
+    } else {
+        // Generate once
+        $cron_secret = bin2hex(random_bytes(32));
+        // Try to save for future use (may fail if no write permission)
+        @file_put_contents($cron_secret_file, $cron_secret);
+    }
+}
+
+define('CRON_SECRET', $cron_secret);
 
 // Rate Limiting
 define('RATE_LIMIT_PER_HOUR', 100);
