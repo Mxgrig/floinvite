@@ -4,7 +4,7 @@
  * Processes and sends queued emails with placeholder substitution
  *
  * Run manually: php /path/to/process-queue.php
- * Or via cron: */5 * * * * cd /path/to && php process-queue.php
+ * Or via cron: 0,5,10,15,20,25,30,35,40,45,50,55 * * * * cd /path/to && php process-queue.php
  */
 
 require_once 'config.php';
