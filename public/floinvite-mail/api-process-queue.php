@@ -169,6 +169,27 @@ try {
         $processed++;
     }
 
+    // Update campaign statistics for all campaigns that have sends
+    // This ensures UI displays accurate sent/failed counts
+    $campaigns_stmt = $db->query("
+        SELECT DISTINCT campaign_id FROM campaign_sends
+    ");
+
+    if ($campaigns_stmt) {
+        while ($row = $campaigns_stmt->fetch_assoc()) {
+            $campaign_id = $row['campaign_id'];
+            $update_stats = $db->prepare("
+                UPDATE campaigns
+                SET
+                    sent_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'sent'),
+                    failed_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'failed')
+                WHERE id = ?
+            ");
+            $update_stats->bind_param("iii", $campaign_id, $campaign_id, $campaign_id);
+            $update_stats->execute();
+        }
+    }
+
     respond(true, [
         'processed' => $processed,
         'sent' => $sent,
