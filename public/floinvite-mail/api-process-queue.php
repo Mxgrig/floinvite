@@ -8,6 +8,7 @@
 
 require_once 'config.php';
 require_once '../api/PHPMailerHelper.php';
+require_once 'logo.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
