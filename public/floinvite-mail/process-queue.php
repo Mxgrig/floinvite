@@ -8,6 +8,7 @@
  */
 
 require_once 'config.php';
+require_once '../api/PHPMailerHelper.php';
 
 $db = get_db();
 $batch_size = 10;  // Process 10 at a time
@@ -77,65 +78,89 @@ try {
                 $item['name'] ?? $item['email'],
                 $item['email'],
                 $item['company'] ?? '',
-                'Host Name',  // Will be replaced by customer data if available
+                'Host Name',
                 'host@floinvite.com',
-                'default'  // Template type (default for backward compatibility)
+                'default'
             );
 
-            // Prepare headers
+            // Prepare sender info
             $from_email = SMTP_USER ?: 'admin@floinvite.com';
             $from_name = $item['from_name'] ?: 'floinvite';
             $subject = preg_replace('/[\r\n]+/', ' ', $item['subject']);
 
-            $headers = "MIME-Version: 1.0\r\n";
-            $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-            $headers .= "From: {$from_name} <{$from_email}>\r\n";
-            $headers .= "Reply-To: {$from_email}\r\n";
-
             error_log("[Queue Processor] Sending to {$item['email']} (name: {$item['name']}, company: {$item['company']})");
 
-            // Send email
-            if (@mail($item['email'], $subject, $html_body, $headers)) {
-                // Update campaign_sends status
-                $update_send = $db->prepare("
-                    UPDATE campaign_sends
-                    SET status = 'sent', sent_at = NOW()
-                    WHERE id = ?
-                ");
-                $send_id = $item['send_id'];
-                $update_send->bind_param("i", $send_id);
-                $update_send->execute();
+            // Send email using SMTP (PHPMailer)
+            try {
+                $mailer = new PHPMailerHelper();
+                $result = $mailer->send([
+                    'to' => $item['email'],
+                    'subject' => $subject,
+                    'body' => $html_body,
+                    'isHtml' => true,
+                    'fromEmail' => $from_email,
+                    'fromName' => $from_name
+                ]);
 
-                // Update queue status
-                $update_queue = $db->prepare("
-                    UPDATE send_queue
-                    SET status = 'sent', attempts = attempts + 1
-                    WHERE id = ?
-                ");
-                $queue_id = $item['queue_id'];
-                $update_queue->bind_param("i", $queue_id);
-                $update_queue->execute();
+                if ($result['success']) {
+                    // Update campaign_sends status
+                    $update_send = $db->prepare("
+                        UPDATE campaign_sends
+                        SET status = 'sent', sent_at = NOW()
+                        WHERE id = ?
+                    ");
+                    $send_id = $item['send_id'];
+                    $update_send->bind_param("i", $send_id);
+                    $update_send->execute();
 
-                $sent++;
-                error_log("[Queue Processor] Sent to {$item['email']}");
-            } else {
-                throw new Exception("mail() returned false");
+                    // Update queue status
+                    $update_queue = $db->prepare("
+                        UPDATE send_queue
+                        SET status = 'sent', attempts = attempts + 1
+                        WHERE id = ?
+                    ");
+                    $queue_id = $item['queue_id'];
+                    $update_queue->bind_param("i", $queue_id);
+                    $update_queue->execute();
+
+                    $sent++;
+                    error_log("[Queue Processor] Sent to {$item['email']}");
+                } else {
+                    throw new Exception($result['error'] ?? 'Failed to send email via SMTP');
+                }
+            } catch (Exception $e) {
+                throw $e;
             }
         } catch (Exception $e) {
             error_log("[Queue Processor] Failed to send to {$item['email']}: " . $e->getMessage());
 
-            // Update attempts
-            $update_stmt = $db->prepare("
-                UPDATE send_queue
-                SET status = 'failed', attempts = attempts + 1, error_message = ?
-                WHERE id = ?
-            ");
-            $error_msg = $e->getMessage();
-            $queue_id = $item['queue_id'];
-            $update_stmt->bind_param("si", $error_msg, $queue_id);
-            $update_stmt->execute();
-
-            $failed++;
+            $next_attempts = $item['attempts'] + 1;
+            
+            // Only mark as permanently failed if all retry attempts are exhausted
+            if ($next_attempts >= 3) {
+                // All retries exhausted - mark permanently failed
+                $update_stmt = $db->prepare("
+                    UPDATE send_queue
+                    SET status = 'failed', attempts = ?, error_message = ?
+                    WHERE id = ?
+                ");
+                $error_msg = substr($e->getMessage(), 0, 500);
+                $queue_id = $item['queue_id'];
+                $update_stmt->bind_param("isi", $next_attempts, $error_msg, $queue_id);
+                $update_stmt->execute();
+                $failed++;
+            } else {
+                // Still have retries - keep as queued with incremented attempts
+                $update_stmt = $db->prepare("
+                    UPDATE send_queue
+                    SET status = 'queued', attempts = ?, error_message = ?
+                    WHERE id = ?
+                ");
+                $error_msg = substr($e->getMessage(), 0, 500);
+                $queue_id = $item['queue_id'];
+                $update_stmt->bind_param("isi", $next_attempts, $error_msg, $queue_id);
+                $update_stmt->execute();
+            }
         }
 
         $processed++;
