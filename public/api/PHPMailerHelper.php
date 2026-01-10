@@ -1,9 +1,7 @@
 <?php
 /**
- * PHPMailer Helper Class - SMTP Email Sender
- * 
- * Replaces PHP's mail() function with SMTP via fsockopen
- * Supports both port 465 (implicit SSL) and port 587 (STARTTLS)
+ * PHPMailer Helper - SMTP Email Sender
+ * Handles both port 465 (implicit SSL) and port 587 (STARTTLS)
  */
 
 class PHPMailerHelper {
@@ -50,9 +48,9 @@ class PHPMailerHelper {
             $socket = $this->connect();
             $messageId = $this->generateMessageId();
 
-            $this->sendCmd($socket, "MAIL FROM:<{$fromEmail}>");
-            $this->sendCmd($socket, "RCPT TO:<{$to}>");
-            $this->sendCmd($socket, "DATA");
+            $this->cmd($socket, "MAIL FROM:<{$fromEmail}>");
+            $this->cmd($socket, "RCPT TO:<{$to}>");
+            $this->cmd($socket, "DATA");
 
             $email = "From: {$fromName} <{$fromEmail}>\r\n";
             $email .= "To: {$to}\r\n";
@@ -65,7 +63,7 @@ class PHPMailerHelper {
 
             fwrite($socket, $email);
             $this->read($socket);
-            $this->sendCmd($socket, "QUIT");
+            $this->cmd($socket, "QUIT");
             fclose($socket);
 
             return ['success' => true, 'messageId' => $messageId];
@@ -86,34 +84,51 @@ class PHPMailerHelper {
         stream_set_timeout($socket, $this->timeout);
         
         // Read server greeting
-        $response = fgets($socket, 512);
+        $response = $this->read($socket);
         if (strpos($response, '220') === false) {
             fclose($socket);
             throw new Exception("No greeting from server");
         }
 
         // Send EHLO
-        $this->sendCmd($socket, "EHLO " . gethostname());
+        $this->cmd($socket, "EHLO " . gethostname());
 
         // If port 587, need STARTTLS
         if (!$useImplicitSSL) {
-            $this->sendCmd($socket, "STARTTLS");
-            if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT)) {
+            // Send STARTTLS and read response
+            fwrite($socket, "STARTTLS\r\n");
+            $response = $this->read($socket);
+            
+            // STARTTLS may return 220 or 250 depending on server
+            if (strpos($response, '220') === false && strpos($response, '250') === false) {
+                throw new Exception("STARTTLS not supported or failed");
+            }
+
+            // Enable TLS encryption
+            $cryptoMethods = STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT;
+            if (!stream_socket_enable_crypto($socket, true, $cryptoMethods)) {
                 throw new Exception("TLS negotiation failed");
             }
-            $this->sendCmd($socket, "EHLO " . gethostname());
+
+            // Re-send EHLO after STARTTLS (required by RFC)
+            $this->cmd($socket, "EHLO " . gethostname());
         }
 
         // AUTH LOGIN
-        $this->sendCmd($socket, "AUTH LOGIN");
+        $this->cmd($socket, "AUTH LOGIN");
+        
+        // Send username (base64 encoded)
         fwrite($socket, base64_encode($this->smtpUser) . "\r\n");
-        $response = fgets($socket, 512);
+        $response = $this->read($socket);
         if (strpos($response, '334') === false) {
-            throw new Exception("Auth user rejected");
+            throw new Exception("Username not accepted");
         }
 
+        // Send password (base64 encoded)
         fwrite($socket, base64_encode($this->smtpPass) . "\r\n");
-        $response = fgets($socket, 512);
+        $response = $this->read($socket);
+        
+        // Check for success (235) or continuation (503)
         if (strpos($response, '235') === false && strpos($response, '503') === false) {
             throw new Exception("Authentication failed: " . trim($response));
         }
@@ -121,13 +136,13 @@ class PHPMailerHelper {
         return $socket;
     }
 
-    private function sendCmd($socket, $cmd) {
+    private function cmd($socket, $cmd) {
         fwrite($socket, $cmd . "\r\n");
         $response = $this->read($socket);
         $code = substr($response, 0, 3);
         
         if ($code[0] === '4' || $code[0] === '5') {
-            throw new Exception("SMTP Error ({$code}): {$response}");
+            throw new Exception("Error ({$code}): " . trim($response));
         }
 
         return $response;
@@ -139,7 +154,10 @@ class PHPMailerHelper {
             $line = fgets($socket, 512);
             if ($line === false) break;
             $response = $line;
-            if (strlen($line) < 4 || $line[3] !== '-') break;
+            // Continue reading if this is a continuation line (contains '-' at position 3)
+            if (strlen($line) < 4 || $line[3] !== '-') {
+                break;
+            }
         }
         return $response;
     }
@@ -162,7 +180,7 @@ class PHPMailerHelper {
     public function testConnection() {
         try {
             $socket = $this->connect();
-            $this->sendCmd($socket, "QUIT");
+            $this->cmd($socket, "QUIT");
             fclose($socket);
             return ['success' => true, 'message' => "Connected to {$this->smtpHost}:{$this->smtpPort}"];
         } catch (Exception $e) {
