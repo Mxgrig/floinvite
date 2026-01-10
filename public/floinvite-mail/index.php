@@ -17,8 +17,8 @@ $stats = [];
 $result = $db->query("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
 $stats['total_subscribers'] = $result->fetch_assoc()['count'] ?? 0;
 
-// Active campaigns
-$result = $db->query("SELECT COUNT(*) as count FROM campaigns WHERE status IN ('draft', 'scheduled', 'sending')");
+// Active campaigns (only scheduled and sending, not draft)
+$result = $db->query("SELECT COUNT(*) as count FROM campaigns WHERE status IN ('scheduled', 'sending')");
 $stats['active_campaigns'] = $result->fetch_assoc()['count'] ?? 0;
 
 // Completed campaigns
