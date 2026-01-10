@@ -66,11 +66,8 @@ try {
     $stmt->execute();
     $queued = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    if (empty($queued)) {
-        respond(true, ['processed' => 0, 'sent' => 0, 'failed' => 0], 'No queued emails to process');
-    }
-
-    foreach ($queued as $item) {
+    if (!empty($queued)) {
+        foreach ($queued as $item) {
         try {
             // Mark as processing
             $update_stmt = $db->prepare("UPDATE send_queue SET status = 'processing' WHERE id = ?");
@@ -167,6 +164,7 @@ try {
         }
 
         $processed++;
+        }
     }
 
     // Update campaign statistics for all campaigns that have sends
