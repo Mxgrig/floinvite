@@ -8,9 +8,18 @@
 
 require_once 'config.php';
 require_once '../api/PHPMailerHelper.php';
-require_auth();
 
 header('Content-Type: application/json; charset=utf-8');
+
+// Allow cron jobs to access this endpoint with a token (instead of session auth)
+$cron_token = $_GET['cron_token'] ?? $_POST['cron_token'] ?? '';
+$is_cron = !empty($cron_token) && $cron_token === CRON_SECRET;
+$is_session_auth = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+
+if (!$is_cron && !$is_session_auth) {
+    header('Location: login.php');
+    exit;
+}
 
 try {
     $db = get_db();

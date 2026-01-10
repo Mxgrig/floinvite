@@ -3,12 +3,34 @@
  * Email Queue Processor
  * Processes and sends queued emails with placeholder substitution
  *
- * Run manually: php /path/to/process-queue.php
- * Or via cron: 0,5,10,15,20,25,30,35,40,45,50,55 * * * * cd /path/to && php process-queue.php
+ * Can be run in multiple ways:
+ * 1. CLI: php /path/to/process-queue.php (requires config DB connection)
+ * 2. HTTP: https://floinvite.com/floinvite-mail/api-process-queue.php (requires session auth)
+ * 3. HTTP Cron: https://floinvite.com/floinvite-mail/api-process-queue.php?cron_token=SECRET (recommended)
+ *
+ * For Hostinger shared hosting, use HTTP cron trigger (option 3) because:
+ * - CLI PHP may not have mysqli extension loaded
+ * - HTTP guarantees the correct PHP environment
  */
 
 require_once 'config.php';
 require_once '../api/PHPMailerHelper.php';
+
+// For CLI execution without session, allow processing
+// For web execution, require auth (either session or cron token)
+if (!function_exists('cli_set_process_title') && !defined('STDIN')) {
+    // This is a web request, require auth
+    $cron_token = $_GET['cron_token'] ?? $_POST['cron_token'] ?? '';
+    $is_cron = !empty($cron_token) && $cron_token === CRON_SECRET;
+    $is_session_auth = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+
+    if (!$is_cron && !$is_session_auth) {
+        header('HTTP/1.1 403 Forbidden');
+        exit('Unauthorized');
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
+}
 
 $db = get_db();
 $batch_size = 10;  // Process 10 at a time
@@ -166,15 +188,6 @@ try {
 
         $processed++;
     }
-
-    // Update campaign statistics
-    $stmt = $db->prepare("
-        UPDATE campaigns
-        SET
-            sent_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'sent'),
-            failed_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'failed')
-        WHERE id = ?
-    ");
 
     error_log("[Queue Processor] Batch complete: Processed={$processed}, Sent={$sent}, Failed={$failed}");
 

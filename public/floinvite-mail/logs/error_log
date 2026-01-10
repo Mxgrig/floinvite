@@ -13,3 +13,18 @@ Stack trace:
 #0 /tmp/check_queue.php(4): get_db()
 #1 {main}
   thrown in /home/grig/Projects/floinvite/public/floinvite-mail/config.php on line 99
+[10-Jan-2026 19:01:22 UTC] PHP Fatal error:  Uncaught Error: Class "mysqli" not found in /home/grig/Projects/floinvite/public/floinvite-mail/config.php:99
+Stack trace:
+#0 /tmp/check_status.php(4): get_db()
+#1 {main}
+  thrown in /home/grig/Projects/floinvite/public/floinvite-mail/config.php on line 99
+[10-Jan-2026 19:01:58 UTC] PHP Fatal error:  Uncaught Error: Class "mysqli" not found in /home/grig/Projects/floinvite/public/floinvite-mail/config.php:99
+Stack trace:
+#0 Standard input code(8): get_db()
+#1 {main}
+  thrown in /home/grig/Projects/floinvite/public/floinvite-mail/config.php on line 99
+[10-Jan-2026 19:02:23 UTC] PHP Fatal error:  Uncaught Error: Class "mysqli" not found in /home/grig/Projects/floinvite/public/floinvite-mail/config.php:99
+Stack trace:
+#0 Standard input code(3): get_db()
+#1 {main}
+  thrown in /home/grig/Projects/floinvite/public/floinvite-mail/config.php on line 99
