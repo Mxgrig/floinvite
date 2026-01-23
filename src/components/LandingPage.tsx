@@ -132,8 +132,8 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
           </div>
 
           <h1 className="landing-title">
-            Smart {labels.personSingular}<br />
-            Management, Simplified
+            Access Management<br />
+            Platform
           </h1>
 
           <p className="landing-subtitle">
