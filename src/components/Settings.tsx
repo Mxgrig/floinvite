@@ -12,6 +12,7 @@ import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
 import { FeatureLocked } from './FeatureLocked';
+import { DEFAULT_LABELS, LABEL_PRESETS, LabelPresetKey, getLabelSettings } from '../utils/labelUtils';
 import './Settings.css';
 
 type SettingsTab = 'hosts' | 'session' | 'system' | 'backup';
@@ -29,6 +30,8 @@ export function Settings({ onNavigate }: SettingsProps) {
     {
       businessName: 'My Company',
       notificationEmail: 'admin@floinvite.com',
+      labelPreset: 'default',
+      labelSettings: DEFAULT_LABELS,
       createdAt: now,
       updatedAt: now,
       sessionTimeout: 15
@@ -36,6 +39,28 @@ export function Settings({ onNavigate }: SettingsProps) {
   );
   const [formData, setFormData] = useState(settings);
   const [saved, setSaved] = useState(false);
+
+  const labelSettings = getLabelSettings(formData);
+
+  const handlePresetChange = (preset: LabelPresetKey) => {
+    const presetLabels = LABEL_PRESETS[preset]?.labels || DEFAULT_LABELS;
+    setFormData({
+      ...formData,
+      labelPreset: preset,
+      labelSettings: presetLabels
+    });
+  };
+
+  const handleLabelChange = (key: keyof typeof labelSettings, value: string) => {
+    setFormData({
+      ...formData,
+      labelPreset: 'custom',
+      labelSettings: {
+        ...labelSettings,
+        [key]: value
+      }
+    });
+  };
 
   const handleSave = () => {
     setSettings(formData);
@@ -258,6 +283,89 @@ export function Settings({ onNavigate }: SettingsProps) {
                     onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
                   />
                   <span>{formData.primaryColor || '#4f46e5'}</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Industry Customization</label>
+                <select
+                  value={(formData.labelPreset || 'default') as LabelPresetKey}
+                  onChange={(e) => handlePresetChange(e.target.value as LabelPresetKey)}
+                >
+                  {Object.entries(LABEL_PRESETS).map(([key, preset]) => (
+                    <option key={key} value={key}>{preset.name}</option>
+                  ))}
+                </select>
+                <small>Pick a preset to match your industry or customize labels below.</small>
+              </div>
+
+              <div className="form-group">
+                <label>Label Customization</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                  <div>
+                    <label>Person (singular)</label>
+                    <input
+                      type="text"
+                      value={labelSettings.personSingular}
+                      onChange={(e) => handleLabelChange('personSingular', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Person (plural)</label>
+                    <input
+                      type="text"
+                      value={labelSettings.personPlural}
+                      onChange={(e) => handleLabelChange('personPlural', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Host (singular)</label>
+                    <input
+                      type="text"
+                      value={labelSettings.hostSingular}
+                      onChange={(e) => handleLabelChange('hostSingular', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Host (plural)</label>
+                    <input
+                      type="text"
+                      value={labelSettings.hostPlural}
+                      onChange={(e) => handleLabelChange('hostPlural', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Check-in term</label>
+                    <input
+                      type="text"
+                      value={labelSettings.checkIn}
+                      onChange={(e) => handleLabelChange('checkIn', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Logbook term</label>
+                    <input
+                      type="text"
+                      value={labelSettings.logbook}
+                      onChange={(e) => handleLabelChange('logbook', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Walk-in term</label>
+                    <input
+                      type="text"
+                      value={labelSettings.walkIn}
+                      onChange={(e) => handleLabelChange('walkIn', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label>Expected term</label>
+                    <input
+                      type="text"
+                      value={labelSettings.expected}
+                      onChange={(e) => handleLabelChange('expected', e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
 

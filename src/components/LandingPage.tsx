@@ -8,6 +8,10 @@ import { useState } from 'react';
 import { Mail, MapPin, Menu, Phone, X } from 'lucide-react';
 import { getLogoPath } from '../utils/logoHelper';
 import { LoopingVideo } from './LoopingVideo';
+import { usePersistedState } from '../utils/hooks';
+import { STORAGE_KEYS } from '../utils/constants';
+import { AppSettings } from '../types';
+import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -17,6 +21,16 @@ interface LandingPageProps {
 
 export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
+    businessName: 'My Company',
+    notificationEmail: 'admin@floinvite.com',
+    kioskMode: false,
+    labelPreset: 'default',
+    labelSettings: DEFAULT_LABELS,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+  const labels = getLabelSettings(settings);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, page: string) => {
     e.preventDefault();
@@ -118,12 +132,12 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
           </div>
 
           <h1 className="landing-title">
-            Smart Visitor<br />
+            Smart {labels.personSingular}<br />
             Management, Simplified
           </h1>
 
           <p className="landing-subtitle">
-            Secure check-in, instant logs, full visibility.
+            Secure {labels.checkIn.toLowerCase()}, instant {labels.logbook.toLowerCase()}, full visibility.
           </p>
 
           <div className="landing-buttons">

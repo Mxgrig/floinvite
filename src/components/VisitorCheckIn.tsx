@@ -25,6 +25,7 @@ import { hasFeature } from '../utils/featureGating';
 import { UsageTracker } from '../utils/usageTracker';
 import { FeatureLocked } from './FeatureLocked';
 import { dbUtils } from '../db/floinviteDB';
+import { DEFAULT_LABELS, getLabelSettings, LabelSettings } from '../utils/labelUtils';
 import './VisitorCheckIn.css';
 
 type TriageStep = 'welcome' | 'walk-in' | 'expected' | 'success';
@@ -41,9 +42,12 @@ export function VisitorCheckIn() {
     businessName: 'My Company',
     notificationEmail: 'admin@floinvite.com',
     kioskMode: false,
+    labelPreset: 'default',
+    labelSettings: DEFAULT_LABELS,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
+  const labels = getLabelSettings(settings);
   const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const guests = StorageService.getGuests();
   const [notificationStatus, setNotificationStatus] = useState<NotificationStatus | null>(null);
@@ -395,7 +399,7 @@ export function VisitorCheckIn() {
    */
   switch (step) {
     case 'welcome':
-      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} canUseExpected={canUseExpected} userTier={userTier} />);
+      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} canUseExpected={canUseExpected} userTier={userTier} labels={labels} />);
 
     case 'walk-in':
       return renderLayout(
@@ -412,6 +416,7 @@ export function VisitorCheckIn() {
           errors={errors}
           onCheckIn={handleCheckInWalkIn}
           onBack={() => setStep('welcome')}
+          labels={labels}
         />
       );
 
@@ -424,11 +429,12 @@ export function VisitorCheckIn() {
           hosts={hosts}
           onCheckIn={handleCheckInExpected}
           onBack={() => setStep('welcome')}
+          labels={labels}
         />
       );
 
     case 'success':
-      return renderLayout(<SuccessStep guest={lastGuest!} host={hosts.find(h => h.id === lastGuest!.hostId)!} />);
+      return renderLayout(<SuccessStep guest={lastGuest!} host={hosts.find(h => h.id === lastGuest!.hostId)!} labels={labels} />);
   }
 }
 
@@ -439,18 +445,20 @@ function WelcomeStep({
   onWalkIn,
   onExpected,
   canUseExpected,
-  userTier
+  userTier,
+  labels
 }: {
   onWalkIn: () => void;
   onExpected: () => void;
   canUseExpected: boolean;
   userTier: 'starter' | 'compliance' | 'enterprise';
+  labels: LabelSettings;
 }) {
   return (
     <div className="triage-panel">
       <div className="welcome-header">
-        <h1>Welcome to Reception</h1>
-        <p className="muted">Sign in to get started</p>
+        <h1>Welcome</h1>
+        <p className="muted">{labels.checkIn} to get started</p>
       </div>
 
       <div className="path-buttons">
@@ -459,8 +467,8 @@ function WelcomeStep({
             <UserCheck size={48} strokeWidth={1.5} />
           </div>
           <div className="path-text">
-            <h2>I'm a new visitor</h2>
-            <p>Visiting without an appointment</p>
+            <h2>I'm a {labels.personSingular.toLowerCase()}</h2>
+            <p>{labels.walkIn}</p>
           </div>
         </button>
 
@@ -471,7 +479,7 @@ function WelcomeStep({
             </div>
             <div className="path-text">
               <h2>I'm expected</h2>
-              <p>Already scheduled or returning visitor</p>
+              <p>{labels.expected}</p>
             </div>
           </button>
         ) : (
@@ -497,7 +505,7 @@ function WelcomeStep({
           marginTop: '24px',
           color: '#92400e'
         }}>
-          <strong>Expected Guest Lookup - Upgrade to Unlock</strong>
+          <strong>{labels.expected} Lookup - Upgrade to Unlock</strong>
           <p style={{ fontSize: '0.9rem', marginTop: '8px', marginBottom: 0 }}>
             Unlock expected guest lookup with Starter tier ($29/month after 20 items) or upgrade to Compliance+ ($49/month) for returning visitor tracking and advanced features.
           </p>
@@ -522,7 +530,8 @@ function WalkInStep({
   hosts,
   errors,
   onCheckIn,
-  onBack
+  onBack,
+  labels
 }: {
   guestName: string;
   setGuestName: (val: string) => void;
@@ -536,6 +545,7 @@ function WalkInStep({
   errors: string[];
   onCheckIn: () => void;
   onBack: () => void;
+  labels: LabelSettings;
 }) {
   return (
     <div className="triage-panel">
@@ -544,9 +554,9 @@ function WalkInStep({
           ← Back
         </button>
         <div>
-          <p className="eyebrow">Walk-in lane</p>
-          <h2>Capture guest details</h2>
-          <p className="muted">Name, company, and host — the fastest way to log a new arrival.</p>
+          <p className="eyebrow">{labels.walkIn}</p>
+          <h2>Capture {labels.personSingular.toLowerCase()} details</h2>
+          <p className="muted">Name, company, and {labels.hostSingular.toLowerCase()} — the fastest way to log a new arrival.</p>
         </div>
       </div>
 
@@ -569,14 +579,14 @@ function WalkInStep({
         }}>
           <strong>❌ No hosts configured</strong>
           <p style={{ fontSize: '0.9rem', marginTop: '4px' }}>
-            You need to add hosts first. Go to Settings and import a CSV or add hosts manually.
+            You need to add {labels.hostPlural.toLowerCase()} first. Go to Settings and import a CSV or add {labels.hostPlural.toLowerCase()} manually.
           </p>
         </div>
       )}
 
       <form className="triage-form" onSubmit={(e) => { e.preventDefault(); onCheckIn(); }}>
         <div className="form-group">
-          <label htmlFor="name">Guest name *</label>
+          <label htmlFor="name">{labels.personSingular} name *</label>
           <input
             id="name"
             type="text"
@@ -609,7 +619,7 @@ function WalkInStep({
             disabled={hosts.length === 0}
           >
             <option value="">
-              {hosts.length === 0 ? 'No hosts available - add hosts first' : 'Select a host'}
+              {hosts.length === 0 ? `No ${labels.hostPlural.toLowerCase()} available - add ${labels.hostPlural.toLowerCase()} first` : `Select a ${labels.hostSingular.toLowerCase()}`}
             </option>
             {hosts.map(host => (
               <option key={host.id} value={host.id}>
@@ -637,7 +647,7 @@ function WalkInStep({
         </div>
 
         <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={hosts.length === 0}>
-          Check in and notify
+          {labels.checkIn} and notify
         </button>
       </form>
     </div>
@@ -653,7 +663,8 @@ function ExpectedStep({
   searchResults,
   hosts,
   onCheckIn,
-  onBack
+  onBack,
+  labels
 }: {
   searchQuery: string;
   onSearch: (query: string) => void;
@@ -661,6 +672,7 @@ function ExpectedStep({
   hosts: Host[];
   onCheckIn: (guestId: string) => void;
   onBack: () => void;
+  labels: LabelSettings;
 }) {
   return (
     <div className="triage-panel">
@@ -669,9 +681,9 @@ function ExpectedStep({
           ← Back
         </button>
         <div>
-          <p className="eyebrow">Expected lane</p>
+          <p className="eyebrow">{labels.expected}</p>
           <h2>Find your appointment</h2>
-          <p className="muted">Look up your name, email, or phone. We'll check you in instantly.</p>
+          <p className="muted">Look up your name, email, or phone. We'll {labels.checkIn.toLowerCase()} you instantly.</p>
         </div>
       </div>
 
@@ -694,21 +706,21 @@ function ExpectedStep({
                 {guest.email && <p className="contact-item"><Mail size={16} /> {guest.email}</p>}
                 {guest.phone && <p className="contact-item"><Phone size={16} /> {guest.phone}</p>}
                 <p className="host-name">
-                  Meeting: {hosts.find(h => h.id === guest.hostId)?.name}
+                  {labels.hostSingular}: {hosts.find(h => h.id === guest.hostId)?.name}
                 </p>
               </div>
               <button
                 className="btn btn-primary"
                 onClick={() => onCheckIn(guest.id)}
               >
-                Check in now
+                {labels.checkIn} now
               </button>
             </div>
           ))}
         </div>
       ) : searchQuery.trim() ? (
         <div className="no-results">
-          <p>No matching guests found</p>
+          <p>No matching {labels.personPlural.toLowerCase()} found</p>
           <small>Please double-check the spelling or ask at reception</small>
         </div>
       ) : (
@@ -723,14 +735,14 @@ function ExpectedStep({
 /**
  * Success Screen - Confirmation
  */
-function SuccessStep({ guest, host }: { guest: Guest; host: Host }) {
+function SuccessStep({ guest, host, labels }: { guest: Guest; host: Host; labels: LabelSettings }) {
   return (
     <div className="triage-panel success-step">
       <div className="success-container">
         <div className="success-icon">
           <CheckCircle size={64} strokeWidth={1.5} />
         </div>
-        <h1>Check-in successful</h1>
+        <h1>{labels.checkIn} successful</h1>
         <p>Welcome, <strong>{guest.name}</strong></p>
         {guest.company && <p className="company">from {guest.company}</p>}
         <p className="host-greeting">

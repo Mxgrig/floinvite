@@ -26,6 +26,10 @@ import {
   Heart,
 } from 'lucide-react';
 import { PRICING_TIERS } from '../services/pricingService';
+import { usePersistedState } from '../utils/hooks';
+import { STORAGE_KEYS } from '../utils/constants';
+import { AppSettings } from '../types';
+import { DEFAULT_LABELS, LABEL_PRESETS, LabelPresetKey, getLabelSettings } from '../utils/labelUtils';
 import './MarketingPage.css';
 
 interface MarketingPageProps {
@@ -34,6 +38,16 @@ interface MarketingPageProps {
 }
 
 export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps) {
+  const [settings, setSettings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
+    businessName: 'My Company',
+    notificationEmail: 'admin@floinvite.com',
+    kioskMode: false,
+    labelPreset: 'default',
+    labelSettings: DEFAULT_LABELS,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+  const labels = getLabelSettings(settings);
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
   const [contactForm, setContactForm] = useState({
     name: '',
@@ -46,6 +60,16 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
 
   const startFree = () => {
     onStartCheckIn();
+  };
+
+  const handleIndustryPreset = (preset: LabelPresetKey) => {
+    const presetLabels = LABEL_PRESETS[preset]?.labels || DEFAULT_LABELS;
+    setSettings({
+      ...settings,
+      labelPreset: preset,
+      labelSettings: presetLabels,
+      updatedAt: new Date().toISOString()
+    });
   };
 
   const handleContactChange = (field: keyof typeof contactForm, value: string) => {
@@ -91,7 +115,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
   };
 
   const stats = [
-    { value: '30s', label: 'Average check-in' },
+    { value: '30s', label: `Average ${labels.checkIn.toLowerCase()}` },
     { value: '100%', label: 'Browser-based' },
     { value: 'Export', label: 'Anytime' },
   ];
@@ -99,27 +123,27 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
   const features = [
     {
       icon: ClipboardList,
-      title: '30-Second Check-In',
+      title: `30-Second ${labels.checkIn}`,
       description:
-        'Fast two-path flow for walk-ins and expected visitors.',
+        `Fast two-path flow for ${labels.walkIn.toLowerCase()} and ${labels.expected.toLowerCase()}.`,
     },
     {
       icon: Bell,
       title: 'Arrival Notifications',
       description:
-        'Notify hosts immediately when someone arrives.',
+        `Notify ${labels.hostPlural.toLowerCase()} immediately when someone arrives.`,
     },
     {
       icon: BookOpen,
       title: 'Exportable Records',
       description:
-        'Searchable visitor history with exports on demand.',
+        `Searchable ${labels.logbook.toLowerCase()} with exports on demand.`,
     },
     {
       icon: Users,
       title: 'On-Site Accountability',
       description:
-        'Know who is on site right now, with a clean live list.',
+        `Know who is on site right now, with a clean live list.`,
     },
   ];
 
@@ -155,12 +179,12 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
     {
       number: '2',
       title: 'Set Up Your Site',
-      description: 'Configure your site and import your host list in minutes.',
+      description: `Configure your site and import your ${labels.hostPlural.toLowerCase()} list in minutes.`,
     },
     {
       number: '3',
       title: 'Run Check-ins',
-      description: 'Capture visitors and notify hosts with a simple two-path flow.',
+      description: `Capture ${labels.personPlural.toLowerCase()} and notify ${labels.hostPlural.toLowerCase()} with a simple two-path flow.`,
     },
     {
       number: '4',
@@ -214,14 +238,14 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
               </div>
 
               <h1 className="display-4 fw-bold mb-4 lh-1 text-dark">
-                30 Seconds to Check-In
+                30 Seconds to {labels.checkIn}
                 <br />
                 <span className="text-primary">No Hardware, No Hassle</span>
               </h1>
 
               <div className="hero-copy">
                 <p className="fs-5 mb-4 lh-base text-secondary">
-                  Check in guests in seconds, notify hosts instantly, and export visitor
+                  {labels.checkIn} {labels.personPlural.toLowerCase()} in seconds, notify {labels.hostPlural.toLowerCase()} instantly, and export {labels.logbook.toLowerCase()}
                   lists whenever you need them.
                 </p>
 
@@ -229,6 +253,22 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                   Built for fast-moving teams: venues, contractors, small offices, and staffing
                   coordinators who need speed over complexity.
                 </p>
+
+                <div className="mb-4">
+                  <label className="form-label fw-semibold text-secondary">Industry template</label>
+                  <select
+                    className="form-select"
+                    value={(settings.labelPreset || 'default') as LabelPresetKey}
+                    onChange={(e) => handleIndustryPreset(e.target.value as LabelPresetKey)}
+                    style={{ maxWidth: '320px' }}
+                  >
+                    {(['default', 'construction', 'healthcare', 'events', 'education'] as LabelPresetKey[]).map((key) => (
+                      <option key={key} value={key}>
+                        {LABEL_PRESETS[key].name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="hero-cta-row">
                   <button
@@ -284,7 +324,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                     </div>
                     <div>
                       <h6>Two-path flow</h6>
-                      <p>Walk-ins or expected guests.</p>
+                      <p>{labels.walkIn} or {labels.expected.toLowerCase()}.</p>
                     </div>
                   </div>
                   <div className="hero-panel-item">
@@ -292,7 +332,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                       <Bell size={20} />
                     </div>
                     <div>
-                      <h6>Instant host alerts</h6>
+                      <h6>Instant {labels.hostSingular.toLowerCase()} alerts</h6>
                       <p>Email notifications in real time.</p>
                     </div>
                   </div>
@@ -366,7 +406,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">Everything You Need</h2>
-            <p className="fs-5 text-muted mb-0">Simple, fast visitor management</p>
+            <p className="fs-5 text-muted mb-0">Simple, fast {labels.personSingular.toLowerCase()} management</p>
           </div>
 
           <div className="row g-4 justify-content-center">
@@ -428,7 +468,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
             <div className="col-lg-6 col-12 mb-4 mb-lg-0">
               <h2 className="display-5 fw-bold mb-4">Trust & Security</h2>
               <p className="fs-5 text-muted mb-4">
-                Keep it simple. Your visitor data stays secure and accessible.
+                Keep it simple. Your {labels.personSingular.toLowerCase()} data stays secure and accessible.
               </p>
 
               <div className="row g-3">
@@ -450,7 +490,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                     <Lock size={64} className="text-primary mb-3" />
                     <h5 className="fw-bold">Secure by Default</h5>
                     <p className="text-muted">
-                      Your visitor data stays protected without extra setup.
+                      Your {labels.personSingular.toLowerCase()} data stays protected without extra setup.
                     </p>
                   </div>
                 </div>
@@ -469,7 +509,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
             <span className="badge bg-primary mb-3">Plans & Pricing</span>
             <h2 id="pricing-heading" className="display-5 fw-bold mb-3">Simple, Transparent Pricing</h2>
             <p className="fs-5 text-muted mb-4 mx-auto" style={{ maxWidth: '600px' }}>
-              Start free. Data for your first 20 visitors/hosts included.
+              Start free. Data for your first 20 {labels.personPlural.toLowerCase()}/{labels.hostPlural.toLowerCase()} included.
             </p>
 
             <div className="btn-group mb-5" role="group">
@@ -790,7 +830,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
               Ready to move faster?
             </h2>
             <p className="fs-5 mb-4 text-white">
-              Start free. Data for your first 20 visitors/hosts included.
+              Start free. Data for your first 20 {labels.personPlural.toLowerCase()}/{labels.hostPlural.toLowerCase()} included.
             </p>
             <button
               className="btn btn-primary btn-lg fw-semibold px-5 py-3 d-inline-flex align-items-center gap-2"

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
-import { Guest, Host } from '../types';
+import { Guest, Host, AppSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
 import { usePersistedState, useDebounce } from '../utils/hooks';
@@ -13,6 +13,7 @@ import { STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
 import { FeatureLocked } from './FeatureLocked';
 import PageLayout from './PageLayout';
+import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
 import './Logbook.css';
 
 interface LogbookProps {
@@ -22,6 +23,16 @@ interface LogbookProps {
 export function Logbook({ onNavigate }: LogbookProps) {
   const [guests, setGuests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
+  const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
+    businessName: 'My Company',
+    notificationEmail: 'admin@floinvite.com',
+    kioskMode: false,
+    labelPreset: 'default',
+    labelSettings: DEFAULT_LABELS,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+  const labels = getLabelSettings(settings);
   const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -59,7 +70,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
   const stats = StorageService.getStats();
 
   const pageStats = [
-    { value: String(stats.totalGuests), label: 'Total visitors' },
+    { value: String(stats.totalGuests), label: `Total ${labels.personPlural.toLowerCase()}` },
     { value: String(stats.todayCheckIns), label: 'Today' },
     { value: String(stats.checkedInToday), label: 'Checked in' }
   ];
@@ -111,16 +122,16 @@ export function Logbook({ onNavigate }: LogbookProps) {
 
   return (
     <PageLayout
-      eyebrow="Visitor history"
-      title="Live logbook & exports"
-      subtitle="Search everything, slice by status, and hand compliance a clean export."
+      eyebrow={`${labels.personSingular} history`}
+      title={`Live ${labels.logbook.toLowerCase()} & exports`}
+      subtitle={`Search everything, slice by status, and hand compliance a clean export.`}
       stats={pageStats}
     >
       <div className="logbook-controls">
         <div className="search-area">
           <input
             type="text"
-            placeholder="Search by name, email, or company..."
+            placeholder={`Search ${labels.personPlural.toLowerCase()} by name, email, or company...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
@@ -136,7 +147,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
             <option value="all">All Status</option>
             <option value="Checked In">Checked In</option>
             <option value="Checked Out">Checked Out</option>
-            <option value="Expected">Expected</option>
+            <option value="Expected">{labels.expected}</option>
             <option value="No Show">No Show</option>
           </select>
 

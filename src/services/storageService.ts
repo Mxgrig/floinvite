@@ -5,6 +5,7 @@
  */
 
 import { Host, Guest, GuestStatus, AppSettings } from '../types';
+import { DEFAULT_LABELS } from '../utils/labelUtils';
 import { STORAGE_KEYS } from '../utils/constants';
 import { dbUtils } from '../db/floinviteDB';
 
@@ -369,13 +370,17 @@ export class StorageService {
         ? JSON.parse(data)
         : {
             businessName: 'My Company',
-      notificationEmail: 'admin@floinvite.com'
+            notificationEmail: 'admin@floinvite.com',
+            labelPreset: 'default',
+            labelSettings: DEFAULT_LABELS
           };
     } catch (error) {
       console.error('Failed to get app settings:', error);
       return {
         businessName: 'My Company',
-        notificationEmail: 'admin@floinvite.com'
+        notificationEmail: 'admin@floinvite.com',
+        labelPreset: 'default',
+        labelSettings: DEFAULT_LABELS
       };
     }
   }

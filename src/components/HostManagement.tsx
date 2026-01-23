@@ -14,6 +14,7 @@ import { STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
 import { UsageTracker } from '../utils/usageTracker';
 import { dbUtils } from '../db/floinviteDB';
+import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
 import PageLayout from './PageLayout';
 import './HostManagement.css';
 
@@ -25,9 +26,12 @@ export function HostManagement() {
     businessName: 'My Company',
     notificationEmail: 'admin@floinvite.com',
     kioskMode: false,
+    labelPreset: 'default',
+    labelSettings: DEFAULT_LABELS,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
+  const labels = getLabelSettings(settings);
   const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [step, setStep] = useState<HostStep>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -219,19 +223,19 @@ export function HostManagement() {
   // Render list view
   if (step === 'list') {
     const hostStats = [
-      { value: String(hosts.length), label: 'Hosts' }
+      { value: String(hosts.length), label: labels.hostPlural }
     ];
 
     return (
       <PageLayout
-        eyebrow="Hosts & notifications"
+        eyebrow={`${labels.hostPlural} & notifications`}
         title="Keep the right people in the loop"
-        subtitle="Assign hosts, set their channels, and keep the front desk in sync."
+        subtitle={`Assign ${labels.hostPlural.toLowerCase()}, set their channels, and keep the front desk in sync.`}
         stats={hostStats}
       >
         <div className="host-controls">
           <button onClick={handleAdd} className="btn btn-primary">
-            + Add Host
+            + Add {labels.hostSingular}
           </button>
           <button onClick={() => setStep('import')} className="btn btn-secondary">
             Import CSV
