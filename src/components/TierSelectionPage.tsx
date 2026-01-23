@@ -38,14 +38,14 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
 
   const features = {
     shared: [
-      { name: 'Unlimited guest check-ins', icon: '✓' },
+      { name: 'Unlimited check-ins', icon: '✓' },
       { name: 'Host management', icon: '✓' },
-      { name: 'Visitor logbook & search', icon: '✓' },
+      { name: 'Access logbook & search', icon: '✓' },
       { name: 'Email notifications', icon: '✓' },
-      { name: 'Expected guest lookup', icon: '✓' }
+      { name: 'Expected arrival lookup', icon: '✓' }
     ],
     professional: [
-      { name: 'Returning visitor tracking', icon: '✓' },
+      { name: 'Returning arrival tracking', icon: '✓' },
       { name: 'SMS & WhatsApp notifications', icon: '✓' },
       { name: 'Cloud backup & export', icon: '✓' },
       { name: 'CSV & JSON export', icon: '✓' },
@@ -74,7 +74,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
 
           <h1 className="tier-title">Choose Your Plan</h1>
           <p className="tier-subtitle">
-            Select the perfect plan for your visitor management needs
+            Select the perfect plan for your access management needs
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
               <div className="tier-usage-limit">
                 <p className="usage-limit-text">
                   💡 <strong>Free for the first 20 items</strong><br />
-                  <small>Then $29/month after 20 items (includes expected guests)</small>
+                  <small>Then $29/month after 20 items (includes expected arrivals)</small>
                 </p>
               </div>
             </div>

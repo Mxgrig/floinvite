@@ -204,18 +204,18 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
           {/* Left: Product Info */}
           <div className="login-left">
             <div className="product-info">
-              <h2 className="product-headline">Visitor Management That Just Works</h2>
+              <h2 className="product-headline">Access Management That Just Works</h2>
               <p className="product-description">
-                Check in guests, notify hosts, and track visitors in seconds. No hardware. No training. No hassle.
+                Check in people, send instant arrival alerts, and track access in seconds. No hardware. No training. No hassle.
               </p>
 
               <div className="product-features">
                 <div className="feature">
                   <div className="feature-title">30-second check-ins</div>
-                  <p>Walk-ins and expected visitors processed instantly</p>
+                  <p>Walk-ins and expected arrivals processed instantly</p>
                 </div>
                 <div className="feature">
-                  <div className="feature-title">Instant host alerts</div>
+                  <div className="feature-title">Instant arrival alerts</div>
                   <p>Email notifications sent automatically on arrival</p>
                 </div>
                 <div className="feature">
@@ -258,7 +258,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
               <h1 className="login-title brand-wordmark">
                 <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
               </h1>
-              <p className="login-subtitle">Visitor Management</p>
+              <p className="login-subtitle">Access Management Platform</p>
 
               {/* Choice Buttons */}
               <div className="login-choices">
@@ -303,18 +303,18 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
         {/* Left: Product Info */}
         <div className="login-left">
           <div className="product-info">
-            <h2 className="product-headline">Visitor Management That Just Works</h2>
+            <h2 className="product-headline">Access Management That Just Works</h2>
             <p className="product-description">
-              Check in guests, notify hosts, and track visitors in seconds. No hardware. No training. No hassle.
+              Check in people, send instant arrival alerts, and track access in seconds. No hardware. No training. No hassle.
             </p>
 
             <div className="product-features">
               <div className="feature">
                 <div className="feature-title">30-second check-ins</div>
-                <p>Walk-ins and expected visitors processed instantly</p>
+                <p>Walk-ins and expected arrivals processed instantly</p>
               </div>
               <div className="feature">
-                <div className="feature-title">Instant host alerts</div>
+                <div className="feature-title">Instant arrival alerts</div>
                 <p>Email notifications sent automatically on arrival</p>
               </div>
               <div className="feature">
@@ -350,7 +350,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
                 <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
               </h1>
             </div>
-            <p className="login-subtitle">Visitor Management</p>
+            <p className="login-subtitle">Access Management Platform</p>
 
             {/* Welcome Message */}
             <p className="login-message">

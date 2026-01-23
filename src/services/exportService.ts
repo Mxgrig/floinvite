@@ -5,19 +5,24 @@
  */
 
 import { Guest, Host } from '../types';
+import { DEFAULT_LABELS, LabelSettings } from '../utils/labelUtils';
 
 export class ExportService {
   /**
    * Export guests to CSV format
    */
-  static exportGuestsToCSV(guests: Guest[], filename: string = 'guests.csv'): void {
+  static exportGuestsToCSV(
+    guests: Guest[],
+    filename: string = 'guests.csv',
+    labels: LabelSettings = DEFAULT_LABELS
+  ): void {
     const headers = [
-      'Name',
+      `${labels.personSingular} Name`,
       'Company',
       'Email',
       'Phone',
-      'Host ID',
-      'Check-In Time',
+      labels.hostSingular,
+      `${labels.checkIn} Time`,
       'Check-Out Time',
       'Status',
       'Visit Count',
@@ -68,10 +73,15 @@ export class ExportService {
   /**
    * Export guests to JSON format
    */
-  static exportGuestsToJSON(guests: Guest[], filename: string = 'guests.json'): void {
+  static exportGuestsToJSON(
+    guests: Guest[],
+    filename: string = 'guests.json',
+    labels: LabelSettings = DEFAULT_LABELS
+  ): void {
     const data = {
       exportDate: new Date().toISOString(),
       recordCount: guests.length,
+      labelContext: labels,
       guests
     };
 
@@ -94,13 +104,17 @@ export class ExportService {
   /**
    * Export guests to HTML table
    */
-  static exportGuestsToHTML(guests: Guest[], filename: string = 'guests.html'): void {
+  static exportGuestsToHTML(
+    guests: Guest[],
+    filename: string = 'guests.html',
+    labels: LabelSettings = DEFAULT_LABELS
+  ): void {
     const html = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Guests Report</title>
+    <title>${labels.personPlural} Report</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         table { border-collapse: collapse; width: 100%; }
@@ -113,18 +127,18 @@ export class ExportService {
 </head>
 <body>
     <div class="header">
-        <h1>Guest Check-In Report</h1>
+        <h1>${labels.personSingular} ${labels.checkIn} Report</h1>
         <p class="date">Generated: ${new Date().toLocaleString()}</p>
         <p>Total Records: ${guests.length}</p>
     </div>
     <table>
         <thead>
             <tr>
-                <th>Name</th>
+                <th>${labels.personSingular} Name</th>
                 <th>Company</th>
                 <th>Email</th>
                 <th>Phone</th>
-                <th>Check-In Time</th>
+                <th>${labels.checkIn} Time</th>
                 <th>Check-Out Time</th>
                 <th>Status</th>
                 <th>Visits</th>
@@ -159,7 +173,11 @@ export class ExportService {
   /**
    * Generate summary report as HTML
    */
-  static generateSummaryReport(guests: Guest[], hosts: Host[]): string {
+  static generateSummaryReport(
+    guests: Guest[],
+    hosts: Host[],
+    labels: LabelSettings = DEFAULT_LABELS
+  ): string {
     const today = new Date().toDateString();
     const todayGuests = guests.filter(
       g => new Date(g.checkInTime).toDateString() === today
@@ -200,11 +218,11 @@ export class ExportService {
         <div class="stats">
             <div class="stat-box">
                 <div class="stat-number">${todayGuests.length}</div>
-                <div class="stat-label">Total Visitors Today</div>
+                <div class="stat-label">Total ${labels.personPlural} Today</div>
             </div>
             <div class="stat-box success">
                 <div class="stat-number">${checkedIn}</div>
-                <div class="stat-label">Currently Checked In</div>
+                <div class="stat-label">Currently ${labels.checkIn}</div>
             </div>
             <div class="stat-box">
                 <div class="stat-number">${checkedOut}</div>
@@ -216,16 +234,16 @@ export class ExportService {
             </div>
         </div>
 
-        <h2>Today's Check-Ins</h2>
+        <h2>Today's ${labels.checkIn} Entries</h2>
         ${
           todayGuests.length > 0
             ? `
         <table>
             <thead>
                 <tr>
-                    <th>Visitor Name</th>
+                    <th>${labels.personSingular} Name</th>
                     <th>Company</th>
-                    <th>Host</th>
+                    <th>${labels.hostSingular}</th>
                     <th>Time</th>
                     <th>Status</th>
                 </tr>
@@ -238,7 +256,7 @@ export class ExportService {
                 <tr>
                     <td>${this.escapeHTML(g.name)}</td>
                     <td>${this.escapeHTML(g.company || '-')}</td>
-                    <td>${this.escapeHTML(host?.name || 'Unknown')}</td>
+                    <td>${this.escapeHTML(host?.name || `Unknown ${labels.hostSingular}`)}</td>
                     <td>${new Date(g.checkInTime).toLocaleTimeString()}</td>
                     <td><strong>${g.status}</strong></td>
                 </tr>
@@ -248,12 +266,12 @@ export class ExportService {
             </tbody>
         </table>
         `
-            : '<p>No visitors today.</p>'
+            : `<p>No ${labels.personPlural.toLowerCase()} today.</p>`
         }
 
         <div class="footer">
             <p>This report was automatically generated by Floinvite.</p>
-            <p>Total Hosts: ${hosts.length} | Total Records in System: ${guests.length}</p>
+            <p>Total ${labels.hostPlural}: ${hosts.length} | Total Records in System: ${guests.length}</p>
         </div>
     </div>
 </body>

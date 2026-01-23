@@ -36,12 +36,12 @@ export const PRICING_TIERS: PricingTier[] = [
     features: [
       // Core Features
       {
-        text: 'Unlimited visitor records',
+        text: 'Unlimited access records',
         included: true,
         category: 'core'
       },
       {
-        text: 'Visitor check-in / check-out',
+        text: 'Check-in / check-out',
         included: true,
         category: 'core'
       },
@@ -117,7 +117,7 @@ export const PRICING_TIERS: PricingTier[] = [
     features: [
       // Core Features
       {
-        text: 'Unlimited visitor records',
+        text: 'Unlimited access records',
         included: true,
         category: 'core'
       },
@@ -127,12 +127,12 @@ export const PRICING_TIERS: PricingTier[] = [
         category: 'core'
       },
       {
-        text: 'Expected guest management',
+        text: 'Expected arrival management',
         included: true,
         category: 'core'
       },
       {
-        text: 'Returning visitor tracking',
+        text: 'Returning arrival tracking',
         included: true,
         category: 'core'
       },
@@ -285,7 +285,7 @@ export const PRICING_TIERS: PricingTier[] = [
 // Feature categories
 export const FEATURE_CATEGORIES = [
   { id: 'core', label: 'Core Features', icon: '✓' },
-  { id: 'notifications', label: '📧 Visitor Notifications (THE DIFFERENTIATOR)', icon: '🔔' },
+  { id: 'notifications', label: '📧 Arrival Notifications (THE DIFFERENTIATOR)', icon: '🔔' },
   { id: 'data', label: 'Data & Backup', icon: '💾' },
   { id: 'support', label: 'Support', icon: '💬' },
   { id: 'admin', label: 'Administration', icon: '⚙️' }
@@ -295,7 +295,7 @@ export const FEATURE_CATEGORIES = [
 export const COMPARISON_TABLE = [
   { feature: 'Guest Check-in', starter: true, compliance: true, enterprise: true },
   { feature: 'Email Notifications', starter: true, compliance: true, enterprise: true },
-  { feature: 'Visitor Logbook', starter: true, compliance: true, enterprise: true },
+  { feature: 'Access Logbook', starter: true, compliance: true, enterprise: true },
   { feature: 'Data Export (90 days)', starter: true, compliance: true, enterprise: true },
   { feature: 'Automatic Backups', starter: false, compliance: true, enterprise: true },
   { feature: '7-Year Record Retention', starter: false, compliance: true, enterprise: true },

@@ -151,7 +151,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
     {
       icon: Building2,
       title: 'Events & Venues',
-      description: 'Check in guests in seconds. Export attendee lists for invoicing.',
+      description: `Check in ${labels.personPlural.toLowerCase()} in seconds. Export ${labels.logbook.toLowerCase()} lists for invoicing.`,
     },
     {
       icon: GraduationCap,
@@ -250,8 +250,8 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                 </p>
 
                 <p className="fs-5 mb-4 lh-base text-secondary">
-                  Built for fast-moving teams: venues, contractors, small offices, and staffing
-                  coordinators who need speed over complexity.
+                  An access management platform for modern businesses: venues, contractors, small offices,
+                  and staffing coordinators who need speed over complexity.
                 </p>
 
                 <div className="mb-4">
@@ -820,7 +820,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
       <section className="cta-section py-5 position-relative overflow-hidden">
         <img
           src="/heroimg.png"
-          alt="Busy office reception desk with happy guests being greeted"
+          alt="Busy office reception desk with people being greeted"
           className="cta-background"
         />
         <div className="cta-overlay"></div>

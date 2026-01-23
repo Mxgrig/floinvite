@@ -5,7 +5,7 @@
 
 export const APP_CONFIG = {
   name: 'Floinvite',
-  description: 'Visitor Management System for Modern Offices',
+  description: 'Access Management Platform for Modern Businesses',
   version: '1.0.0',
   website: 'https://floinvite.com',
   email: 'admin@floinvite.com',
