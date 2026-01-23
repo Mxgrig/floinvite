@@ -90,6 +90,18 @@ export interface AppSettings {
   timezone?: string; // IANA timezone string
   locale?: string; // Language/locale code
   kioskMode: boolean; // Enable fullscreen kiosk mode
+  sessionTimeout?: number; // Minutes
+  labelPreset?: string;
+  labelSettings?: {
+    personSingular: string;
+    personPlural: string;
+    hostSingular: string;
+    hostPlural: string;
+    checkIn: string;
+    logbook: string;
+    walkIn: string;
+    expected: string;
+  };
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
 }

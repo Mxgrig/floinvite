@@ -6,6 +6,7 @@
 
 import { db, dbUtils, StoredHost, StoredGuest, StoredSettings } from '../db/floinviteDB';
 import { Host, Guest, AppSettings, GuestStatus } from '../types';
+import { DEFAULT_LABELS } from '../utils/labelUtils';
 
 export interface MigrationStatus {
   completed: boolean;
@@ -183,6 +184,8 @@ export class MigrationService {
       primaryColor: data.primaryColor,
       notificationEmail: data.notificationEmail || 'admin@floinvite.com',
       kioskMode: data.kioskMode || false,
+      labelPreset: data.labelPreset || 'default',
+      labelSettings: data.labelSettings || DEFAULT_LABELS,
       createdAt: data.createdAt || new Date().toISOString(),
       updatedAt: data.updatedAt || new Date().toISOString()
     };

@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { AppSettings } from './types';
+import { DEFAULT_LABELS } from './utils/labelUtils';
 import { SignInPage } from './components/SignInPage';
 import { CreateAccountPage } from './components/CreateAccountPage';
 import { TierSelectionPage } from './components/TierSelectionPage';
@@ -47,6 +48,8 @@ export function App() {
       businessName: 'My Company',
       notificationEmail: 'admin@floinvite.com',
       kioskMode: false,
+      labelPreset: 'default',
+      labelSettings: DEFAULT_LABELS,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -314,7 +317,7 @@ export function App() {
                 Logbook
               </a>
               <a href={getPageHref('check-in')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'check-in')} className={currentPage === 'check-in' ? 'active' : ''}>
-                Check-In
+                Site Access
               </a>
               <a href={getPageHref('hosts')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
                 Hosts

@@ -6,6 +6,10 @@
 import { Home, LogOut } from 'lucide-react';
 import { getLogoPath } from '../utils/logoHelper';
 import { MobileMenu } from './MobileMenu';
+import { usePersistedState } from '../utils/hooks';
+import { STORAGE_KEYS } from '../utils/constants';
+import { AppSettings } from '../types';
+import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
 import './Navbar.css';
 
 export interface NavbarProps {
@@ -17,6 +21,16 @@ export interface NavbarProps {
 }
 
 export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppNav = true, onLogout }: NavbarProps) {
+  const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
+    businessName: 'My Company',
+    notificationEmail: 'admin@floinvite.com',
+    kioskMode: false,
+    labelPreset: 'default',
+    labelSettings: DEFAULT_LABELS,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+  const labels = getLabelSettings(settings);
   const handleLogoClick = () => {
     if (onNavigate) {
       onNavigate('landing');
@@ -38,9 +52,9 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
   // Mobile menu items
   const mobileMenuItems = showAppNav
     ? [
-        { label: 'Check-In', page: 'check-in' },
-        { label: 'Logbook', page: 'logbook' },
-        { label: 'Hosts', page: 'hosts' },
+        { label: labels.checkIn, page: 'check-in' },
+        { label: labels.logbook, page: 'logbook' },
+        { label: labels.hostPlural, page: 'hosts' },
         { label: 'Evacuation', page: 'evacuation-list' },
         { label: 'Settings', page: 'settings' },
       ]
@@ -72,19 +86,19 @@ export function Navbar({ currentPage, onNavigate, userTier = 'starter', showAppN
                 className={`navbar-link ${currentPage === 'check-in' ? 'active' : ''}`}
                 onClick={() => handleNavClick('check-in')}
               >
-                Check-In
+                {labels.checkIn}
               </button>
               <button
                 className={`navbar-link ${currentPage === 'logbook' ? 'active' : ''}`}
                 onClick={() => handleNavClick('logbook')}
               >
-                Logbook
+                {labels.logbook}
               </button>
               <button
                 className={`navbar-link ${currentPage === 'hosts' ? 'active' : ''}`}
                 onClick={() => handleNavClick('hosts')}
               >
-                Hosts
+                {labels.hostPlural}
               </button>
               <button
                 className={`navbar-link ${currentPage === 'evacuation-list' ? 'active' : ''}`}
