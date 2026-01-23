@@ -245,8 +245,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
 
               <div className="hero-copy">
                 <p className="fs-5 mb-4 lh-base text-secondary">
-                  {labels.checkIn} {labels.personPlural.toLowerCase()} in seconds, notify {labels.hostPlural.toLowerCase()} instantly, and export {labels.logbook.toLowerCase()}
-                  lists whenever you need them.
+                  Process arrivals in seconds, send instant notifications, and export complete access records whenever you need them.
                 </p>
 
                 <p className="fs-5 mb-4 lh-base text-secondary">
