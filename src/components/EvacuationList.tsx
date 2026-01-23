@@ -6,11 +6,12 @@
 
 import { useState } from 'react';
 import { AlertTriangle, Printer, Download, Clock, Building2, User } from 'lucide-react';
-import { Guest, Host, GuestStatus } from '../types';
+import { Guest, Host, GuestStatus, AppSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
 import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
+import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
 import PageLayout from './PageLayout';
 import './EvacuationList.css';
 
@@ -21,6 +22,16 @@ interface EvacuationListProps {
 export function EvacuationList({ onNavigate }: EvacuationListProps) {
   const [guests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
+  const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
+    businessName: 'My Company',
+    notificationEmail: 'admin@floinvite.com',
+    kioskMode: false,
+    labelPreset: 'default',
+    labelSettings: DEFAULT_LABELS,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+  const labels = getLabelSettings(settings);
   const [groupBy, setGroupBy] = useState<'host' | 'none'>('host');
 
   // Get all currently checked-in guests
@@ -58,14 +69,16 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
   const handleExportCSV = () => {
     ExportService.exportGuestsToCSV(
       checkedInGuests,
-      `evacuation-list-${new Date().toISOString().split('T')[0]}.csv`
+      `evacuation-list-${new Date().toISOString().split('T')[0]}.csv`,
+      labels
     );
   };
 
   const handleExportJSON = () => {
     ExportService.exportGuestsToJSON(
       checkedInGuests,
-      `evacuation-list-${new Date().toISOString().split('T')[0]}.json`
+      `evacuation-list-${new Date().toISOString().split('T')[0]}.json`,
+      labels
     );
   };
 
@@ -78,7 +91,7 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
             <AlertTriangle className="evacuation-icon" />
             <div>
               <h1>Evacuation List</h1>
-              <p className="evacuation-subtitle">All currently checked-in guests</p>
+              <p className="evacuation-subtitle">All currently checked-in {labels.personPlural.toLowerCase()}</p>
             </div>
           </div>
 
@@ -86,7 +99,7 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
           <div className="evacuation-controls">
             <div className="evacuation-stats">
               <span className="stat-badge">
-                {checkedInGuests.length} {checkedInGuests.length === 1 ? 'guest' : 'guests'} checked in
+                {checkedInGuests.length} {checkedInGuests.length === 1 ? labels.personSingular.toLowerCase() : labels.personPlural.toLowerCase()} checked in
               </span>
               <span className="stat-timestamp">
                 Updated: {formatTime(new Date().toISOString())}
@@ -100,7 +113,7 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
                 className="group-select"
               >
                 <option value="none">No grouping</option>
-                <option value="host">Group by Host</option>
+                <option value="host">Group by {labels.hostSingular}</option>
               </select>
 
               <button className="action-button print-button" onClick={handlePrint} title="Print evacuation list">
@@ -125,8 +138,8 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
         {checkedInGuests.length === 0 ? (
           <div className="evacuation-empty">
             <AlertTriangle size={48} />
-            <h3>No guests currently checked in</h3>
-            <p>All guests have been checked out or there are no active check-ins.</p>
+            <h3>No {labels.personPlural.toLowerCase()} currently checked in</h3>
+            <p>All {labels.personPlural.toLowerCase()} have been checked out or there are no active check-ins.</p>
           </div>
         ) : (
           <div className="evacuation-content">
@@ -135,8 +148,8 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
                 {groupBy === 'host' && groupId !== 'all' && (
                   <div className="evacuation-group-header">
                     <Building2 size={20} />
-                    <h2>{hostMap.get(groupId)?.name || 'Unknown Host'}</h2>
-                    <span className="group-count">{groupGuests.length} guest{groupGuests.length !== 1 ? 's' : ''}</span>
+                    <h2>{hostMap.get(groupId)?.name || `Unknown ${labels.hostSingular}`}</h2>
+                    <span className="group-count">{groupGuests.length} {groupGuests.length !== 1 ? labels.personPlural.toLowerCase() : labels.personSingular.toLowerCase()}</span>
                   </div>
                 )}
 
@@ -168,14 +181,14 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
 
                         <div className="guest-checkin-time">
                           <Clock size={14} />
-                          <span>Checked in: {formatTime(guest.checkInTime)}</span>
+                          <span>{labels.checkIn}: {formatTime(guest.checkInTime)}</span>
                         </div>
                       </div>
 
                       {groupBy !== 'host' && (
                         <div className="guest-host">
                           <Building2 size={14} />
-                          <span>{hostMap.get(guest.hostId)?.name || 'Unknown'}</span>
+                          <span>{hostMap.get(guest.hostId)?.name || `Unknown ${labels.hostSingular}`}</span>
                         </div>
                       )}
                     </div>
@@ -187,7 +200,7 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
             {/* Footer with timestamp */}
             <div className="evacuation-footer">
               <p>Generated: {formatDate(new Date().toISOString())} at {formatTime(new Date().toISOString())}</p>
-              <p className="evacuation-footer-note">This evacuation list contains all guests currently checked in to the building.</p>
+              <p className="evacuation-footer-note">This evacuation list contains all {labels.personPlural.toLowerCase()} currently checked in to the building.</p>
             </div>
           </div>
         )}

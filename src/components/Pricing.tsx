@@ -30,7 +30,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
       '@context': 'https://schema.org',
       '@type': 'AggregateOffer',
       'name': 'Floinvite Pricing Plans',
-      'description': 'Flexible pricing plans for visitor management software',
+      'description': 'Flexible pricing plans for access management software',
       'url': 'https://floinvite.com/pricing',
       'priceCurrency': 'USD',
       'offers': offers
@@ -98,7 +98,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
     <PageLayout
       eyebrow="Plans & pricing"
       title="Simple, Transparent Pricing"
-      subtitle="All plans include powerful visitor management. Notifications set them apart."
+      subtitle="All plans include powerful access management. Notifications set them apart."
     >
       <div className="pricing-content">
 

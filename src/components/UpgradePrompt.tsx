@@ -1,6 +1,6 @@
 /**
  * Upgrade Prompt Modal
- * Appears when user exceeds free tier limits (20 hosts/visitors)
+ * Appears when user exceeds free tier limits (20 hosts/people)
  */
 
 import { useState } from 'react';
@@ -66,7 +66,7 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
 
         {/* Message */}
         <p className="upgrade-prompt-message">
-          You've reached your free limit of {usage.hostsLimit} hosts/visitors. Continue on Starter for $29/month, or upgrade to Compliance+ for $49/month.
+          You've reached your free limit of {usage.hostsLimit} hosts/people. Continue on Starter for $29/month, or upgrade to Compliance+ for $49/month.
         </p>
 
         {/* Usage Bar */}
@@ -86,9 +86,9 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
             <p className="plan-price">$29<span>/month</span></p>
             <p className="plan-subtitle">Everything you need</p>
             <ul className="plan-features">
-              <li>✓ Unlimited guest check-ins</li>
+              <li>✓ Unlimited check-ins</li>
               <li>✓ Email notifications</li>
-              <li>✓ Visitor logbook & search</li>
+              <li>✓ Access logbook & search</li>
               <li>✓ 90-day data exports</li>
             </ul>
           </div>

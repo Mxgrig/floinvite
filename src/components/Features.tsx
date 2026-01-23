@@ -45,9 +45,9 @@ export function Features({ onNavigate }: FeaturesPageProps) {
       {/* Hero Section */}
       <section className="features-hero">
         <div className="hero-content">
-          <h1 className="hero-title">Powerful Features for Visitor Management</h1>
+          <h1 className="hero-title">Powerful Features for Access Management</h1>
           <p className="hero-subtitle">
-            Everything you need to manage visitors efficiently. From check-in to notifications, we've got you covered.
+            Everything you need to manage access efficiently. From check-in to notifications, we've got you covered.
           </p>
         </div>
       </section>
@@ -61,7 +61,7 @@ export function Features({ onNavigate }: FeaturesPageProps) {
               <h3>Smart Check-In</h3>
               <ul className="feature-list">
                 <li>✓ 30-second average check-in time</li>
-                <li>✓ Two-path flow for walk-ins and expected guests</li>
+                <li>✓ Two-path flow for walk-ins and expected arrivals</li>
                 <li>✓ Works offline out of the box</li>
               </ul>
             </div>
@@ -78,9 +78,9 @@ export function Features({ onNavigate }: FeaturesPageProps) {
             <div className="feature-category">
               <h3>Complete Logbook</h3>
               <ul className="feature-list">
-                <li>✓ Searchable visitor history</li>
+                <li>✓ Searchable access history</li>
                 <li>✓ CSV/JSON export formats</li>
-                <li>✓ Filtering by date, host, or visitor</li>
+                <li>✓ Filtering by date, contact, or person</li>
               </ul>
             </div>
 
@@ -120,18 +120,18 @@ export function Features({ onNavigate }: FeaturesPageProps) {
           <h2 className="section-title">Advanced Features</h2>
           <div className="features-list-container">
             <div className="feature-category">
-              <h3>Expected Guest Tracking</h3>
+              <h3>Expected Arrival Tracking</h3>
               <ul className="feature-list">
-                <li>✓ Pre-register expected visitors</li>
+                <li>✓ Pre-register expected arrivals</li>
                 <li>✓ Automatic identification during check-in</li>
-                <li>✓ Faster processing for returning guests</li>
+                <li>✓ Faster processing for returning arrivals</li>
               </ul>
             </div>
 
             <div className="feature-category">
-              <h3>Visitor Analytics</h3>
+              <h3>Access Analytics</h3>
               <ul className="feature-list">
-                <li>✓ Insights into visitor patterns</li>
+                <li>✓ Insights into access patterns</li>
                 <li>✓ Identify busiest times</li>
                 <li>✓ Host activity reports</li>
               </ul>
@@ -151,7 +151,7 @@ export function Features({ onNavigate }: FeaturesPageProps) {
               <ul className="feature-list">
                 <li>✓ Seamless email notifications</li>
                 <li>✓ Customizable email templates</li>
-                <li>✓ Compliance+ visitor experience</li>
+                <li>✓ Compliance+ access experience</li>
               </ul>
             </div>
 
@@ -204,7 +204,7 @@ export function Features({ onNavigate }: FeaturesPageProps) {
                   <td className="check">✓</td>
                 </tr>
                 <tr>
-                  <td>Visitor Logbook</td>
+                  <td>Access Logbook</td>
                   <td className="check">✓</td>
                   <td className="check">✓</td>
                   <td className="check">✓</td>
@@ -216,7 +216,7 @@ export function Features({ onNavigate }: FeaturesPageProps) {
                   <td>Unlimited</td>
                 </tr>
                 <tr>
-                  <td>Expected Guest Import</td>
+                  <td>Expected Arrival Import</td>
                   <td className="x">–</td>
                   <td className="check">✓</td>
                   <td className="check">✓</td>
@@ -248,7 +248,7 @@ export function Features({ onNavigate }: FeaturesPageProps) {
       {/* CTA Section */}
       <section className="features-cta-section">
         <div className="cta-content">
-          <h2>Ready to simplify visitor management?</h2>
+          <h2>Ready to simplify access management?</h2>
           <p>Start with our Starter plan - no credit card required</p>
           <div className="cta-buttons">
             <button className="btn btn-primary btn-lg" onClick={() => onNavigate('check-in')}>

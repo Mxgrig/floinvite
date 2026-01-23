@@ -75,7 +75,7 @@ export function SignInPage({
           <h1 className="auth-title">Welcome Back</h1>
 
           <p className="auth-subtitle">
-            Sign in to manage your visitor check-ins
+            Sign in to manage your check-ins
           </p>
 
           <form onSubmit={handleSubmit} className="auth-form">

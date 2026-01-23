@@ -109,7 +109,7 @@ export function CreateAccountPage({
           <h1 className="auth-title">Get Started</h1>
 
           <p className="auth-subtitle">
-            Create your account to manage visitor check-ins
+            Create your account to manage check-ins
           </p>
 
           <form onSubmit={handleSubmit} className="auth-form">

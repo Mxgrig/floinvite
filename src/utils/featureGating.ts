@@ -208,11 +208,11 @@ export function getUpgradeFeatures(tier: SubscriptionTier): string[] {
  */
 export function getFeatureName(feature: string): string {
   const names: Record<string, string> = {
-    'guest_checkin': 'Guest Check-in',
+    'guest_checkin': 'Check-in',
     'host_management': 'Host Management',
-    'visitor_logbook': 'Visitor Logbook',
-    'expected_guests': 'Expected Guest Management',
-    'returning_visitors': 'Returning Visitor Tracking',
+    'visitor_logbook': 'Access Logbook',
+    'expected_guests': 'Expected Arrival Management',
+    'returning_visitors': 'Returning Arrival Tracking',
     'email_notifications': 'Email Notifications',
     'sms_notifications': 'SMS Notifications',
     'slack_integration': 'Slack Integration',

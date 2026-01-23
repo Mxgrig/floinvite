@@ -149,28 +149,28 @@ export function Settings({ onNavigate }: SettingsProps) {
         {activeTab === 'hosts' && (
           <div className="tab-panel">
             <div className="tab-intro">
-              <h2>Host Management</h2>
-              <p>Manage the employees, departments, or teams that receive visitor notifications</p>
+              <h2>{labelSettings.hostSingular} Management</h2>
+              <p>Manage the {labelSettings.hostPlural.toLowerCase()} who receive arrival notifications</p>
             </div>
 
             <div className="info-box">
               <Info size={18} />
               <div>
-                <strong>Tip:</strong> Add hosts here, then import guest lists to assign visitors to specific hosts. Navigate to the Host Management page for detailed setup.
+                <strong>Tip:</strong> Add {labelSettings.hostPlural.toLowerCase()} here, then import {labelSettings.personPlural.toLowerCase()} lists to assign {labelSettings.personPlural.toLowerCase()} to specific {labelSettings.hostPlural.toLowerCase()}. Navigate to the Host Management page for detailed setup.
               </div>
             </div>
 
             <div className="quick-actions">
-              <button className="btn btn-primary">+ Add New Host</button>
+              <button className="btn btn-primary">+ Add New {labelSettings.hostSingular}</button>
               <button className="btn btn-secondary">
                 <Upload size={18} />
-                Import Hosts (CSV)
+                Import {labelSettings.hostPlural} (CSV)
               </button>
             </div>
 
             <div className="empty-state">
-              <h3>No hosts configured yet</h3>
-              <p>Start by adding your first host above to begin receiving visitor notifications.</p>
+              <h3>No {labelSettings.hostPlural.toLowerCase()} configured yet</h3>
+              <p>Start by adding your first {labelSettings.hostSingular.toLowerCase()} above to begin receiving arrival notifications.</p>
             </div>
           </div>
         )}
@@ -271,7 +271,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                   onChange={(e) => setFormData({ ...formData, notificationEmail: e.target.value })}
                   placeholder="admin@floinvite.com"
                 />
-                <small>Email address used for sending visitor notifications. Must be admin@floinvite.com</small>
+                <small>Email address used for sending arrival notifications. Must be admin@floinvite.com</small>
               </div>
 
               <div className="form-group">

@@ -57,14 +57,22 @@ export function Logbook({ onNavigate }: LogbookProps) {
     if (!canExport) {
       return;
     }
-    ExportService.exportGuestsToCSV(filteredGuests, `guests-${new Date().toISOString().split('T')[0]}.csv`);
+    ExportService.exportGuestsToCSV(
+      filteredGuests,
+      `guests-${new Date().toISOString().split('T')[0]}.csv`,
+      labels
+    );
   };
 
   const handleExportJSON = () => {
     if (!canExport) {
       return;
     }
-    ExportService.exportGuestsToJSON(filteredGuests, `guests-${new Date().toISOString().split('T')[0]}.json`);
+    ExportService.exportGuestsToJSON(
+      filteredGuests,
+      `guests-${new Date().toISOString().split('T')[0]}.json`,
+      labels
+    );
   };
 
   const stats = StorageService.getStats();
@@ -288,7 +296,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
           </div>
         ) : (
           <div className="empty-state">
-            <p>No visitors found</p>
+            <p>No {labels.personPlural.toLowerCase()} found</p>
             {debouncedSearch && <small>Try adjusting your search</small>}
           </div>
         )}

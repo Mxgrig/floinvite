@@ -507,7 +507,7 @@ function WelcomeStep({
         }}>
           <strong>{labels.expected} Lookup - Upgrade to Unlock</strong>
           <p style={{ fontSize: '0.9rem', marginTop: '8px', marginBottom: 0 }}>
-            Unlock expected guest lookup with Starter tier ($29/month after 20 items) or upgrade to Compliance+ ($49/month) for returning visitor tracking and advanced features.
+            Unlock expected arrival lookup with Starter tier ($29/month after 20 items) or upgrade to Compliance+ ($49/month) for returning arrival tracking and advanced features.
           </p>
         </div>
       )}
