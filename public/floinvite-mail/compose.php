@@ -250,6 +250,23 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             </div>
 
             <div class="form-group">
+                <label>Attachments</label>
+                <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Add PDF files and images to send with the email to all recipients</p>
+
+                <div style="margin-bottom: 1rem;">
+                    <button type="button" class="btn-secondary" id="attach-file-btn" style="margin-bottom: 0.5rem;">+ Add File</button>
+                    <input type="file" id="attach-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display: none;" multiple>
+                    <small style="color: #6b7280; display: block;">Supported: PDF, JPG, PNG, GIF, WebP (Max 10MB per file)</small>
+                </div>
+
+                <div id="attachments-list" style="display: none; margin-top: 1rem; padding: 1rem; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px;">
+                    <strong style="color: #166534; display: block; margin-bottom: 0.5rem;">Attached Files:</strong>
+                    <ul id="attachments-items" style="margin: 0; padding: 0; list-style: none;">
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="test_email">Send Test Email</label>
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
                     <input type="email" id="test_email" name="test_email"
@@ -766,6 +783,153 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
 
         // Initialize UI on page load
         updateSendMethodUI();
+
+        // ═══════════════════════════════════════════════════
+        // Attachment Handling
+        // ═══════════════════════════════════════════════════
+        const attachFileBtn = document.getElementById('attach-file-btn');
+        const attachFileInput = document.getElementById('attach-file-input');
+        const attachmentsList = document.getElementById('attachments-list');
+        const attachmentsItems = document.getElementById('attachments-items');
+        let currentAttachments = [];
+
+        // Initialize attachments on page load
+        function initializeAttachments() {
+            if (!<?php echo $campaign_id ? 'true' : 'false'; ?>) return;
+
+            fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php?action=list&campaign_id=<?php echo $campaign_id; ?>')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentAttachments = data.attachments;
+                        renderAttachmentsList();
+                    }
+                })
+                .catch(error => console.error('Error loading attachments:', error));
+        }
+
+        // Render attachments list
+        function renderAttachmentsList() {
+            attachmentsItems.innerHTML = '';
+
+            currentAttachments.forEach(att => {
+                const li = document.createElement('li');
+                li.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: white; border-radius: 4px; margin-bottom: 0.5rem;';
+
+                const fileInfo = document.createElement('span');
+                fileInfo.textContent = att.original_name + ' (' + (att.file_size / 1024).toFixed(1) + ' KB)';
+                fileInfo.style.cssText = 'color: #166534; font-size: 0.875rem;';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.textContent = 'Remove';
+                deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; padding: 0.25rem 0.75rem; font-size: 0.75rem; cursor: pointer;';
+                deleteBtn.onclick = (e) => {
+                    e.preventDefault();
+                    deleteAttachment(att.id);
+                };
+
+                li.appendChild(fileInfo);
+                li.appendChild(deleteBtn);
+                attachmentsItems.appendChild(li);
+            });
+
+            attachmentsList.style.display = currentAttachments.length > 0 ? 'block' : 'none';
+        }
+
+        // Attach file button handler
+        if (attachFileBtn) {
+            attachFileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                attachFileInput.click();
+            });
+        }
+
+        // File input change handler
+        if (attachFileInput) {
+            attachFileInput.addEventListener('change', async (e) => {
+                const files = e.target.files;
+                if (!files.length) return;
+
+                // Only allow campaign_id for existing campaigns
+                if (!<?php echo $campaign_id ? 'true' : 'false'; ?>) {
+                    alert('Please save the campaign first before adding attachments');
+                    return;
+                }
+
+                for (let file of files) {
+                    await uploadAttachment(file);
+                }
+
+                // Reset input
+                attachFileInput.value = '';
+            });
+        }
+
+        // Upload attachment
+        async function uploadAttachment(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('action', 'upload');
+            formData.append('campaign_id', <?php echo $campaign_id; ?>);
+
+            try {
+                const response = await fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentAttachments.push(data.attachment);
+                    renderAttachmentsList();
+                } else {
+                    alert('Error uploading file: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error uploading file: ' + error.message);
+            }
+        }
+
+        // Delete attachment
+        async function deleteAttachment(attachmentId) {
+            if (!confirm('Are you sure you want to remove this attachment?')) return;
+
+            try {
+                const response = await fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        action: 'delete',
+                        campaign_id: <?php echo $campaign_id; ?>,
+                        attachment_id: attachmentId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentAttachments = currentAttachments.filter(att => att.id !== attachmentId);
+                    renderAttachmentsList();
+                } else {
+                    alert('Error deleting attachment: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Error deleting attachment: ' + error.message);
+            }
+        }
+
+        // Initialize attachments when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAttachments);
+        } else {
+            initializeAttachments();
+        }
     </script>
 
 </body>
