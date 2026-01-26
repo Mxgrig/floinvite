@@ -427,7 +427,7 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
             <div class="signature">$signature</div>
         </div>
         <div class="footer">
-            <p><strong><a href="$public_url" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></strong><br>Professional Visitor Management</p>
+            <p><strong><a href="$public_url" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></strong><br>Access Management Platform</p>
             <p><a href="$base_url/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="$public_url/contact">Contact Us</a></p>
         </div>
     </div>
@@ -670,7 +670,7 @@ function create_offer_email_html($logo_url, $greeting, $body_html, $signature, $
             <div class="signature">$signature</div>
         </div>
         <div class="footer">
-            <p><strong><a href="$public_url" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></strong><br>Professional Visitor Management</p>
+            <p><strong><a href="$public_url" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></strong><br>Access Management Platform</p>
             <p><a href="$base_url/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="$public_url/contact">Contact Us</a></p>
         </div>
     </div>
