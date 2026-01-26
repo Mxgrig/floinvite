@@ -42,11 +42,30 @@ try {
     $body = $input['body'] ?? 'Enter your email content here...';
     $signature = $input['signature'] ?? 'Best regards,\n{host_name}';
     $template_type = $input['template_type'] ?? 'default';
+    $subscriber_email = $input['subscriber_email'] ?? '';
     $sample_name = $input['sample_name'] ?? 'John Smith';
     $sample_email = $input['sample_email'] ?? 'john@example.com';
     $sample_company = $input['sample_company'] ?? 'ABC Corp';
     $sample_host = $input['sample_host'] ?? 'Mary Johnson';
     $sample_host_email = $input['sample_host_email'] ?? 'mary@example.com';
+
+    if (!empty($subscriber_email) && validate_email($subscriber_email)) {
+        try {
+            $db = get_db();
+            $stmt = $db->prepare("SELECT name, email, company FROM subscribers WHERE email = ? LIMIT 1");
+            $stmt->bind_param("s", $subscriber_email);
+            $stmt->execute();
+            $subscriber = $stmt->get_result()->fetch_assoc();
+
+            if ($subscriber) {
+                $sample_name = $subscriber['name'] ?: $subscriber['email'];
+                $sample_email = $subscriber['email'];
+                $sample_company = $subscriber['company'] ?: 'Company';
+            }
+        } catch (Exception $e) {
+            // If lookup fails, use defaults
+        }
+    }
 
     // Generate HTML using the text-to-HTML converter with template type
     $html = create_email_from_text(
@@ -58,7 +77,9 @@ try {
         $sample_company,
         $sample_host,
         $sample_host_email,
-        $template_type
+        $template_type,
+        'preview-unsubscribe-token',
+        true
     );
 
     // Return response with HTML

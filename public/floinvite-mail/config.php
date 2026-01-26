@@ -180,43 +180,109 @@ function replace_template_placeholders($html, $name = '', $email = '', $company 
 
 // Convert Plain Text to HTML Email Format
 // Handles greeting + body + signature sections
-function create_email_from_text($greeting = '', $body = '', $signature = '', $name = '', $email = '', $company = '', $host_name = '', $host_email = '', $template_type = 'default') {
+function create_email_from_text($greeting = '', $body = '', $signature = '', $name = '', $email = '', $company = '', $host_name = '', $host_email = '', $template_type = 'default', $unsubscribe_token = '', $include_preview_header = false, $requires_response = false) {
     // Get logo URL
     $logo_url = get_logo_url(PUBLIC_URL);
     $public_url = PUBLIC_URL;
     $base_url = BASE_URL;
 
-    // Replace visitor/host placeholders in greeting and signature
-    $greeting = str_replace('{visitor_name}', htmlspecialchars($name ?: $email), $greeting);
-    $greeting = str_replace('{visitor_email}', htmlspecialchars($email), $greeting);
-    $greeting = str_replace('{visitor_company}', htmlspecialchars($company ?: ''), $greeting);
-    $greeting = str_replace('{host_name}', htmlspecialchars($host_name), $greeting);
-    $greeting = str_replace('{host_email}', htmlspecialchars($host_email), $greeting);
+    // Replace subscriber/sender placeholders in greeting and signature
+    $greeting = str_replace(['{subscriber_name}', '{visitor_name}'], $name ?: $email, $greeting);
+    $greeting = str_replace(['{subscriber_email}', '{visitor_email}'], $email, $greeting);
+    $greeting = str_replace(['{subscriber_company}', '{visitor_company}'], $company ?: '', $greeting);
+    $greeting = str_replace(['{sender_name}', '{host_name}'], $host_name, $greeting);
+    $greeting = str_replace(['{sender_email}', '{host_email}'], $host_email, $greeting);
 
-    $signature = str_replace('{visitor_name}', htmlspecialchars($name ?: $email), $signature);
-    $signature = str_replace('{visitor_email}', htmlspecialchars($email), $signature);
-    $signature = str_replace('{visitor_company}', htmlspecialchars($company ?: ''), $signature);
-    $signature = str_replace('{host_name}', htmlspecialchars($host_name), $signature);
-    $signature = str_replace('{host_email}', htmlspecialchars($host_email), $signature);
+    $signature = str_replace(['{subscriber_name}', '{visitor_name}'], $name ?: $email, $signature);
+    $signature = str_replace(['{subscriber_email}', '{visitor_email}'], $email, $signature);
+    $signature = str_replace(['{subscriber_company}', '{visitor_company}'], $company ?: '', $signature);
+    $signature = str_replace(['{sender_name}', '{host_name}'], $host_name, $signature);
+    $signature = str_replace(['{sender_email}', '{host_email}'], $host_email, $signature);
 
-    // Convert body plain text to HTML
-    // Split by double line breaks (paragraphs)
+    // Replace subscriber/sender placeholders in body with raw values
+    $body = str_replace(['{subscriber_name}', '{visitor_name}'], $name ?: $email, $body);
+    $body = str_replace(['{subscriber_email}', '{visitor_email}'], $email, $body);
+    $body = str_replace(['{subscriber_company}', '{visitor_company}'], $company ?: '', $body);
+    $body = str_replace(['{sender_name}', '{host_name}'], $host_name, $body);
+    $body = str_replace(['{sender_email}', '{host_email}'], $host_email, $body);
+
+    // Convert body plain text to HTML with paragraphs and bullet lists.
     $body = trim($body);
-    $paragraphs = preg_split('/\n\s*\n/', $body);
+    $lines = preg_split('/\r\n|\r|\n/', $body);
     $body_html = '';
-    foreach ($paragraphs as $para) {
-        if (trim($para)) {
-            // Convert URLs to links, then preserve line breaks
-            $para_html = linkify_plain_text($para);
-            $para_html = str_replace("\n", "<br>\n", $para_html);
-            $body_html .= "<p>" . $para_html . "</p>\n";
+    $current_paragraph = [];
+    $list_open = false;
+
+    $flush_paragraph = function() use (&$current_paragraph, &$body_html) {
+        if (!$current_paragraph) {
+            return;
         }
+        $para_text = implode("\n", $current_paragraph);
+        $para_text = apply_bold_placeholders($para_text);
+        $para_html = linkify_plain_text($para_text);
+        $para_html = restore_bold_placeholders($para_html);
+        $para_html = str_replace("\n", "<br>\n", $para_html);
+        $body_html .= "<p>" . $para_html . "</p>\n";
+        $current_paragraph = [];
+    };
+
+    foreach ($lines as $line) {
+        $trimmed = trim($line);
+        $is_bullet = preg_match('/^\s*[*-]\s+/', $line) === 1;
+
+        if ($trimmed === '') {
+            if ($list_open) {
+                $body_html .= "</ul>\n";
+                $list_open = false;
+            }
+            $flush_paragraph();
+            continue;
+        }
+
+        if ($is_bullet) {
+            $flush_paragraph();
+            if (!$list_open) {
+                $body_html .= "<ul>\n";
+                $list_open = true;
+            }
+            $item_text = preg_replace('/^\s*[*-]\s+/', '', $line);
+            $item_text = apply_bold_placeholders($item_text);
+            $item_html = linkify_plain_text($item_text);
+            $item_html = restore_bold_placeholders($item_html);
+            $body_html .= "<li>" . $item_html . "</li>\n";
+            continue;
+        }
+
+        if ($list_open) {
+            $body_html .= "</ul>\n";
+            $list_open = false;
+        }
+        $current_paragraph[] = $line;
     }
 
+    if ($list_open) {
+        $body_html .= "</ul>\n";
+        $list_open = false;
+    }
+    $flush_paragraph();
+
     // For offer template, return special HTML with red hero section
+    $preview_header_html = '';
+    if ($include_preview_header) {
+        $preview_name = $name ?: $email;
+        $preview_company = $company ? ' • ' . $company : '';
+        $preview_header_html = '<div class="preview-header">Previewing: <strong>' . htmlspecialchars($preview_name) . '</strong>' . ($preview_company ? htmlspecialchars($preview_company) : '') . '</div>';
+    }
+
     if ($template_type === 'offer') {
         if (function_exists('create_offer_email_html')) {
-            return create_offer_email_html($logo_url, $greeting, $body_html, $signature, $public_url, $base_url);
+            return replace_template_placeholders(
+                create_offer_email_html($logo_url, $greeting, $body_html, $signature, $public_url, $base_url, $preview_header_html),
+                $name,
+                $email,
+                $company,
+                $unsubscribe_token
+            );
         }
     }
 
@@ -235,6 +301,15 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
             background: #f8f9fa;
             line-height: 1.5;
             color: #333;
+        }
+        .preview-header {
+            padding: 12px 20px;
+            background: #e0f2fe;
+            border-bottom: 2px solid #0ea5e9;
+            font-size: 12px;
+            color: #0369a1;
+            font-weight: 500;
+            text-align: center;
         }
         .email-container {
             max-width: 600px;
@@ -332,6 +407,7 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
     </style>
 </head>
 <body>
+    $preview_header_html
     <div class="email-container">
         <div class="header">
             <div class="logo-section">
@@ -353,32 +429,59 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
 </html>
 HTML;
 
-    return $html;
+    return replace_template_placeholders($html, $name, $email, $company, $unsubscribe_token);
 }
 
 // Convert plain text to HTML with clickable links
 function linkify_plain_text($text) {
-    $pattern = '/\bhttps?:\/\/[^\s<>()]+/i';
+    $links = [];
+    $link_pattern = '/<a\\s+[^>]*href=["\\']([^"\\']+)["\\'][^>]*>.*?<\\/a>/i';
+    $text_with_placeholders = preg_replace_callback($link_pattern, function($matches) use (&$links) {
+        $link_id = '___LINK_' . count($links) . '___';
+        $links[$link_id] = $matches[0];
+        return $link_id;
+    }, $text);
+
+    $pattern = '/\\bhttps?:\\/\\/[^\\s<>()]+/i';
     $result = '';
     $offset = 0;
 
-    if (preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE)) {
+    if (preg_match_all($pattern, $text_with_placeholders, $matches, PREG_OFFSET_CAPTURE)) {
         foreach ($matches[0] as $match) {
             $url = $match[0];
             $pos = $match[1];
-            $result .= htmlspecialchars(substr($text, $offset, $pos - $offset));
+            $result .= htmlspecialchars(substr($text_with_placeholders, $offset, $pos - $offset));
             $safe_url = htmlspecialchars($url);
             $result .= '<a href="' . $safe_url . '" target="_blank" rel="noopener noreferrer">' . $safe_url . '</a>';
             $offset = $pos + strlen($url);
         }
     }
 
-    $result .= htmlspecialchars(substr($text, $offset));
+    $result .= htmlspecialchars(substr($text_with_placeholders, $offset));
+
+    foreach ($links as $link_id => $link_html) {
+        $result = str_replace(htmlspecialchars($link_id), $link_html, $result);
+    }
+
     return $result;
 }
 
+// Replace markdown-style bold markers with placeholder tokens.
+function apply_bold_placeholders($text) {
+    return preg_replace('/\\*\\*(.+?)\\*\\*/s', '___BOLD_START___$1___BOLD_END___', $text);
+}
+
+// Restore bold placeholder tokens to HTML tags.
+function restore_bold_placeholders($text) {
+    return str_replace(
+        ['___BOLD_START___', '___BOLD_END___'],
+        ['<strong>', '</strong>'],
+        $text
+    );
+}
+
 // Create Offer Email HTML with Red Hero Section
-function create_offer_email_html($logo_url, $greeting, $body_html, $signature, $public_url, $base_url) {
+function create_offer_email_html($logo_url, $greeting, $body_html, $signature, $public_url, $base_url, $preview_header_html = '') {
     $html = <<<HTML
 <!DOCTYPE html>
 <html>
@@ -532,6 +635,7 @@ function create_offer_email_html($logo_url, $greeting, $body_html, $signature, $
     </style>
 </head>
 <body>
+    $preview_header_html
     <div class="email-container">
         <div class="header">
             <div class="logo-section">

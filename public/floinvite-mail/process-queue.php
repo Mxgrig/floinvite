@@ -16,7 +16,7 @@
 require_once 'config.php';
 require_once '../api/PHPMailerHelper.php';
 require_once 'logo.php';
-require_once 'email-with-attachments.php';
+require_once 'queue.php';
 
 // For CLI execution without session, allow processing
 // For web execution, require auth (either session or cron token)
@@ -36,215 +36,19 @@ if (!function_exists('cli_set_process_title') && !defined('STDIN')) {
 
 $db = get_db();
 $batch_size = 10;  // Process 10 at a time
-$processed = 0;
-$sent = 0;
-$failed = 0;
+$processing_stale_minutes = 15;
 
 error_log("[Queue Processor] Starting batch processing");
 
 try {
-    // Get queued emails to send (respect send_method scheduling)
-    $stmt = $db->prepare("
-        SELECT
-            q.id as queue_id,
-            q.send_id,
-            q.campaign_id,
-            q.attempts,
-            q.max_attempts,
-            s.email,
-            s.name,
-            s.company,
-            s.tracking_id,
-            s.unsubscribe_token,
-            c.greeting,
-            c.html_body,
-            c.signature,
-            c.from_name,
-            c.subject,
-            c.send_method,
-            c.scheduled_at,
-            c.attachments
-        FROM send_queue q
-        JOIN campaign_sends s ON q.send_id = s.id
-        JOIN campaigns c ON q.campaign_id = c.id
-        WHERE q.status = 'queued'
-        AND q.attempts < q.max_attempts
-        AND c.status IN ('sending', 'scheduled')
-        AND (
-            c.send_method IN ('queue', 'immediate')
-            OR (c.send_method = 'scheduled' AND c.scheduled_at IS NOT NULL AND c.scheduled_at <= NOW())
-        )
-        ORDER BY q.created_at ASC
-        LIMIT ?
-    ");
-    $stmt->bind_param("i", $batch_size);
-    $stmt->execute();
-    $queued = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $result = process_send_queue_batch($db, $batch_size, [
+        'auto_add_all_active' => true,
+        'processing_stale_minutes' => $processing_stale_minutes
+    ]);
 
-    if (!empty($queued)) {
-        error_log("[Queue Processor] Found " . count($queued) . " emails to send");
+    update_campaign_stats_and_complete($db, $result['campaign_ids']);
 
-        foreach ($queued as $item) {
-        try {
-            // Mark as processing
-            $update_stmt = $db->prepare("UPDATE send_queue SET status = 'processing' WHERE id = ?");
-            $queue_id = $item['queue_id'];
-            $update_stmt->bind_param("i", $queue_id);
-            $update_stmt->execute();
-
-            // Generate email HTML from greeting + body + signature
-            $html_body = create_email_from_text(
-                $item['greeting'] ?? '',
-                $item['html_body'] ?? '',
-                $item['signature'] ?? '',
-                $item['name'] ?? $item['email'],
-                $item['email'],
-                $item['company'] ?? '',
-                'Host Name',
-                'host@floinvite.com',
-                'default'
-            );
-
-            // Prepare sender info
-            $from_email = SMTP_USER ?: 'admin@floinvite.com';
-            $from_name = $item['from_name'] ?: 'floinvite';
-            $subject = preg_replace('/[\r\n]+/', ' ', $item['subject']);
-
-            error_log("[Queue Processor] Sending to {$item['email']} (name: {$item['name']}, company: {$item['company']})");
-
-            // Process attachments if any
-            $attachments = [];
-            if (!empty($item['attachments'])) {
-                $attachments_data = json_decode($item['attachments'], true);
-                if (is_array($attachments_data)) {
-                    $upload_dir = __DIR__ . '/uploads/attachments';
-                    foreach ($attachments_data as $att) {
-                        $file_path = $upload_dir . '/' . $att['stored_name'];
-                        if (file_exists($file_path)) {
-                            $attachments[] = [
-                                'file_path' => $file_path,
-                                'original_name' => $att['original_name']
-                            ];
-                        }
-                    }
-                }
-            }
-
-            error_log("[Queue Processor] Found " . count($attachments) . " attachments to send");
-
-            // Send email using SMTP with attachment support
-            try {
-                if (!empty($attachments)) {
-                    // Send with attachments
-                    $result = send_email_with_attachments(
-                        $from_name,
-                        $from_email,
-                        $item['email'],
-                        $subject,
-                        $html_body,
-                        $attachments
-                    );
-                } else {
-                    // Send without attachments (use existing PHPMailer)
-                    $mailer = new PHPMailerHelper();
-                    $result = $mailer->send([
-                        'to' => $item['email'],
-                        'subject' => $subject,
-                        'body' => $html_body,
-                        'isHtml' => true,
-                        'fromEmail' => $from_email,
-                        'fromName' => $from_name
-                    ]);
-                }
-
-                if ($result['success']) {
-                    // Update campaign_sends status
-                    $update_send = $db->prepare("
-                        UPDATE campaign_sends
-                        SET status = 'sent', sent_at = NOW()
-                        WHERE id = ?
-                    ");
-                    $send_id = $item['send_id'];
-                    $update_send->bind_param("i", $send_id);
-                    $update_send->execute();
-
-                    // Update queue status
-                    $update_queue = $db->prepare("
-                        UPDATE send_queue
-                        SET status = 'sent', attempts = attempts + 1
-                        WHERE id = ?
-                    ");
-                    $queue_id = $item['queue_id'];
-                    $update_queue->bind_param("i", $queue_id);
-                    $update_queue->execute();
-
-                    $sent++;
-                    error_log("[Queue Processor] Sent to {$item['email']}");
-                } else {
-                    throw new Exception($result['error'] ?? 'Failed to send email via SMTP');
-                }
-            } catch (Exception $e) {
-                throw $e;
-            }
-        } catch (Exception $e) {
-            error_log("[Queue Processor] Failed to send to {$item['email']}: " . $e->getMessage());
-
-            $next_attempts = $item['attempts'] + 1;
-            
-            // Only mark as permanently failed if all retry attempts are exhausted
-            if ($next_attempts >= $item['max_attempts']) {
-                // All retries exhausted - mark permanently failed
-                $update_stmt = $db->prepare("
-                    UPDATE send_queue
-                    SET status = 'failed', attempts = ?, error_message = ?
-                    WHERE id = ?
-                ");
-                $error_msg = substr($e->getMessage(), 0, 500);
-                $queue_id = $item['queue_id'];
-                $update_stmt->bind_param("isi", $next_attempts, $error_msg, $queue_id);
-                $update_stmt->execute();
-                $failed++;
-            } else {
-                // Still have retries - keep as queued with incremented attempts
-                $update_stmt = $db->prepare("
-                    UPDATE send_queue
-                    SET status = 'queued', attempts = ?, error_message = ?
-                    WHERE id = ?
-                ");
-                $error_msg = substr($e->getMessage(), 0, 500);
-                $queue_id = $item['queue_id'];
-                $update_stmt->bind_param("isi", $next_attempts, $error_msg, $queue_id);
-                $update_stmt->execute();
-            }
-        }
-
-        $processed++;
-        }
-    }
-
-    // Update campaign statistics for all campaigns that have sends
-    // This ensures UI displays accurate sent/failed counts
-    $campaigns_stmt = $db->query("
-        SELECT DISTINCT campaign_id FROM campaign_sends
-    ");
-
-    if ($campaigns_stmt) {
-        while ($row = $campaigns_stmt->fetch_assoc()) {
-            $campaign_id = $row['campaign_id'];
-            $update_stats = $db->prepare("
-                UPDATE campaigns
-                SET
-                    sent_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'sent'),
-                    failed_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'failed')
-                WHERE id = ?
-            ");
-            $update_stats->bind_param("iii", $campaign_id, $campaign_id, $campaign_id);
-            $update_stats->execute();
-        }
-    }
-
-    error_log("[Queue Processor] Batch complete: Processed={$processed}, Sent={$sent}, Failed={$failed}");
-
+    error_log("[Queue Processor] Batch complete: Processed={$result['processed']}, Sent={$result['sent']}, Failed={$result['failed']}");
 } catch (Exception $e) {
     error_log("[Queue Processor] Fatal error: " . $e->getMessage());
     exit(1);

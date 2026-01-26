@@ -7,6 +7,7 @@
 require_once 'config.php';
 require_once 'logo.php';
 require_once '../api/PHPMailerHelper.php';
+require_once 'queue.php';
 require_auth();
 
 $db = get_db();
@@ -485,157 +486,27 @@ function add_missing_all_active_subscribers($db, $campaign_id, $campaign) {
 
 function process_campaign_queue($db, $campaign_id, $limit) {
     $limit = intval($limit);
-    $stmt = $db->prepare("
-        SELECT
-            q.id as queue_id,
-            q.send_id,
-            q.attempts,
-            s.email,
-            s.name,
-            s.company,
-            s.tracking_id,
-            s.unsubscribe_token,
-            c.greeting,
-            c.html_body,
-            c.signature,
-            c.from_name,
-            c.subject,
-            c.send_method,
-            c.scheduled_at
-        FROM send_queue q
-        JOIN campaign_sends s ON q.send_id = s.id
-        JOIN campaigns c ON q.campaign_id = c.id
-        WHERE q.status = 'queued'
-          AND q.attempts < q.max_attempts
-          AND q.campaign_id = ?
-          AND c.status IN ('sending', 'scheduled')
-          AND (
-              c.send_method IN ('queue', 'immediate')
-              OR (c.send_method = 'scheduled' AND c.scheduled_at IS NOT NULL AND c.scheduled_at <= NOW())
-          )
-        ORDER BY q.created_at ASC
-        LIMIT ?
-    ");
-    $stmt->bind_param("ii", $campaign_id, $limit);
-    $stmt->execute();
-    $queued = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-    if (empty($queued)) {
-        return ['processed' => 0, 'sent' => 0, 'failed' => 0];
+    $send_to_all_active = false;
+    $campaign_stmt = $db->prepare("SELECT send_to_all_active FROM campaigns WHERE id = ? LIMIT 1");
+    $campaign_stmt->bind_param("i", $campaign_id);
+    $campaign_stmt->execute();
+    $campaign_row = $campaign_stmt->get_result()->fetch_assoc();
+    if ($campaign_row) {
+        $send_to_all_active = !empty($campaign_row['send_to_all_active']);
     }
+    $result = process_send_queue_batch($db, $limit, [
+        'auto_add_all_active' => $send_to_all_active,
+        'processing_stale_minutes' => 15,
+        'campaign_id' => $campaign_id
+    ]);
 
-    $processed = 0;
-    $sent = 0;
-    $failed = 0;
+    update_campaign_stats_and_complete($db, $result['campaign_ids']);
 
-    foreach ($queued as $item) {
-        try {
-            $update_stmt = $db->prepare("UPDATE send_queue SET status = 'processing' WHERE id = ?");
-            $queue_id = $item['queue_id'];
-            $update_stmt->bind_param("i", $queue_id);
-            $update_stmt->execute();
-
-            $html_body = create_email_from_text(
-                $item['greeting'] ?? '',
-                $item['html_body'] ?? '',
-                $item['signature'] ?? '',
-                $item['name'] ?? $item['email'],
-                $item['email'],
-                $item['company'] ?? '',
-                'Host Name',
-                'host@floinvite.com',
-                'default'
-            );
-
-            $from_email = SMTP_USER ?: 'admin@floinvite.com';
-            $from_name = $item['from_name'] ?: 'floinvite';
-            $subject = preg_replace('/[\r\n]+/', ' ', $item['subject']);
-
-            // Send email using SMTP (PHPMailer)
-            try {
-                $mailer = new PHPMailerHelper();
-                $result = $mailer->send([
-                    'to' => $item['email'],
-                    'subject' => $subject,
-                    'body' => $html_body,
-                    'isHtml' => true,
-                    'fromEmail' => $from_email,
-                    'fromName' => $from_name
-                ]);
-
-                if ($result['success']) {
-                    $update_send = $db->prepare("
-                        UPDATE campaign_sends
-                        SET status = 'sent', sent_at = NOW()
-                        WHERE id = ?
-                    ");
-                    $send_id = $item['send_id'];
-                    $update_send->bind_param("i", $send_id);
-                    $update_send->execute();
-
-                    $update_queue = $db->prepare("
-                        UPDATE send_queue
-                        SET status = 'sent', attempts = attempts + 1
-                        WHERE id = ?
-                    ");
-                    $queue_id = $item['queue_id'];
-                    $update_queue->bind_param("i", $queue_id);
-                    $update_queue->execute();
-
-                    $sent++;
-                } else {
-                    throw new Exception($result['error'] ?? 'Failed to send email via SMTP');
-                }
-            } catch (Exception $e) {
-                throw $e;
-            }
-        } catch (Exception $e) {
-            $error_message = sanitize_log_value($e->getMessage());
-            $next_attempts = $item['attempts'] + 1;
-            
-            // Only mark as permanently failed if all retry attempts are exhausted
-            // Otherwise, keep as queued for the next retry
-            if ($next_attempts >= $item['max_attempts']) {
-                // All retries exhausted - mark permanently failed
-                $update_stmt = $db->prepare("
-                    UPDATE send_queue
-                    SET status = 'failed', attempts = ?, error_message = ?
-                    WHERE id = ?
-                ");
-                $queue_id = $item['queue_id'];
-                $update_stmt->bind_param("isi", $next_attempts, $error_message, $queue_id);
-                $update_stmt->execute();
-                $failed++;
-            } else {
-                // Still have retries - keep as queued with incremented attempts
-                $update_stmt = $db->prepare("
-                    UPDATE send_queue
-                    SET status = 'queued', attempts = ?, error_message = ?
-                    WHERE id = ?
-                ");
-                $queue_id = $item['queue_id'];
-                $update_stmt->bind_param("isi", $next_attempts, $error_message, $queue_id);
-                $update_stmt->execute();
-            }
-        }
-
-        $processed++;
-    }
-
-    $update_campaign = $db->prepare("
-        UPDATE campaigns
-        SET
-            sent_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'sent'),
-            failed_count = (SELECT COUNT(*) FROM campaign_sends WHERE campaign_id = ? AND status = 'failed')
-        WHERE id = ?
-    ");
-    $cid1 = $campaign_id;
-    $cid2 = $campaign_id;
-    $cid3 = $campaign_id;
-    $update_campaign->bind_param("iii", $cid1, $cid2, $cid3);
-    $update_campaign->execute();
-
-    return ['processed' => $processed, 'sent' => $sent, 'failed' => $failed];
+    return [
+        'processed' => $result['processed'],
+        'sent' => $result['sent'],
+        'failed' => $result['failed']
+    ];
 }
 
 function wants_json_response() {
