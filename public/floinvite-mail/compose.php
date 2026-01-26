@@ -1030,7 +1030,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             const formData = new FormData();
             formData.append('file', file);
             formData.append('action', 'upload');
-            formData.append('campaign_id', '<?php echo htmlspecialchars($campaign_id ?? ''); ?>');
+            formData.append('campaign_id', "<?php echo htmlspecialchars($campaign_id ?? ''); ?>");
 
             try {
                 const response = await fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php', {
@@ -1064,7 +1064,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     },
                     body: new URLSearchParams({
                         action: 'delete',
-                        campaign_id: '<?php echo htmlspecialchars($campaign_id ?? ''); ?>',
+                        campaign_id: "<?php echo htmlspecialchars($campaign_id ?? ''); ?>",
                         attachment_id: attachmentId
                     })
                 });
