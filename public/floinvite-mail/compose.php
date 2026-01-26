@@ -633,7 +633,11 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 })
             })
             .then(response => {
+                clearTimeout(timeoutId);
                 console.log('Preview response status:', response.status);
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
                 return response.json();
             })
             .then(data => {
@@ -644,11 +648,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     iframeDoc.write(data.data.html);
                     iframeDoc.close();
                 } else {
-                    console.error('Invalid response format:', data);
-                    const iframeDoc = preview.contentDocument || preview.contentWindow.document;
-                    iframeDoc.open();
-                    iframeDoc.write('<p style="color: #c00; padding: 20px; text-align: center;">Error: ' + (data.message || 'Unknown error') + '</p>');
-                    iframeDoc.close();
+                    throw new Error(data.message || 'Unknown error');
                 }
             })
             .catch(error => {
