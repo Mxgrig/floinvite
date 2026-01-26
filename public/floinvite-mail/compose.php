@@ -234,7 +234,10 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     Write in plain text. Line breaks will be automatically converted to HTML. No HTML knowledge required!
                 </small>
                 <div id="preview-container" style="margin-top: 1rem; padding: 1rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; display: none;">
-                    <h3 style="margin: 0 0 1rem 0; font-size: 0.9rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Email Preview (sample or real recipient)</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                        <h3 style="margin: 0; font-size: 0.9rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Email Preview</h3>
+                        <div id="preview-sample-stats" style="font-size: 0.85rem; color: #4b5563; font-weight: 500;">Loading stats...</div>
+                    </div>
                     <div style="margin-bottom: 0.75rem;">
                         <label for="preview-subscriber-email" style="display: block; font-size: 0.85rem; color: #4b5563; margin-bottom: 0.25rem;">Preview as subscriber (optional)</label>
                         <input type="email" id="preview-subscriber-email" placeholder="subscriber@example.com" style="width: 100%; max-width: 360px; padding: 0.5rem 0.6rem; border: 1px solid #d1d5db; border-radius: 4px;">
@@ -495,6 +498,9 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
 
             previewSubscriberInput = document.getElementById('preview-subscriber-email');
             previewSampleSelect = document.getElementById('preview-subscriber-sample');
+
+            // Load subscriber stats
+            loadSubscriberStats();
             previewSampleRefresh = document.getElementById('preview-subscriber-refresh');
             previewSampleStats = document.getElementById('preview-subscriber-stats');
 
@@ -1041,6 +1047,27 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             document.addEventListener('DOMContentLoaded', initializeAttachments);
         } else {
             initializeAttachments();
+        }
+
+        // ═══════════════════════════════════════════════════
+        // Load Subscriber Statistics
+        // ═══════════════════════════════════════════════════
+        function loadSubscriberStats() {
+            const statsElement = document.getElementById('preview-sample-stats');
+            if (!statsElement) return;
+
+            fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const { all, reached, unreached } = data.data;
+                        statsElement.textContent = `All: ${all} · Reached: ${reached} · Unreached: ${unreached}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading stats:', error);
+                    statsElement.textContent = 'Stats unavailable';
+                });
         }
     </script>
 
