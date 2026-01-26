@@ -441,6 +441,11 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
         let greetingInput, bodyInput, signatureInput, preview, previewContainer, previewBtn, previewSubscriberInput, previewSampleSelect, previewSampleRefresh, previewSampleStats;
 
         function loadDefaultTemplate() {
+            // Auto-open preview if not already open
+            if (!previewOpen) {
+                togglePreview();
+            }
+            
             const greeting = document.getElementById('greeting');
             const body = document.getElementById('html_body');
             const signature = document.getElementById('signature');
@@ -464,6 +469,11 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
         }
 
         function loadOfferTemplate() {
+            // Auto-open preview if not already open
+            if (!previewOpen) {
+                togglePreview();
+            }
+            
             const greeting = document.getElementById('greeting');
             const body = document.getElementById('html_body');
             const signature = document.getElementById('signature');
@@ -519,7 +529,10 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     });
                 }
 
-                // Initial preview render
+                // Initial preview render - show container by default
+                previewContainer.style.display = 'block';
+                previewOpen = true;
+                previewBtn.textContent = 'Hide Preview';
                 updatePreview();
 
                 // Update preview on any input change
@@ -597,11 +610,15 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-preview-email.php';
             console.log('Fetching preview from:', apiUrl);
 
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
             fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                signal: controller.signal,
                 body: JSON.stringify({
                     greeting: greeting,
                     body: body,
@@ -635,10 +652,15 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 }
             })
             .catch(error => {
+                clearTimeout(timeoutId);
                 console.error('Preview fetch error:', error);
                 const iframeDoc = preview.contentDocument || preview.contentWindow.document;
                 iframeDoc.open();
-                iframeDoc.write('<p style="color: #c00; padding: 20px; text-align: center;">Error generating preview: ' + error.message + '</p>');
+                let errorMsg = error.message;
+                if (error.name === 'AbortError') {
+                    errorMsg = 'Request timeout (10s)';
+                }
+                iframeDoc.write('<p style="color: #c00; padding: 20px; text-align: center;">Error: ' + errorMsg + '</p>');
                 iframeDoc.close();
             });
         }
@@ -648,8 +670,15 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 return;
             }
             const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-sample.php?filter=all';
-            fetch(apiUrl)
-                .then(response => response.json())
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            fetch(apiUrl, { signal: controller.signal })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
                 .then(data => {
                     const current = previewSampleSelect.value || '';
                     previewSampleSelect.innerHTML = '<option value="">Select a subscriber…</option>';
@@ -666,8 +695,10 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                         }
                     }
                 })
-                .catch(() => {
-                    // Silent fail for preview list
+                .catch((error) => {
+                    clearTimeout(timeoutId);
+                    console.error('Error loading preview samples:', error);
+                    previewSampleSelect.innerHTML = '<option value="">Unable to load subscribers</option>';
                 });
         }
 
@@ -676,16 +707,25 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 return;
             }
             const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php';
-            fetch(apiUrl)
-                .then(response => response.json())
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            fetch(apiUrl, { signal: controller.signal })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
                 .then(data => {
                     if (data && data.success && data.data) {
                         const stats = data.data;
                         previewSampleStats.textContent = `All: ${stats.all} · Reached: ${stats.reached} · Unreached: ${stats.unreached}`;
                     }
                 })
-                .catch(() => {
-                    // Silent fail for stats
+                .catch((error) => {
+                    clearTimeout(timeoutId);
+                    console.error('Error loading subscriber stats:', error);
+                    previewSampleStats.textContent = 'Stats unavailable';
                 });
         }
 
@@ -1056,8 +1096,16 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             const statsElement = document.getElementById('preview-sample-stats');
             if (!statsElement) return;
 
-            fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php')
-                .then(response => response.json())
+            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php';
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            fetch(apiUrl, { signal: controller.signal })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success && data.data) {
                         const { all, reached, unreached } = data.data;
@@ -1065,6 +1113,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     }
                 })
                 .catch(error => {
+                    clearTimeout(timeoutId);
                     console.error('Error loading stats:', error);
                     statsElement.textContent = 'Stats unavailable';
                 });
