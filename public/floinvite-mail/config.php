@@ -435,7 +435,7 @@ HTML;
 // Convert plain text to HTML with clickable links
 function linkify_plain_text($text) {
     $links = [];
-    $link_pattern = '/<a\\s+[^>]*href=["\\']([^"\\']+)["\\'][^>]*>.*?<\\/a>/i';
+    $link_pattern = '/<a\\s+[^>]*href=["\']([^"\']+)["\'][^>]*>.*?<\\/a>/i';
     $text_with_placeholders = preg_replace_callback($link_pattern, function($matches) use (&$links) {
         $link_id = '___LINK_' . count($links) . '___';
         $links[$link_id] = $matches[0];
