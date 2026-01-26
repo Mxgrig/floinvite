@@ -28,3 +28,8 @@ Stack trace:
 #0 Standard input code(3): get_db()
 #1 {main}
   thrown in /home/grig/Projects/floinvite/public/floinvite-mail/config.php on line 99
+[26-Jan-2026 14:12:19 UTC] PHP Fatal error:  Uncaught Error: Class "mysqli" not found in /home/grig/Projects/floinvite/public/floinvite-mail/config.php:119
+Stack trace:
+#0 /home/grig/Projects/floinvite/public/floinvite-mail/index.php(11): get_db()
+#1 {main}
+  thrown in /home/grig/Projects/floinvite/public/floinvite-mail/config.php on line 119
