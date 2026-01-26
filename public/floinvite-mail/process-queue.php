@@ -16,6 +16,7 @@
 require_once 'config.php';
 require_once '../api/PHPMailerHelper.php';
 require_once 'logo.php';
+require_once 'email-with-attachments.php';
 
 // For CLI execution without session, allow processing
 // For web execution, require auth (either session or cron token)
@@ -61,7 +62,8 @@ try {
             c.from_name,
             c.subject,
             c.send_method,
-            c.scheduled_at
+            c.scheduled_at,
+            c.attachments
         FROM send_queue q
         JOIN campaign_sends s ON q.send_id = s.id
         JOIN campaigns c ON q.campaign_id = c.id
@@ -110,17 +112,50 @@ try {
 
             error_log("[Queue Processor] Sending to {$item['email']} (name: {$item['name']}, company: {$item['company']})");
 
-            // Send email using SMTP (PHPMailer)
+            // Process attachments if any
+            $attachments = [];
+            if (!empty($item['attachments'])) {
+                $attachments_data = json_decode($item['attachments'], true);
+                if (is_array($attachments_data)) {
+                    $upload_dir = __DIR__ . '/uploads/attachments';
+                    foreach ($attachments_data as $att) {
+                        $file_path = $upload_dir . '/' . $att['stored_name'];
+                        if (file_exists($file_path)) {
+                            $attachments[] = [
+                                'file_path' => $file_path,
+                                'original_name' => $att['original_name']
+                            ];
+                        }
+                    }
+                }
+            }
+
+            error_log("[Queue Processor] Found " . count($attachments) . " attachments to send");
+
+            // Send email using SMTP with attachment support
             try {
-                $mailer = new PHPMailerHelper();
-                $result = $mailer->send([
-                    'to' => $item['email'],
-                    'subject' => $subject,
-                    'body' => $html_body,
-                    'isHtml' => true,
-                    'fromEmail' => $from_email,
-                    'fromName' => $from_name
-                ]);
+                if (!empty($attachments)) {
+                    // Send with attachments
+                    $result = send_email_with_attachments(
+                        $from_name,
+                        $from_email,
+                        $item['email'],
+                        $subject,
+                        $html_body,
+                        $attachments
+                    );
+                } else {
+                    // Send without attachments (use existing PHPMailer)
+                    $mailer = new PHPMailerHelper();
+                    $result = $mailer->send([
+                        'to' => $item['email'],
+                        'subject' => $subject,
+                        'body' => $html_body,
+                        'isHtml' => true,
+                        'fromEmail' => $from_email,
+                        'fromName' => $from_name
+                    ]);
+                }
 
                 if ($result['success']) {
                     // Update campaign_sends status
