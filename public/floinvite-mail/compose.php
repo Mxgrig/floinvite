@@ -234,7 +234,22 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     Write in plain text. Line breaks will be automatically converted to HTML. No HTML knowledge required!
                 </small>
                 <div id="preview-container" style="margin-top: 1rem; padding: 1rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; display: none;">
-                    <h3 style="margin: 0 0 1rem 0; font-size: 0.9rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Email Preview (with sample data)</h3>
+                    <h3 style="margin: 0 0 1rem 0; font-size: 0.9rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Email Preview (sample or real recipient)</h3>
+                    <div style="margin-bottom: 0.75rem;">
+                        <label for="preview-subscriber-email" style="display: block; font-size: 0.85rem; color: #4b5563; margin-bottom: 0.25rem;">Preview as subscriber (optional)</label>
+                        <input type="email" id="preview-subscriber-email" placeholder="subscriber@example.com" style="width: 100%; max-width: 360px; padding: 0.5rem 0.6rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.35rem;">Uses live subscriber data when the email matches an active subscriber.</div>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">
+                        <div>
+                            <label for="preview-subscriber-sample" style="display: block; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">Quick sample</label>
+                            <select id="preview-subscriber-sample" style="min-width: 220px; padding: 0.45rem 0.6rem; border: 1px solid #d1d5db; border-radius: 4px;">
+                                <option value="">Select a subscriber…</option>
+                            </select>
+                        </div>
+                        <button type="button" id="preview-subscriber-refresh" style="height: 34px; align-self: flex-end; padding: 0 0.75rem; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Refresh list</button>
+                        <div id="preview-subscriber-stats" style="font-size: 0.75rem; color: #6b7280; align-self: flex-end;"></div>
+                    </div>
                     <iframe id="email-preview" style="width: 100%; height: 600px; border: 1px solid #e5e7eb; border-radius: 4px; background: white; display: block;"></iframe>
                 </div>
             </div>
@@ -420,7 +435,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
 
         let previewOpen = false;
         let previewReady = false;
-        let greetingInput, bodyInput, signatureInput, preview, previewContainer, previewBtn;
+        let greetingInput, bodyInput, signatureInput, preview, previewContainer, previewBtn, previewSubscriberInput, previewSampleSelect, previewSampleRefresh, previewSampleStats;
 
         function loadDefaultTemplate() {
             const greeting = document.getElementById('greeting');
@@ -478,6 +493,11 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             const insertTemplateBtn = document.getElementById('insert-template-btn');
             const insertOfferBtn = document.getElementById('insert-offer-btn');
 
+            previewSubscriberInput = document.getElementById('preview-subscriber-email');
+            previewSampleSelect = document.getElementById('preview-subscriber-sample');
+            previewSampleRefresh = document.getElementById('preview-subscriber-refresh');
+            previewSampleStats = document.getElementById('preview-subscriber-stats');
+
             if (greetingInput && bodyInput && signatureInput && preview && previewContainer && previewBtn) {
                 // Attach template button listeners
                 if (insertTemplateBtn) {
@@ -512,6 +532,32 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                         updatePreview();
                     }
                 });
+                if (previewSubscriberInput) {
+                    previewSubscriberInput.addEventListener('input', function() {
+                        if (previewOpen) {
+                            updatePreview();
+                        }
+                    });
+                }
+                if (previewSampleSelect) {
+                    previewSampleSelect.addEventListener('change', function() {
+                        const selected = previewSampleSelect.value || '';
+                        if (previewSubscriberInput) {
+                            previewSubscriberInput.value = selected;
+                        }
+                        if (previewOpen) {
+                            updatePreview();
+                        }
+                    });
+                }
+                if (previewSampleRefresh) {
+                    previewSampleRefresh.addEventListener('click', function() {
+                        loadPreviewSamples();
+                        loadPreviewStats();
+                    });
+                }
+                loadPreviewSamples();
+                loadPreviewStats();
                 previewReady = true;
             }
         }
@@ -539,6 +585,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             const body = bodyInput.value || '';
             const signature = signatureInput.value || '';
             const templateType = document.getElementById('template-type').value || 'default';
+            const subscriberEmail = previewSubscriberInput ? previewSubscriberInput.value.trim() : '';
 
             // Fetch preview from server
             const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-preview-email.php';
@@ -554,6 +601,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     body: body,
                     signature: signature,
                     template_type: templateType,
+                    subscriber_email: subscriberEmail,
                     sample_name: 'John Smith',
                     sample_email: 'john@example.com',
                     sample_company: 'ABC Corp',
@@ -587,6 +635,52 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 iframeDoc.write('<p style="color: #c00; padding: 20px; text-align: center;">Error generating preview: ' + error.message + '</p>');
                 iframeDoc.close();
             });
+        }
+
+        function loadPreviewSamples() {
+            if (!previewSampleSelect) {
+                return;
+            }
+            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-sample.php?filter=all';
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const current = previewSampleSelect.value || '';
+                    previewSampleSelect.innerHTML = '<option value="">Select a subscriber…</option>';
+                    if (data && data.success && Array.isArray(data.data)) {
+                        data.data.forEach((row) => {
+                            const option = document.createElement('option');
+                            option.value = row.email || '';
+                            const name = row.name ? row.name + ' — ' : '';
+                            option.textContent = name + (row.email || '');
+                            previewSampleSelect.appendChild(option);
+                        });
+                        if (current) {
+                            previewSampleSelect.value = current;
+                        }
+                    }
+                })
+                .catch(() => {
+                    // Silent fail for preview list
+                });
+        }
+
+        function loadPreviewStats() {
+            if (!previewSampleStats) {
+                return;
+            }
+            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php';
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.success && data.data) {
+                        const stats = data.data;
+                        previewSampleStats.textContent = `All: ${stats.all} · Reached: ${stats.reached} · Unreached: ${stats.unreached}`;
+                    }
+                })
+                .catch(() => {
+                    // Silent fail for stats
+                });
         }
 
         // Initialize when DOM is ready
