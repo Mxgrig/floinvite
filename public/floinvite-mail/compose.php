@@ -1036,14 +1036,21 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
         // ═══════════════════════════════════════════════════
         // Attachment Handling
         // ═══════════════════════════════════════════════════
-        const attachFileBtn = document.getElementById('attach-file-btn');
-        const attachFileInput = document.getElementById('attach-file-input');
-        const attachmentsList = document.getElementById('attachments-list');
-        const attachmentsItems = document.getElementById('attachments-items');
+        let attachFileBtn, attachFileInput, attachmentsList, attachmentsItems;
         let currentAttachments = [];
 
         // Initialize attachments on page load
         function initializeAttachments() {
+            // Get elements when DOM is ready
+            attachFileBtn = document.getElementById('attach-file-btn');
+            attachFileInput = document.getElementById('attach-file-input');
+            attachmentsList = document.getElementById('attachments-list');
+            attachmentsItems = document.getElementById('attachments-items');
+
+            // Set up button handlers
+            setupAttachmentButton();
+
+            // Load existing attachments for saved campaigns
             if (!<?php echo $campaign_id ? 'true' : 'false'; ?>) return;
 
             fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php?action=list&campaign_id=<?php echo htmlspecialchars($campaign_id); ?>')
@@ -1086,33 +1093,34 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             attachmentsList.style.display = currentAttachments.length > 0 ? 'block' : 'none';
         }
 
-        // Attach file button handler
-        if (attachFileBtn) {
-            attachFileBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                attachFileInput.click();
-            });
-        }
+        // Set up attachment button handlers (called after DOM is ready)
+        function setupAttachmentButton() {
+            if (attachFileBtn) {
+                attachFileBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    attachFileInput.click();
+                });
+            }
 
-        // File input change handler
-        if (attachFileInput) {
-            attachFileInput.addEventListener('change', async (e) => {
-                const files = e.target.files;
-                if (!files.length) return;
+            if (attachFileInput) {
+                attachFileInput.addEventListener('change', async (e) => {
+                    const files = e.target.files;
+                    if (!files.length) return;
 
-                // Only allow campaign_id for existing campaigns
-                if (!<?php echo $campaign_id ? 'true' : 'false'; ?>) {
-                    alert('Please save the campaign first before adding attachments');
-                    return;
-                }
+                    // Only allow campaign_id for existing campaigns
+                    if (!<?php echo $campaign_id ? 'true' : 'false'; ?>) {
+                        alert('Please save the campaign first before adding attachments');
+                        return;
+                    }
 
-                for (let file of files) {
-                    await uploadAttachment(file);
-                }
+                    for (let file of files) {
+                        await uploadAttachment(file);
+                    }
 
-                // Reset input
-                attachFileInput.value = '';
-            });
+                    // Reset input
+                    attachFileInput.value = '';
+                });
+            }
         }
 
         // Upload attachment
