@@ -30,7 +30,7 @@ try {
                 AND cs.status = 'sent'
             )
             ORDER BY s.name ASC, s.email ASC
-            LIMIT $limit
+            LIMIT 50
         ");
         $stmt->execute();
     } elseif ($filter === 'reached') {
@@ -45,7 +45,7 @@ try {
                 AND cs.status = 'sent'
             )
             ORDER BY s.name ASC, s.email ASC
-            LIMIT $limit
+            LIMIT 50
         ");
         $stmt->execute();
     } else {
@@ -54,7 +54,7 @@ try {
             FROM subscribers
             WHERE status = 'active'
             ORDER BY name ASC, email ASC
-            LIMIT $limit
+            LIMIT 50
         ");
         $stmt->execute();
     }
