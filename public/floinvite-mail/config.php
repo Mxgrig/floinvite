@@ -218,11 +218,12 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
             return;
         }
         $para_text = implode("\n", $current_paragraph);
-        $para_text = apply_brand_placeholders($para_text);
         $para_text = apply_bold_placeholders($para_text);
         $para_html = linkify_plain_text($para_text);
         $para_html = restore_bold_placeholders($para_html);
-        $para_html = restore_brand_placeholders($para_html, $public_url);
+        // Directly replace "floinvite" text with branded HTML link
+        $brand_html = '<a href="' . htmlspecialchars($public_url) . '" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a>';
+        $para_html = preg_replace('/\bfloinvite\b/i', $brand_html, $para_html);
         $para_html = str_replace("\n", "<br>\n", $para_html);
         $body_html .= "<p>" . $para_html . "</p>\n";
         $current_paragraph = [];
@@ -248,11 +249,12 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
                 $list_open = true;
             }
             $item_text = preg_replace('/^\s*[*-]\s+/', '', $line);
-            $item_text = apply_brand_placeholders($item_text);
             $item_text = apply_bold_placeholders($item_text);
             $item_html = linkify_plain_text($item_text);
             $item_html = restore_bold_placeholders($item_html);
-            $item_html = restore_brand_placeholders($item_html, $public_url);
+            // Directly replace "floinvite" text with branded HTML link
+            $brand_html = '<a href="' . htmlspecialchars($public_url) . '" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a>';
+            $item_html = preg_replace('/\bfloinvite\b/i', $brand_html, $item_html);
             $body_html .= "<li>" . $item_html . "</li>\n";
             continue;
         }
