@@ -38,20 +38,15 @@ try {
         throw new Exception('Invalid JSON input');
     }
 
-    $greeting = $input['greeting'] ?? '';
-    $body = $input['body'] ?? '';
-    $signature = $input['signature'] ?? '';
+    $greeting = $input['greeting'] ?? 'Hello {visitor_name},';
+    $body = $input['body'] ?? 'Enter your email content here...';
+    $signature = $input['signature'] ?? 'Best regards,\n{host_name}';
     $template_type = $input['template_type'] ?? 'default';
     $sample_name = $input['sample_name'] ?? 'John Smith';
     $sample_email = $input['sample_email'] ?? 'john@example.com';
     $sample_company = $input['sample_company'] ?? 'ABC Corp';
     $sample_host = $input['sample_host'] ?? 'Mary Johnson';
     $sample_host_email = $input['sample_host_email'] ?? 'mary@example.com';
-
-    // Validate inputs
-    if (!$greeting || !$body || !$signature) {
-        throw new Exception('Greeting, body, and signature are required');
-    }
 
     // Generate HTML using the text-to-HTML converter with template type
     $html = create_email_from_text(

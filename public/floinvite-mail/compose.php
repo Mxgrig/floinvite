@@ -233,7 +233,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 <small style="color: #6b7280; margin-top: 0.5rem; display: block;">
                     Write in plain text. Line breaks will be automatically converted to HTML. No HTML knowledge required!
                 </small>
-                <div id="preview-container" style="margin-top: 1rem; padding: 1rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                <div id="preview-container" style="margin-top: 1rem; padding: 1rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; display: none;">
                     <h3 style="margin: 0 0 1rem 0; font-size: 0.9rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Email Preview (with sample data)</h3>
                     <iframe id="email-preview" style="width: 100%; height: 600px; border: 1px solid #e5e7eb; border-radius: 4px; background: white; display: block;"></iframe>
                 </div>
@@ -435,7 +435,12 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 templateType.value = 'default';
             }
 
-            if (previewOpen) {
+            // Trigger input events to update preview
+            greeting.dispatchEvent(new Event('input', { bubbles: true }));
+            body.dispatchEvent(new Event('input', { bubbles: true }));
+            signature.dispatchEvent(new Event('input', { bubbles: true }));
+
+            if (previewOpen && previewReady) {
                 updatePreview();
             }
         }
@@ -453,7 +458,12 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 templateType.value = 'offer';
             }
 
-            if (previewOpen) {
+            // Trigger input events to update preview
+            greeting.dispatchEvent(new Event('input', { bubbles: true }));
+            body.dispatchEvent(new Event('input', { bubbles: true }));
+            signature.dispatchEvent(new Event('input', { bubbles: true }));
+
+            if (previewOpen && previewReady) {
                 updatePreview();
             }
         }
@@ -531,7 +541,10 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             const templateType = document.getElementById('template-type').value || 'default';
 
             // Fetch preview from server
-            fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-preview-email.php', {
+            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-preview-email.php';
+            console.log('Fetching preview from:', apiUrl);
+
+            fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -548,25 +561,30 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     sample_host_email: 'mary@example.com'
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Preview response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Preview response data:', data);
                 if (data.success && data.data && data.data.html) {
                     const iframeDoc = preview.contentDocument || preview.contentWindow.document;
                     iframeDoc.open();
                     iframeDoc.write(data.data.html);
                     iframeDoc.close();
                 } else {
+                    console.error('Invalid response format:', data);
                     const iframeDoc = preview.contentDocument || preview.contentWindow.document;
                     iframeDoc.open();
-                    iframeDoc.write('<p style="color: #999; padding: 20px; text-align: center;">Error generating preview. Please try again.</p>');
+                    iframeDoc.write('<p style="color: #c00; padding: 20px; text-align: center;">Error: ' + (data.message || 'Unknown error') + '</p>');
                     iframeDoc.close();
                 }
             })
             .catch(error => {
-                console.error('Preview error:', error);
+                console.error('Preview fetch error:', error);
                 const iframeDoc = preview.contentDocument || preview.contentWindow.document;
                 iframeDoc.open();
-                iframeDoc.write('<p style="color: #999; padding: 20px; text-align: center;">Error generating preview</p>');
+                iframeDoc.write('<p style="color: #c00; padding: 20px; text-align: center;">Error generating preview: ' + error.message + '</p>');
                 iframeDoc.close();
             });
         }
