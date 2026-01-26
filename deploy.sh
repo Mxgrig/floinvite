@@ -141,7 +141,7 @@ if [ "$MAIL_ONLY" != "true" ]; then
 
   # Step 4: Create backup on remote server
   echo -e "${YELLOW}[4/7]${NC} Creating backup on remote server..."
-  ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
+  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
     set -e
     mkdir -p $BACKUP_DIR
     
@@ -156,7 +156,7 @@ SSHEOF
 
   # Step 5: Upload React app files
   echo -e "${YELLOW}[5/7]${NC} Uploading React app files..."
-  if scp -P $REMOTE_PORT -r dist/* $REMOTE_USER@$REMOTE_HOST:$DEPLOY_DIR/ > /tmp/scp.log 2>&1; then
+  if scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT -r dist/* $REMOTE_USER@$REMOTE_HOST:$DEPLOY_DIR/ > /tmp/scp.log 2>&1; then
     echo -e "${GREEN}✓ React app files uploaded${NC}"
   else
     echo -e "${RED}✗ Upload failed${NC}"
@@ -166,7 +166,7 @@ SSHEOF
 
   # Step 6: Set permissions and configure React routing
   echo -e "${YELLOW}[6/7]${NC} Setting permissions and React routing..."
-  ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
+  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
     set -e
     
     find $DEPLOY_DIR -maxdepth 1 -type d ! -name "floinvite-mail" ! -name "backups" -exec chmod 755 {} \;
@@ -234,20 +234,20 @@ if [ "$DEPLOY_MAIL" = "true" ] || [ "$MAIL_ONLY" = "true" ]; then
   
   # Upload mail system files (SKIP: config.php, .htpasswd)
   echo -e "${YELLOW}[MAIL]${NC} Uploading mail system files..."
-  ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $MAIL_DIR" 2>/dev/null || true
+  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $MAIL_DIR" 2>/dev/null || true
   
   # Deploy all files EXCEPT config.php and .htpasswd (which contain credentials)
-  scp -P $REMOTE_PORT -r public/floinvite-mail/* $REMOTE_USER@$REMOTE_HOST:$MAIL_DIR/ \
+  scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT -r public/floinvite-mail/* $REMOTE_USER@$REMOTE_HOST:$MAIL_DIR/ \
     2>/dev/null || true
 
   # Deploy PHPMailerHelper to API directory (required by mail system)
   API_DIR="/home/$REMOTE_USER/public_html/floinvite/api"
-  ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $API_DIR" 2>/dev/null || true
-  scp -P $REMOTE_PORT public/api/PHPMailerHelper.php $REMOTE_USER@$REMOTE_HOST:$API_DIR/ \
+  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $API_DIR" 2>/dev/null || true
+  scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT public/api/PHPMailerHelper.php $REMOTE_USER@$REMOTE_HOST:$API_DIR/ \
     2>/dev/null || true
 
   # Remove uploaded config.php and .htpasswd (we don't want to overwrite server versions)
-  ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
+  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
     set -e
     
     # These files should NOT be overwritten from git
