@@ -272,7 +272,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Add PDF files and images to send with the email to all recipients</p>
 
                 <div style="margin-bottom: 1rem;">
-                    <button type="button" class="btn-secondary" id="attach-file-btn" style="margin-bottom: 0.5rem;">+ Add File</button>
+                    <button type="button" class="btn-secondary" id="attach-file-btn" onclick="document.getElementById('attach-file-input').click();" style="margin-bottom: 0.5rem;">+ Add File</button>
                     <input type="file" id="attach-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display: none;" multiple>
                     <small style="color: #6b7280; display: block;">Supported: PDF, JPG, PNG, GIF, WebP (Max 10MB per file)</small>
                 </div>
@@ -1041,11 +1041,14 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
 
         // Initialize attachments on page load
         function initializeAttachments() {
+            console.log('initializeAttachments() called');
             // Get elements when DOM is ready
             attachFileBtn = document.getElementById('attach-file-btn');
             attachFileInput = document.getElementById('attach-file-input');
             attachmentsList = document.getElementById('attachments-list');
             attachmentsItems = document.getElementById('attachments-items');
+
+            console.log('Got elements - btn:', !!attachFileBtn, 'input:', !!attachFileInput, 'list:', !!attachmentsList, 'items:', !!attachmentsItems);
 
             // Set up button handlers
             setupAttachmentButton();
@@ -1095,32 +1098,34 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
 
         // Set up attachment button handlers (called after DOM is ready)
         function setupAttachmentButton() {
-            if (attachFileBtn) {
-                attachFileBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    attachFileInput.click();
-                });
+            if (!attachFileBtn || !attachFileInput) {
+                console.error('Attachment elements not found - attachFileBtn:', !!attachFileBtn, 'attachFileInput:', !!attachFileInput);
+                return;
             }
 
-            if (attachFileInput) {
-                attachFileInput.addEventListener('change', async (e) => {
-                    const files = e.target.files;
-                    if (!files.length) return;
+            attachFileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('File button clicked, opening file picker');
+                attachFileInput.click();
+            });
 
-                    // Only allow campaign_id for existing campaigns
-                    if (!<?php echo $campaign_id ? 'true' : 'false'; ?>) {
-                        alert('Please save the campaign first before adding attachments');
-                        return;
-                    }
+            attachFileInput.addEventListener('change', async (e) => {
+                const files = e.target.files;
+                if (!files.length) return;
 
-                    for (let file of files) {
-                        await uploadAttachment(file);
-                    }
+                // Only allow campaign_id for existing campaigns
+                if (!<?php echo $campaign_id ? 'true' : 'false'; ?>) {
+                    alert('Please save the campaign first before adding attachments');
+                    return;
+                }
 
-                    // Reset input
-                    attachFileInput.value = '';
-                });
-            }
+                for (let file of files) {
+                    await uploadAttachment(file);
+                }
+
+                // Reset input
+                attachFileInput.value = '';
+            });
         }
 
         // Upload attachment
