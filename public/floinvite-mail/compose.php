@@ -432,6 +432,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
     </div>
 
     <script>
+        // TEST DEPLOYMENT: Check if this comment appears
         const logoUrl = '<?php echo htmlspecialchars(get_logo_url(PUBLIC_URL)); ?>';
         const baseUrl = '<?php echo htmlspecialchars(BASE_URL); ?>';
         const publicUrl = '<?php echo htmlspecialchars(PUBLIC_URL); ?>';
