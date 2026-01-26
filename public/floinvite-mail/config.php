@@ -213,14 +213,16 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
     $current_paragraph = [];
     $list_open = false;
 
-    $flush_paragraph = function() use (&$current_paragraph, &$body_html) {
+    $flush_paragraph = function() use (&$current_paragraph, &$body_html, $public_url) {
         if (!$current_paragraph) {
             return;
         }
         $para_text = implode("\n", $current_paragraph);
+        $para_text = apply_brand_placeholders($para_text);
         $para_text = apply_bold_placeholders($para_text);
         $para_html = linkify_plain_text($para_text);
         $para_html = restore_bold_placeholders($para_html);
+        $para_html = restore_brand_placeholders($para_html, $public_url);
         $para_html = str_replace("\n", "<br>\n", $para_html);
         $body_html .= "<p>" . $para_html . "</p>\n";
         $current_paragraph = [];
@@ -246,9 +248,11 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
                 $list_open = true;
             }
             $item_text = preg_replace('/^\s*[*-]\s+/', '', $line);
+            $item_text = apply_brand_placeholders($item_text);
             $item_text = apply_bold_placeholders($item_text);
             $item_html = linkify_plain_text($item_text);
             $item_html = restore_bold_placeholders($item_html);
+            $item_html = restore_brand_placeholders($item_html, $public_url);
             $body_html .= "<li>" . $item_html . "</li>\n";
             continue;
         }
@@ -412,7 +416,7 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
         <div class="header">
             <div class="logo-section">
                 <img src="$logo_url" alt="floinvite">
-                <div class="company-name"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></div>
+                <div class="company-name"><a href="$public_url" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></div>
             </div>
         </div>
         <div class="content">
@@ -421,7 +425,7 @@ function create_email_from_text($greeting = '', $body = '', $signature = '', $na
             <div class="signature">$signature</div>
         </div>
         <div class="footer">
-            <p><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong><br>Professional Visitor Management</p>
+            <p><strong><a href="$public_url" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></strong><br>Professional Visitor Management</p>
             <p><a href="$base_url/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="$public_url/contact">Contact Us</a></p>
         </div>
     </div>
@@ -464,6 +468,15 @@ function linkify_plain_text($text) {
     }
 
     return $result;
+}
+
+function apply_brand_placeholders($text) {
+    return preg_replace('/\\bfloinvite\\b/i', '___FLOINVITE_BRAND___', $text);
+}
+
+function restore_brand_placeholders($html, $public_url) {
+    $brand_html = '<a href="' . htmlspecialchars($public_url) . '" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a>';
+    return str_replace('___FLOINVITE_BRAND___', $brand_html, $html);
 }
 
 // Replace markdown-style bold markers with placeholder tokens.
@@ -640,7 +653,7 @@ function create_offer_email_html($logo_url, $greeting, $body_html, $signature, $
         <div class="header">
             <div class="logo-section">
                 <img src="$logo_url" alt="floinvite">
-                <div class="company-name"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></div>
+                <div class="company-name"><a href="$public_url" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></div>
             </div>
         </div>
         <div class="hero">
@@ -655,7 +668,7 @@ function create_offer_email_html($logo_url, $greeting, $body_html, $signature, $
             <div class="signature">$signature</div>
         </div>
         <div class="footer">
-            <p><strong><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></strong><br>Professional Visitor Management</p>
+            <p><strong><a href="$public_url" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><span class="brand-wordmark"><span class="brand-wordmark-flo">flo</span><span class="brand-wordmark-invite">invite</span></span></a></strong><br>Professional Visitor Management</p>
             <p><a href="$base_url/unsubscribe.php?token={unsubscribe_token}">Unsubscribe</a> | <a href="$public_url/contact">Contact Us</a></p>
         </div>
     </div>
