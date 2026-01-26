@@ -251,7 +251,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                             </select>
                         </div>
                         <button type="button" id="preview-subscriber-refresh" style="height: 34px; align-self: flex-end; padding: 0 0.75rem; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Refresh list</button>
-                        <div id="preview-subscriber-stats" style="font-size: 0.75rem; color: #6b7280; align-self: flex-end;"></div>
+                        <div id="preview-subscriber-stats" style="font-size: 0.75rem; color: #6b7280; align-self: flex-end; display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
                     </div>
                     <iframe id="email-preview" style="width: 100%; height: 600px; border: 1px solid #e5e7eb; border-radius: 4px; background: white; display: block;"></iframe>
                 </div>
@@ -386,6 +386,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 </div>
 
                 <input type="hidden" name="recipients" id="recipients-json" value="[]">
+                <input type="hidden" id="subscriber-filter" value="all">
             </div>
 
             <?php if ($campaign_id): ?>
@@ -453,7 +454,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             const templateType = document.getElementById('template-type');
 
             greeting.value = 'Hello {visitor_name},';
-            body.value = 'We are delighted to have you visit us today.\n\nThis is a professional email template with a company header and footer.\n\nYour content and message go here. Write naturally - line breaks will be converted to HTML.';
+            body.value = 'We are delighted to have you visit us today.\n\nThis is a professional email template with a company header and footer.\n\nYour content and message go here. Write naturally - line breaks will be converted to HTML.\n\nLearn more about floinvite.';
             signature.value = 'Best regards,\n{host_name}';
             if (templateType) {
                 templateType.value = 'default';
@@ -720,7 +721,74 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 .then(data => {
                     if (data && data.success && data.data) {
                         const stats = data.data;
-                        previewSampleStats.textContent = `All: ${stats.all} · Reached: ${stats.reached} · Unreached: ${stats.unreached}`;
+                        const currentFilter = document.getElementById('subscriber-filter').value || 'all';
+
+                        // Create filter buttons
+                        previewSampleStats.innerHTML = '';
+
+                        const allBtn = document.createElement('button');
+                        allBtn.type = 'button';
+                        allBtn.setAttribute('data-filter', 'all');
+                        allBtn.textContent = `All (${stats.all})`;
+                        allBtn.style.cssText = `
+                            padding: 0.4rem 0.7rem;
+                            border: 1px solid #d1d5db;
+                            border-radius: 4px;
+                            background: ${currentFilter === 'all' ? '#4338ca' : '#f3f4f6'};
+                            color: ${currentFilter === 'all' ? '#fff' : '#374151'};
+                            cursor: pointer;
+                            font-size: 0.75rem;
+                            font-weight: 500;
+                            transition: all 0.2s ease;
+                        `;
+
+                        const reachedBtn = document.createElement('button');
+                        reachedBtn.type = 'button';
+                        reachedBtn.setAttribute('data-filter', 'reached');
+                        reachedBtn.textContent = `Reached (${stats.reached})`;
+                        reachedBtn.style.cssText = `
+                            padding: 0.4rem 0.7rem;
+                            border: 1px solid #d1d5db;
+                            border-radius: 4px;
+                            background: ${currentFilter === 'reached' ? '#4338ca' : '#f3f4f6'};
+                            color: ${currentFilter === 'reached' ? '#fff' : '#374151'};
+                            cursor: pointer;
+                            font-size: 0.75rem;
+                            font-weight: 500;
+                            transition: all 0.2s ease;
+                        `;
+
+                        const unreachedBtn = document.createElement('button');
+                        unreachedBtn.type = 'button';
+                        unreachedBtn.setAttribute('data-filter', 'unreached');
+                        unreachedBtn.textContent = `Unreached (${stats.unreached})`;
+                        unreachedBtn.style.cssText = `
+                            padding: 0.4rem 0.7rem;
+                            border: 1px solid #d1d5db;
+                            border-radius: 4px;
+                            background: ${currentFilter === 'unreached' ? '#4338ca' : '#f3f4f6'};
+                            color: ${currentFilter === 'unreached' ? '#fff' : '#374151'};
+                            cursor: pointer;
+                            font-size: 0.75rem;
+                            font-weight: 500;
+                            transition: all 0.2s ease;
+                        `;
+
+                        // Add button click handlers
+                        const handleFilterClick = (btn) => {
+                            const filter = btn.getAttribute('data-filter');
+                            document.getElementById('subscriber-filter').value = filter;
+                            updateSubscriberFilterDisplay(filter);
+                            loadPreviewStats();
+                        };
+
+                        allBtn.addEventListener('click', (e) => { e.preventDefault(); handleFilterClick(allBtn); });
+                        reachedBtn.addEventListener('click', (e) => { e.preventDefault(); handleFilterClick(reachedBtn); });
+                        unreachedBtn.addEventListener('click', (e) => { e.preventDefault(); handleFilterClick(unreachedBtn); });
+
+                        previewSampleStats.appendChild(allBtn);
+                        previewSampleStats.appendChild(reachedBtn);
+                        previewSampleStats.appendChild(unreachedBtn);
                     }
                 })
                 .catch((error) => {
@@ -728,6 +796,26 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     console.error('Error loading subscriber stats:', error);
                     previewSampleStats.textContent = 'Stats unavailable';
                 });
+        }
+
+        function updateSubscriberFilterDisplay(filter) {
+            const subscribersSection = document.getElementById('subscribers-input-section');
+            if (!subscribersSection) return;
+
+            const filterLabels = {
+                'all': 'Sending to all active subscribers in your list.',
+                'reached': 'Sending to subscribers who have already been reached.',
+                'unreached': 'Sending to subscribers who have not yet been reached.'
+            };
+
+            const label = filterLabels[filter] || 'Sending to selected subscribers.';
+            subscribersSection.querySelector('div').textContent = label;
+
+            const link = subscribersSection.querySelector('a');
+            if (link) {
+                link.textContent = 'Manage subscribers';
+                link.style.marginLeft = '0.25rem';
+            }
         }
 
         // Initialize when DOM is ready
