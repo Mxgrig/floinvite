@@ -237,8 +237,7 @@ if [ "$DEPLOY_MAIL" = "true" ] || [ "$MAIL_ONLY" = "true" ]; then
   ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $MAIL_DIR" 2>/dev/null || true
   
   # Deploy all files EXCEPT config.php and .htpasswd (which contain credentials)
-  scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT -r public/floinvite-mail/* $REMOTE_USER@$REMOTE_HOST:$MAIL_DIR/ \
-    2>/dev/null || true
+  scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT -r public/floinvite-mail/* $REMOTE_USER@$REMOTE_HOST:$MAIL_DIR/
 
   # Deploy PHPMailerHelper to API directory (required by mail system)
   API_DIR="/home/$REMOTE_USER/public_html/floinvite/api"

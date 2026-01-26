@@ -432,7 +432,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
     </div>
 
     <script>
-        // TEST DEPLOYMENT: Check if this comment appears
+        // TEST DEPLOYMENT: Check if this comment appears - v2 Cache Busting
         const logoUrl = '<?php echo htmlspecialchars(get_logo_url(PUBLIC_URL)); ?>';
         const baseUrl = '<?php echo htmlspecialchars(BASE_URL); ?>';
         const publicUrl = '<?php echo htmlspecialchars(PUBLIC_URL); ?>';
@@ -1030,7 +1030,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             const formData = new FormData();
             formData.append('file', file);
             formData.append('action', 'upload');
-            formData.append('campaign_id', "<?php echo htmlspecialchars($campaign_id ?? ''); ?>");
+            if (<?php echo $campaign_id ? "true" : "false"; ?>) { formData.append("campaign_id", "<?php echo htmlspecialchars($campaign_id); ?>"); }
 
             try {
                 const response = await fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php', {
@@ -1064,7 +1064,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                     },
                     body: new URLSearchParams({
                         action: 'delete',
-                        campaign_id: "<?php echo htmlspecialchars($campaign_id ?? ''); ?>",
+                        campaign_id: (<?php echo $campaign_id ? "true" : "false"; ?> ? "<?php echo htmlspecialchars($campaign_id); ?>" : ""),
                         attachment_id: attachmentId
                     })
                 });
