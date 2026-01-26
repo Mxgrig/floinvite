@@ -671,7 +671,8 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             if (!previewSampleSelect) {
                 return;
             }
-            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-sample.php?filter=all';
+            const currentFilter = document.getElementById('subscriber-filter').value || 'all';
+            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-sample.php?filter=' + encodeURIComponent(currentFilter);
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 8000);
 
@@ -780,6 +781,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                             document.getElementById('subscriber-filter').value = filter;
                             updateSubscriberFilterDisplay(filter);
                             loadPreviewStats();
+                            loadPreviewSamples();
                         };
 
                         allBtn.addEventListener('click', (e) => { e.preventDefault(); handleFilterClick(allBtn); });
