@@ -909,8 +909,18 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                             segmentCount.textContent = count.toLocaleString() + ' Recipients';
                         }
 
-                        document.addEventListener('DOMContentLoaded', updateSegmentCount);
-                        document.addEventListener('change', updateSegmentCount);
+                        function wireSegmentListeners() {
+                            const radios = document.querySelectorAll('input[name="send_segment"]');
+                            radios.forEach(function (radio) {
+                                radio.addEventListener('change', updateSegmentCount);
+                                radio.addEventListener('input', updateSegmentCount);
+                            });
+                        }
+
+                        document.addEventListener('DOMContentLoaded', function () {
+                            wireSegmentListeners();
+                            updateSegmentCount();
+                        });
                     })();
                 </script>
 
