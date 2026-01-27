@@ -109,18 +109,13 @@ function get_all_active_count($db) {
 }
 
 /**
- * Get count of unreached subscribers (never received a sent campaign)
+ * Get count of unreached subscribers (never targeted by any campaign)
  */
 function get_unreached_count($db) {
     $stmt = $db->prepare("
-        SELECT COUNT(*) as count
-        FROM subscribers s
-        WHERE s.status = 'active'
-        AND NOT EXISTS (
-            SELECT 1 FROM campaign_sends cs
-            WHERE cs.subscriber_id = s.id
-            AND cs.status = 'sent'
-        )
+        SELECT COUNT(*) as count FROM subscribers
+        WHERE status = 'active'
+        AND id NOT IN (SELECT DISTINCT subscriber_id FROM campaign_sends)
     ");
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
@@ -128,18 +123,13 @@ function get_unreached_count($db) {
 }
 
 /**
- * Get count of reached subscribers (received at least one sent campaign)
+ * Get count of reached subscribers (targeted by at least one campaign)
  */
 function get_reached_count($db) {
     $stmt = $db->prepare("
-        SELECT COUNT(*) as count
-        FROM subscribers s
-        WHERE s.status = 'active'
-        AND EXISTS (
-            SELECT 1 FROM campaign_sends cs
-            WHERE cs.subscriber_id = s.id
-            AND cs.status = 'sent'
-        )
+        SELECT COUNT(*) as count FROM subscribers
+        WHERE status = 'active'
+        AND id IN (SELECT DISTINCT subscriber_id FROM campaign_sends)
     ");
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
@@ -152,25 +142,17 @@ function get_reached_count($db) {
 function get_segment_subscribers($db, $segment) {
     if ($segment === 'unreached') {
         $stmt = $db->prepare("
-            SELECT id, email, name, company FROM subscribers s
-            WHERE s.status = 'active'
-            AND NOT EXISTS (
-                SELECT 1 FROM campaign_sends cs
-                WHERE cs.subscriber_id = s.id
-                AND cs.status = 'sent'
-            )
-            ORDER BY s.id
+            SELECT id, email, name, company FROM subscribers
+            WHERE status = 'active'
+            AND id NOT IN (SELECT DISTINCT subscriber_id FROM campaign_sends)
+            ORDER BY id
         ");
     } elseif ($segment === 'reached') {
         $stmt = $db->prepare("
-            SELECT id, email, name, company FROM subscribers s
-            WHERE s.status = 'active'
-            AND EXISTS (
-                SELECT 1 FROM campaign_sends cs
-                WHERE cs.subscriber_id = s.id
-                AND cs.status = 'sent'
-            )
-            ORDER BY s.id
+            SELECT id, email, name, company FROM subscribers
+            WHERE status = 'active'
+            AND id IN (SELECT DISTINCT subscriber_id FROM campaign_sends)
+            ORDER BY id
         ");
     } else {
         // Default to all active
