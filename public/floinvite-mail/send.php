@@ -621,14 +621,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $requeued = 0;
             }
 
-            // Auto-add missing active subscribers if send_to_all_active flag is enabled
-            $added_missing = add_missing_all_active_subscribers($db, $campaign_id, $campaign);
+	            // Auto-add missing active subscribers if send_to_all_active flag is enabled
+	            $added_missing = add_missing_all_active_subscribers($db, $campaign_id, $campaign);
 
-            // Process a batch immediately
-            // Ensure send_queue records exist for all pending emails
-            $created = ensure_send_queue_exists($db, $campaign_id);
-            $result = process_campaign_queue($db, $campaign_id, BATCH_SIZE);
-            $db->commit();
+	            // Send immediately by processing all outstanding emails for this campaign.
+	            // Ensure send_queue records exist for all pending emails first.
+	            $created = ensure_send_queue_exists($db, $campaign_id);
+
+	            $outstanding_before_stmt = $db->prepare("
+	                SELECT COUNT(*) as count FROM campaign_sends
+	                WHERE campaign_id = ? AND status IN ('pending', 'failed')
+	            ");
+	            $cid = $campaign_id;
+	            $outstanding_before_stmt->bind_param("i", $cid);
+	            $outstanding_before_stmt->execute();
+	            $outstanding_before = (int) ($outstanding_before_stmt->get_result()->fetch_assoc()['count'] ?? 0);
+
+	            if ($outstanding_before > 0) {
+	                $result = process_campaign_queue($db, $campaign_id, $outstanding_before);
+	            } else {
+	                $result = ['sent' => 0, 'failed' => 0];
+	            }
+	            $db->commit();
 
             // Check if there are any remaining outstanding emails
             $outstanding_stmt = $db->prepare("
@@ -898,26 +912,34 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                     // Show selected segment count in real-time without re-querying.
                     (function () {
                         const counts = <?php echo json_encode($segment_counts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+                        console.log('Segment counts loaded:', counts);
 
                         function updateSegmentCount() {
                             const selected = document.querySelector('input[name="send_segment"]:checked');
                             const segmentCount = document.getElementById('segment-count');
+                            console.log('updateSegmentCount called', { selected: selected?.value, segmentCount: !!segmentCount });
+
                             if (!selected || !segmentCount) {
+                                console.warn('Missing selected or segmentCount element');
                                 return;
                             }
                             const count = counts[selected.value] ?? 0;
+                            console.log('Setting count to:', count, 'for segment:', selected.value);
                             segmentCount.textContent = count.toLocaleString() + ' Recipients';
                         }
 
                         function wireSegmentListeners() {
                             const radios = document.querySelectorAll('input[name="send_segment"]');
+                            console.log('Found radio buttons:', radios.length);
                             radios.forEach(function (radio) {
+                                console.log('Adding listeners to radio:', radio.value);
                                 radio.addEventListener('change', updateSegmentCount);
                                 radio.addEventListener('input', updateSegmentCount);
                             });
                         }
 
                         document.addEventListener('DOMContentLoaded', function () {
+                            console.log('DOMContentLoaded fired');
                             wireSegmentListeners();
                             updateSegmentCount();
                         });
