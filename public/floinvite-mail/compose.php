@@ -154,6 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $subscriber_count = 0;
 $result = $db->query("SELECT COUNT(*) as count FROM subscribers WHERE status = 'active'");
 $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
+$subscriber_filter_value = $_POST['subscriber_filter'] ?? 'all';
 
 ?>
 <!DOCTYPE html>
@@ -364,8 +365,15 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 </div>
 
                 <div id="subscribers-input-section" style="margin-bottom: 1rem;">
-                    <div id="subscriber-filter-buttons" style="margin-bottom: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                        <!-- Filter buttons will be populated by JavaScript -->
+                    <div style="margin-bottom: 1rem;">
+                        <label for="subscriber-filter-select" style="display: block; font-size: 0.85rem; color: #4b5563; margin-bottom: 0.35rem;">
+                            Filter active subscribers
+                        </label>
+                        <select id="subscriber-filter-select" style="min-width: 240px; padding: 0.5rem 0.6rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                            <option value="all" <?php echo $subscriber_filter_value === 'all' ? 'selected' : ''; ?>>All active subscribers</option>
+                            <option value="reached" <?php echo $subscriber_filter_value === 'reached' ? 'selected' : ''; ?>>Reached subscribers</option>
+                            <option value="unreached" <?php echo $subscriber_filter_value === 'unreached' ? 'selected' : ''; ?>>Unreached subscribers</option>
+                        </select>
                     </div>
                     <div style="padding: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; color: #1e3a8a;">
                         <span id="subscriber-filter-text">Sending to all active subscribers in your list.</span>
@@ -391,14 +399,14 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 </div>
 
                 <input type="hidden" name="recipients" id="recipients-json" value="[]">
-                <input type="hidden" id="subscriber-filter" name="subscriber_filter" value="all">
+                <input type="hidden" id="subscriber-filter" name="subscriber_filter" value="<?php echo htmlspecialchars($subscriber_filter_value); ?>">
             </div>
 
             <?php if ($campaign_id): ?>
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-label">Recipients</div>
-                        <div class="stat-value"><?php echo $subscriber_count; ?></div>
+                        <div class="stat-value" id="recipient-count-value"><?php echo number_format($subscriber_count); ?></div>
                     </div>
                     <div class="stat">
                         <div class="stat-label">Status</div>
@@ -445,7 +453,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
 
         let previewOpen = false;
         let previewReady = false;
-        let greetingInput, bodyInput, signatureInput, preview, previewContainer, previewBtn, previewSubscriberInput, previewSampleSelect, previewSampleRefresh, previewSampleStats;
+        let greetingInput, bodyInput, signatureInput, preview, previewContainer, previewBtn, previewSubscriberInput, previewSampleSelect, previewSampleRefresh;
 
         function loadDefaultTemplate() {
             // Auto-open preview if not already open
@@ -519,7 +527,6 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             // Load subscriber stats
             loadSubscriberStats();
             previewSampleRefresh = document.getElementById('preview-subscriber-refresh');
-            previewSampleStats = document.getElementById('preview-subscriber-stats');
 
             if (greetingInput && bodyInput && signatureInput && preview && previewContainer && previewBtn) {
                 // Attach template button listeners
@@ -710,218 +717,19 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 });
         }
 
-        function loadPreviewStats() {
-            if (!previewSampleStats) {
-                return;
-            }
-            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php';
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+        let subscriberStatsCache = null;
 
-            fetch(apiUrl, { signal: controller.signal })
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    if (data && data.success && data.data) {
-                        const stats = data.data;
-                        const currentFilter = document.getElementById('subscriber-filter').value || 'all';
+        function formatCount(count) {
+            const numeric = Number(count) || 0;
+            return numeric.toLocaleString();
+        }
 
-                        // Create filter buttons
-                        previewSampleStats.innerHTML = '';
-
-                        const allBtn = document.createElement('button');
-                        allBtn.type = 'button';
-                        allBtn.setAttribute('data-filter', 'all');
-                        allBtn.textContent = `All (${stats.all})`;
-                        allBtn.style.cssText = `
-                            padding: 0.4rem 0.7rem;
-                            border: 1px solid #d1d5db;
-                            border-radius: 4px;
-                            background: ${currentFilter === 'all' ? '#4338ca' : '#f3f4f6'};
-                            color: ${currentFilter === 'all' ? '#fff' : '#374151'};
-                            cursor: pointer;
-                            font-size: 0.75rem;
-                            font-weight: 500;
-                            transition: all 0.2s ease;
-                        `;
-
-                        const reachedBtn = document.createElement('button');
-                        reachedBtn.type = 'button';
-                        reachedBtn.setAttribute('data-filter', 'reached');
-                        reachedBtn.textContent = `Reached (${stats.reached})`;
-                        reachedBtn.style.cssText = `
-                            padding: 0.4rem 0.7rem;
-                            border: 1px solid #d1d5db;
-                            border-radius: 4px;
-                            background: ${currentFilter === 'reached' ? '#4338ca' : '#f3f4f6'};
-                            color: ${currentFilter === 'reached' ? '#fff' : '#374151'};
-                            cursor: pointer;
-                            font-size: 0.75rem;
-                            font-weight: 500;
-                            transition: all 0.2s ease;
-                        `;
-
-                        const unreachedBtn = document.createElement('button');
-                        unreachedBtn.type = 'button';
-                        unreachedBtn.setAttribute('data-filter', 'unreached');
-                        unreachedBtn.textContent = `Unreached (${stats.unreached})`;
-                        unreachedBtn.style.cssText = `
-                            padding: 0.4rem 0.7rem;
-                            border: 1px solid #d1d5db;
-                            border-radius: 4px;
-                            background: ${currentFilter === 'unreached' ? '#4338ca' : '#f3f4f6'};
-                            color: ${currentFilter === 'unreached' ? '#fff' : '#374151'};
-                            cursor: pointer;
-                            font-size: 0.75rem;
-                            font-weight: 500;
-                            transition: all 0.2s ease;
-                        `;
-
-                        // Add button click handlers
-                        const handleFilterClick = (btn) => {
-                            const filter = btn.getAttribute('data-filter');
-                            document.getElementById('subscriber-filter').value = filter;
-                            updateSubscriberFilterDisplay(filter);
-                            loadPreviewStats();
-                            loadPreviewSamples();
-                        };
-
-                        allBtn.addEventListener('click', (e) => { e.preventDefault(); handleFilterClick(allBtn); });
-                        reachedBtn.addEventListener('click', (e) => { e.preventDefault(); handleFilterClick(reachedBtn); });
-                        unreachedBtn.addEventListener('click', (e) => { e.preventDefault(); handleFilterClick(unreachedBtn); });
-
-                        previewSampleStats.appendChild(allBtn);
-                        previewSampleStats.appendChild(reachedBtn);
-                        previewSampleStats.appendChild(unreachedBtn);
-                    }
-                })
-                .catch((error) => {
-                    clearTimeout(timeoutId);
-                    console.error('Error loading subscriber stats:', error);
-                    previewSampleStats.textContent = 'Stats unavailable';
-                });
+        function getSelectedSubscriberFilter() {
+            const hidden = document.getElementById('subscriber-filter');
+            return (hidden && hidden.value) ? hidden.value : 'all';
         }
 
         function updateSubscriberFilterDisplay(filter) {
-            const subscribersSection = document.getElementById('subscribers-input-section');
-            if (!subscribersSection) return;
-
-            const filterLabels = {
-                'all': 'Sending to all active subscribers in your list.',
-                'reached': 'Sending to subscribers who have already been reached.',
-                'unreached': 'Sending to subscribers who have not yet been reached.'
-            };
-
-            const label = filterLabels[filter] || 'Sending to selected subscribers.';
-            subscribersSection.querySelector('div').textContent = label;
-
-            const link = subscribersSection.querySelector('a');
-            if (link) {
-                link.textContent = 'Manage subscribers';
-                link.style.marginLeft = '0.25rem';
-            }
-        }
-
-        // Load subscriber filter buttons for main recipients section
-        function loadSubscriberFilterButtons() {
-            const filterButtonsContainer = document.getElementById('subscriber-filter-buttons');
-            if (!filterButtonsContainer) {
-                return;
-            }
-
-            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php';
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-            fetch(apiUrl, { signal: controller.signal })
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    if (data && data.success && data.data) {
-                        const stats = data.data;
-                        const currentFilter = document.getElementById('subscriber-filter').value || 'all';
-
-                        filterButtonsContainer.innerHTML = '';
-
-                        const allBtn = document.createElement('button');
-                        allBtn.type = 'button';
-                        allBtn.setAttribute('data-filter', 'all');
-                        allBtn.textContent = `All (${stats.all})`;
-                        allBtn.style.cssText = `
-                            padding: 0.5rem 1rem;
-                            border: 1px solid #d1d5db;
-                            border-radius: 4px;
-                            background: ${currentFilter === 'all' ? '#4338ca' : '#f3f4f6'};
-                            color: ${currentFilter === 'all' ? '#fff' : '#374151'};
-                            cursor: pointer;
-                            font-size: 0.875rem;
-                            font-weight: 500;
-                            transition: all 0.2s ease;
-                        `;
-
-                        const reachedBtn = document.createElement('button');
-                        reachedBtn.type = 'button';
-                        reachedBtn.setAttribute('data-filter', 'reached');
-                        reachedBtn.textContent = `Reached (${stats.reached})`;
-                        reachedBtn.style.cssText = `
-                            padding: 0.5rem 1rem;
-                            border: 1px solid #d1d5db;
-                            border-radius: 4px;
-                            background: ${currentFilter === 'reached' ? '#4338ca' : '#f3f4f6'};
-                            color: ${currentFilter === 'reached' ? '#fff' : '#374151'};
-                            cursor: pointer;
-                            font-size: 0.875rem;
-                            font-weight: 500;
-                            transition: all 0.2s ease;
-                        `;
-
-                        const unreachedBtn = document.createElement('button');
-                        unreachedBtn.type = 'button';
-                        unreachedBtn.setAttribute('data-filter', 'unreached');
-                        unreachedBtn.textContent = `Unreached (${stats.unreached})`;
-                        unreachedBtn.style.cssText = `
-                            padding: 0.5rem 1rem;
-                            border: 1px solid #d1d5db;
-                            border-radius: 4px;
-                            background: ${currentFilter === 'unreached' ? '#4338ca' : '#f3f4f6'};
-                            color: ${currentFilter === 'unreached' ? '#fff' : '#374151'};
-                            cursor: pointer;
-                            font-size: 0.875rem;
-                            font-weight: 500;
-                            transition: all 0.2s ease;
-                        `;
-
-                        // Add button click handlers
-                        const handleMainFilterClick = (btn) => {
-                            const filter = btn.getAttribute('data-filter');
-                            document.getElementById('subscriber-filter').value = filter;
-                            updateMainSubscriberFilterDisplay(filter);
-                            loadSubscriberFilterButtons();
-                        };
-
-                        allBtn.addEventListener('click', (e) => { e.preventDefault(); handleMainFilterClick(allBtn); });
-                        reachedBtn.addEventListener('click', (e) => { e.preventDefault(); handleMainFilterClick(reachedBtn); });
-                        unreachedBtn.addEventListener('click', (e) => { e.preventDefault(); handleMainFilterClick(unreachedBtn); });
-
-                        filterButtonsContainer.appendChild(allBtn);
-                        filterButtonsContainer.appendChild(reachedBtn);
-                        filterButtonsContainer.appendChild(unreachedBtn);
-                    }
-                })
-                .catch((error) => {
-                    clearTimeout(timeoutId);
-                    console.error('Error loading subscriber filter buttons:', error);
-                });
-        }
-
-        // Update main subscriber filter display text
-        function updateMainSubscriberFilterDisplay(filter) {
             const filterText = document.getElementById('subscriber-filter-text');
             if (!filterText) return;
 
@@ -934,15 +742,105 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             filterText.textContent = filterLabels[filter] || 'Sending to selected subscribers.';
         }
 
+        function updateRecipientCountForFilter(filter, stats) {
+            const recipientCountValue = document.getElementById('recipient-count-value');
+            if (!recipientCountValue || !stats) {
+                return;
+            }
+            const count = stats[filter] ?? stats.all ?? 0;
+            recipientCountValue.textContent = formatCount(count);
+        }
+
+        function updateFilterSelectOptions(stats) {
+            const select = document.getElementById('subscriber-filter-select');
+            if (!select || !stats) {
+                return;
+            }
+            const options = [
+                { value: 'all', label: 'All active subscribers' },
+                { value: 'reached', label: 'Reached subscribers' },
+                { value: 'unreached', label: 'Unreached subscribers' }
+            ];
+            options.forEach((opt) => {
+                const optionEl = select.querySelector(`option[value="${opt.value}"]`);
+                if (!optionEl) {
+                    return;
+                }
+                const count = stats[opt.value] ?? 0;
+                optionEl.textContent = `${opt.label} (${formatCount(count)})`;
+            });
+        }
+
+        function setSelectedSubscriberFilter(filter) {
+            const normalized = (filter === 'reached' || filter === 'unreached') ? filter : 'all';
+            const hidden = document.getElementById('subscriber-filter');
+            const select = document.getElementById('subscriber-filter-select');
+            if (hidden) {
+                hidden.value = normalized;
+            }
+            if (select && select.value !== normalized) {
+                select.value = normalized;
+            }
+            updateSubscriberFilterDisplay(normalized);
+            updateRecipientCountForFilter(normalized, subscriberStatsCache);
+            loadPreviewSamples();
+            updatePreview();
+        }
+
+        function loadPreviewStats() {
+            const statsElement = document.getElementById('preview-sample-stats');
+            if (!statsElement) {
+                return;
+            }
+            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php';
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            fetch(apiUrl, { signal: controller.signal })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.success && data.data) {
+                        subscriberStatsCache = data.data;
+                        const { all, reached, unreached } = subscriberStatsCache;
+                        statsElement.textContent = `All: ${formatCount(all)} · Reached: ${formatCount(reached)} · Unreached: ${formatCount(unreached)}`;
+                        updateFilterSelectOptions(subscriberStatsCache);
+                        setSelectedSubscriberFilter(getSelectedSubscriberFilter());
+                    }
+                })
+                .catch((error) => {
+                    clearTimeout(timeoutId);
+                    console.error('Error loading subscriber stats:', error);
+                    statsElement.textContent = 'Stats unavailable';
+                });
+        }
+
         // Initialize when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 initializePreview();
-                loadSubscriberFilterButtons();
+                const filterSelect = document.getElementById('subscriber-filter-select');
+                if (filterSelect) {
+                    filterSelect.addEventListener('change', (e) => {
+                        setSelectedSubscriberFilter(e.target.value);
+                    });
+                }
+                setSelectedSubscriberFilter(getSelectedSubscriberFilter());
+                loadPreviewStats();
             });
         } else {
             initializePreview();
-            loadSubscriberFilterButtons();
+            const filterSelect = document.getElementById('subscriber-filter-select');
+            if (filterSelect) {
+                filterSelect.addEventListener('change', (e) => {
+                    setSelectedSubscriberFilter(e.target.value);
+                });
+            }
+            setSelectedSubscriberFilter(getSelectedSubscriberFilter());
+            loadPreviewStats();
         }
 
         const testBtn = document.getElementById('send-test-btn');
@@ -1413,30 +1311,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
         // Load Subscriber Statistics
         // ═══════════════════════════════════════════════════
         function loadSubscriberStats() {
-            const statsElement = document.getElementById('preview-sample-stats');
-            if (!statsElement) return;
-
-            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php';
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-            fetch(apiUrl, { signal: controller.signal })
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success && data.data) {
-                        const { all, reached, unreached } = data.data;
-                        statsElement.textContent = `All: ${all} · Reached: ${reached} · Unreached: ${unreached}`;
-                    }
-                })
-                .catch(error => {
-                    clearTimeout(timeoutId);
-                    console.error('Error loading stats:', error);
-                    statsElement.textContent = 'Stats unavailable';
-                });
+            loadPreviewStats();
         }
     </script>
 
