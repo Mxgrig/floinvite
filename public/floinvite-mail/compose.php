@@ -369,10 +369,10 @@ $subscriber_filter_value = $_POST['subscriber_filter'] ?? 'all';
                         <label for="subscriber-filter-select" style="display: block; font-size: 0.85rem; color: #4b5563; margin-bottom: 0.35rem;">
                             Filter active subscribers
                         </label>
-                        <select id="subscriber-filter-select" style="min-width: 240px; padding: 0.5rem 0.6rem; border: 1px solid #d1d5db; border-radius: 6px;">
-                            <option value="all" <?php echo $subscriber_filter_value === 'all' ? 'selected' : ''; ?>>All active subscribers</option>
-                            <option value="reached" <?php echo $subscriber_filter_value === 'reached' ? 'selected' : ''; ?>>Reached subscribers</option>
-                            <option value="unreached" <?php echo $subscriber_filter_value === 'unreached' ? 'selected' : ''; ?>>Unreached subscribers</option>
+                        <select id="subscriber-filter-select" disabled style="min-width: 240px; padding: 0.5rem 0.6rem; border: 1px solid #d1d5db; border-radius: 6px;">
+                            <option value="all" <?php echo $subscriber_filter_value === 'all' ? 'selected' : ''; ?>>All active subscribers (loading…)</option>
+                            <option value="reached" <?php echo $subscriber_filter_value === 'reached' ? 'selected' : ''; ?>>Reached subscribers (loading…)</option>
+                            <option value="unreached" <?php echo $subscriber_filter_value === 'unreached' ? 'selected' : ''; ?>>Unreached subscribers (loading…)</option>
                         </select>
                     </div>
                     <div style="padding: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; color: #1e3a8a;">
@@ -771,6 +771,33 @@ $subscriber_filter_value = $_POST['subscriber_filter'] ?? 'all';
             });
         }
 
+        function updateFilterSelectUnavailableState() {
+            const select = document.getElementById('subscriber-filter-select');
+            if (!select) {
+                return;
+            }
+            const options = [
+                { value: 'all', label: 'All active subscribers' },
+                { value: 'reached', label: 'Reached subscribers' },
+                { value: 'unreached', label: 'Unreached subscribers' }
+            ];
+            options.forEach((opt) => {
+                const optionEl = select.querySelector(`option[value="${opt.value}"]`);
+                if (!optionEl) {
+                    return;
+                }
+                optionEl.textContent = `${opt.label} (stats unavailable)`;
+            });
+        }
+
+        function setFilterSelectEnabled(enabled) {
+            const select = document.getElementById('subscriber-filter-select');
+            if (!select) {
+                return;
+            }
+            select.disabled = !enabled;
+        }
+
         function setSelectedSubscriberFilter(filter) {
             const normalized = (filter === 'reached' || filter === 'unreached') ? filter : 'all';
             const hidden = document.getElementById('subscriber-filter');
@@ -809,12 +836,16 @@ $subscriber_filter_value = $_POST['subscriber_filter'] ?? 'all';
                         statsElement.textContent = `All: ${formatCount(all)} · Reached: ${formatCount(reached)} · Unreached: ${formatCount(unreached)}`;
                         updateFilterSelectOptions(subscriberStatsCache);
                         setSelectedSubscriberFilter(getSelectedSubscriberFilter());
+                        setFilterSelectEnabled(true);
                     }
                 })
                 .catch((error) => {
                     clearTimeout(timeoutId);
                     console.error('Error loading subscriber stats:', error);
                     statsElement.textContent = 'Stats unavailable';
+                    updateFilterSelectUnavailableState();
+                    setSelectedSubscriberFilter(getSelectedSubscriberFilter());
+                    setFilterSelectEnabled(true);
                 });
         }
 
@@ -828,7 +859,6 @@ $subscriber_filter_value = $_POST['subscriber_filter'] ?? 'all';
                         setSelectedSubscriberFilter(e.target.value);
                     });
                 }
-                setSelectedSubscriberFilter(getSelectedSubscriberFilter());
                 loadPreviewStats();
             });
         } else {
@@ -839,7 +869,6 @@ $subscriber_filter_value = $_POST['subscriber_filter'] ?? 'all';
                     setSelectedSubscriberFilter(e.target.value);
                 });
             }
-            setSelectedSubscriberFilter(getSelectedSubscriberFilter());
             loadPreviewStats();
         }
 
