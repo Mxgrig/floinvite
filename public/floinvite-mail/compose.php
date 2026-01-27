@@ -114,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($action === 'save_send') {
                     $recipient_mode = $_POST['recipient_mode'] ?? 'subscribers';
+                    $subscriber_filter = $_POST['subscriber_filter'] ?? 'all';
                     $recipients_raw = $_POST['recipients'] ?? '[]';
                     $recipients = json_decode($recipients_raw, true);
                     $emails = [];
@@ -128,6 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $prefill_token = bin2hex(random_bytes(16));
                     $_SESSION['send_prefill'][$campaign_id] = [
                         'mode' => $recipient_mode === 'subscribers' ? 'all' : 'custom',
+                        'subscriber_filter' => $subscriber_filter,
                         'custom_emails' => implode("\n", $emails),
                         'recipients' => is_array($recipients) ? $recipients : [],
                         'token' => $prefill_token
@@ -272,8 +274,8 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Add PDF files and images to send with the email to all recipients</p>
 
                 <div style="margin-bottom: 1rem;">
-                    <button type="button" class="btn-secondary" id="attach-file-btn" onclick="document.getElementById('attach-file-input').click();" style="margin-bottom: 0.5rem;">+ Add File</button>
                     <input type="file" id="attach-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display: none;" multiple>
+                    <label for="attach-file-input" class="btn-secondary" style="margin-bottom: 0.5rem; display: inline-block; cursor: pointer;">+ Add File</label>
                     <small style="color: #6b7280; display: block;">Supported: PDF, JPG, PNG, GIF, WebP (Max 10MB per file)</small>
                 </div>
 
@@ -362,8 +364,11 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 </div>
 
                 <div id="subscribers-input-section" style="margin-bottom: 1rem;">
+                    <div id="subscriber-filter-buttons" style="margin-bottom: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                        <!-- Filter buttons will be populated by JavaScript -->
+                    </div>
                     <div style="padding: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; color: #1e3a8a;">
-                        Sending to all active subscribers in your list.
+                        <span id="subscriber-filter-text">Sending to all active subscribers in your list.</span>
                         <a href="subscribers.php" style="color: #1d4ed8; text-decoration: underline; margin-left: 0.25rem;">Manage subscribers</a>
                     </div>
                 </div>
@@ -386,7 +391,7 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 </div>
 
                 <input type="hidden" name="recipients" id="recipients-json" value="[]">
-                <input type="hidden" id="subscriber-filter" value="all">
+                <input type="hidden" id="subscriber-filter" name="subscriber_filter" value="all">
             </div>
 
             <?php if ($campaign_id): ?>
@@ -820,11 +825,124 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             }
         }
 
+        // Load subscriber filter buttons for main recipients section
+        function loadSubscriberFilterButtons() {
+            const filterButtonsContainer = document.getElementById('subscriber-filter-buttons');
+            if (!filterButtonsContainer) {
+                return;
+            }
+
+            const apiUrl = '<?php echo htmlspecialchars(BASE_URL); ?>/api-subscriber-stats.php';
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            fetch(apiUrl, { signal: controller.signal })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.success && data.data) {
+                        const stats = data.data;
+                        const currentFilter = document.getElementById('subscriber-filter').value || 'all';
+
+                        filterButtonsContainer.innerHTML = '';
+
+                        const allBtn = document.createElement('button');
+                        allBtn.type = 'button';
+                        allBtn.setAttribute('data-filter', 'all');
+                        allBtn.textContent = `All (${stats.all})`;
+                        allBtn.style.cssText = `
+                            padding: 0.5rem 1rem;
+                            border: 1px solid #d1d5db;
+                            border-radius: 4px;
+                            background: ${currentFilter === 'all' ? '#4338ca' : '#f3f4f6'};
+                            color: ${currentFilter === 'all' ? '#fff' : '#374151'};
+                            cursor: pointer;
+                            font-size: 0.875rem;
+                            font-weight: 500;
+                            transition: all 0.2s ease;
+                        `;
+
+                        const reachedBtn = document.createElement('button');
+                        reachedBtn.type = 'button';
+                        reachedBtn.setAttribute('data-filter', 'reached');
+                        reachedBtn.textContent = `Reached (${stats.reached})`;
+                        reachedBtn.style.cssText = `
+                            padding: 0.5rem 1rem;
+                            border: 1px solid #d1d5db;
+                            border-radius: 4px;
+                            background: ${currentFilter === 'reached' ? '#4338ca' : '#f3f4f6'};
+                            color: ${currentFilter === 'reached' ? '#fff' : '#374151'};
+                            cursor: pointer;
+                            font-size: 0.875rem;
+                            font-weight: 500;
+                            transition: all 0.2s ease;
+                        `;
+
+                        const unreachedBtn = document.createElement('button');
+                        unreachedBtn.type = 'button';
+                        unreachedBtn.setAttribute('data-filter', 'unreached');
+                        unreachedBtn.textContent = `Unreached (${stats.unreached})`;
+                        unreachedBtn.style.cssText = `
+                            padding: 0.5rem 1rem;
+                            border: 1px solid #d1d5db;
+                            border-radius: 4px;
+                            background: ${currentFilter === 'unreached' ? '#4338ca' : '#f3f4f6'};
+                            color: ${currentFilter === 'unreached' ? '#fff' : '#374151'};
+                            cursor: pointer;
+                            font-size: 0.875rem;
+                            font-weight: 500;
+                            transition: all 0.2s ease;
+                        `;
+
+                        // Add button click handlers
+                        const handleMainFilterClick = (btn) => {
+                            const filter = btn.getAttribute('data-filter');
+                            document.getElementById('subscriber-filter').value = filter;
+                            updateMainSubscriberFilterDisplay(filter);
+                            loadSubscriberFilterButtons();
+                        };
+
+                        allBtn.addEventListener('click', (e) => { e.preventDefault(); handleMainFilterClick(allBtn); });
+                        reachedBtn.addEventListener('click', (e) => { e.preventDefault(); handleMainFilterClick(reachedBtn); });
+                        unreachedBtn.addEventListener('click', (e) => { e.preventDefault(); handleMainFilterClick(unreachedBtn); });
+
+                        filterButtonsContainer.appendChild(allBtn);
+                        filterButtonsContainer.appendChild(reachedBtn);
+                        filterButtonsContainer.appendChild(unreachedBtn);
+                    }
+                })
+                .catch((error) => {
+                    clearTimeout(timeoutId);
+                    console.error('Error loading subscriber filter buttons:', error);
+                });
+        }
+
+        // Update main subscriber filter display text
+        function updateMainSubscriberFilterDisplay(filter) {
+            const filterText = document.getElementById('subscriber-filter-text');
+            if (!filterText) return;
+
+            const filterLabels = {
+                'all': 'Sending to all active subscribers in your list.',
+                'reached': 'Sending to subscribers who have already been reached.',
+                'unreached': 'Sending to subscribers who have not yet been reached.'
+            };
+
+            filterText.textContent = filterLabels[filter] || 'Sending to selected subscribers.';
+        }
+
         // Initialize when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializePreview);
+            document.addEventListener('DOMContentLoaded', () => {
+                initializePreview();
+                loadSubscriberFilterButtons();
+            });
         } else {
             initializePreview();
+            loadSubscriberFilterButtons();
         }
 
         const testBtn = document.getElementById('send-test-btn');
@@ -1036,19 +1154,16 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
         // ═══════════════════════════════════════════════════
         // Attachment Handling
         // ═══════════════════════════════════════════════════
-        let attachFileBtn, attachFileInput, attachmentsList, attachmentsItems;
+        let attachFileInput, attachmentsList, attachmentsItems;
         let currentAttachments = [];
+        let tempAttachments = [];  // Temporary attachments storage for new campaigns
 
         // Initialize attachments on page load
         function initializeAttachments() {
-            console.log('initializeAttachments() called');
             // Get elements when DOM is ready
-            attachFileBtn = document.getElementById('attach-file-btn');
             attachFileInput = document.getElementById('attach-file-input');
             attachmentsList = document.getElementById('attachments-list');
             attachmentsItems = document.getElementById('attachments-items');
-
-            console.log('Got elements - btn:', !!attachFileBtn, 'input:', !!attachFileInput, 'list:', !!attachmentsList, 'items:', !!attachmentsItems);
 
             // Set up button handlers
             setupAttachmentButton();
@@ -1067,10 +1182,11 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 .catch(error => console.error('Error loading attachments:', error));
         }
 
-        // Render attachments list
+        // Render attachments list (both server and temporary)
         function renderAttachmentsList() {
             attachmentsItems.innerHTML = '';
 
+            // Render server attachments
             currentAttachments.forEach(att => {
                 const li = document.createElement('li');
                 li.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: white; border-radius: 4px; margin-bottom: 0.5rem;';
@@ -1093,65 +1209,93 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
                 attachmentsItems.appendChild(li);
             });
 
-            attachmentsList.style.display = currentAttachments.length > 0 ? 'block' : 'none';
+            // Render temporary attachments (for new campaigns)
+            tempAttachments.forEach((file, index) => {
+                const li = document.createElement('li');
+                li.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: white; border-radius: 4px; margin-bottom: 0.5rem; opacity: 0.7;';
+
+                const fileInfo = document.createElement('span');
+                fileInfo.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB) - Pending';
+                fileInfo.style.cssText = 'color: #166534; font-size: 0.875rem;';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.textContent = 'Remove';
+                deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; padding: 0.25rem 0.75rem; font-size: 0.75rem; cursor: pointer;';
+                deleteBtn.onclick = (e) => {
+                    e.preventDefault();
+                    tempAttachments.splice(index, 1);
+                    renderAttachmentsList();
+                };
+
+                li.appendChild(fileInfo);
+                li.appendChild(deleteBtn);
+                attachmentsItems.appendChild(li);
+            });
+
+            attachmentsList.style.display = (currentAttachments.length + tempAttachments.length) > 0 ? 'block' : 'none';
         }
 
-        // Set up attachment button handlers (called after DOM is ready)
+        // Set up attachment handlers (called after DOM is ready)
         function setupAttachmentButton() {
-            if (!attachFileBtn || !attachFileInput) {
-                console.error('Attachment elements not found - attachFileBtn:', !!attachFileBtn, 'attachFileInput:', !!attachFileInput);
+            if (!attachFileInput) {
+                console.error('Attachment file input not found');
                 return;
             }
 
-            attachFileBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('File button clicked, opening file picker');
-                attachFileInput.click();
-            });
-
+            // Handle file selection
             attachFileInput.addEventListener('change', async (e) => {
                 const files = e.target.files;
                 if (!files.length) return;
-
-                // Only allow campaign_id for existing campaigns
-                if (!<?php echo $campaign_id ? 'true' : 'false'; ?>) {
-                    alert('Please save the campaign first before adding attachments');
-                    return;
-                }
 
                 for (let file of files) {
                     await uploadAttachment(file);
                 }
 
                 // Reset input
-                attachFileInput.value = '';
+                e.target.value = '';
             });
         }
 
         // Upload attachment
         async function uploadAttachment(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('action', 'upload');
-            if (<?php echo $campaign_id ? "true" : "false"; ?>) { formData.append("campaign_id", "<?php echo htmlspecialchars($campaign_id); ?>"); }
+            // Validate file size (10MB max)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File too large: ' + file.name + ' (max 10MB)');
+                return;
+            }
 
-            try {
-                const response = await fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php', {
-                    method: 'POST',
-                    body: formData
-                });
+            const hasCampaignId = <?php echo $campaign_id ? 'true' : 'false'; ?>;
 
-                const data = await response.json();
+            if (hasCampaignId) {
+                // For existing campaigns: upload immediately to server
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('action', 'upload');
+                formData.append("campaign_id", "<?php echo htmlspecialchars($campaign_id); ?>");
 
-                if (data.success) {
-                    currentAttachments.push(data.attachment);
-                    renderAttachmentsList();
-                } else {
-                    alert('Error uploading file: ' + data.error);
+                try {
+                    const response = await fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        currentAttachments.push(data.attachment);
+                        renderAttachmentsList();
+                    } else {
+                        alert('Error uploading file: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    alert('Error uploading file: ' + error.message);
                 }
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert('Error uploading file: ' + error.message);
+            } else {
+                // For new campaigns: store temporarily client-side
+                tempAttachments.push(file);
+                renderAttachmentsList();
             }
         }
 
@@ -1186,11 +1330,83 @@ $subscriber_count = $result->fetch_assoc()['count'] ?? 0;
             }
         }
 
-        // Initialize attachments when page loads
+        // Handle form submission with temp attachments
+        function initializeFormHandler() {
+            const form = document.getElementById('campaign-form');
+            if (!form) return;
+
+            form.addEventListener('submit', async (e) => {
+                // Only intercept if this is a new campaign with temp attachments
+                if (tempAttachments.length === 0 || <?php echo $campaign_id ? 'true' : 'false'; ?>) {
+                    return; // Let form submit normally
+                }
+
+                e.preventDefault();
+
+                // Show uploading message
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving campaign...';
+
+                try {
+                    // Submit form to create campaign first
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action || '', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const html = await response.text();
+
+                    // Check if campaign was created successfully by looking for campaign_id in response
+                    const campaignIdMatch = html.match(/id=(\d+)/);
+                    if (!campaignIdMatch) {
+                        throw new Error('Failed to create campaign');
+                    }
+
+                    const newCampaignId = campaignIdMatch[1];
+                    submitBtn.textContent = 'Uploading ' + tempAttachments.length + ' file(s)...';
+
+                    // Now upload temp attachments
+                    for (let file of tempAttachments) {
+                        const attachFormData = new FormData();
+                        attachFormData.append('file', file);
+                        attachFormData.append('action', 'upload');
+                        attachFormData.append('campaign_id', newCampaignId);
+
+                        const uploadResponse = await fetch('<?php echo htmlspecialchars(BASE_URL); ?>/api-handle-attachments.php', {
+                            method: 'POST',
+                            body: attachFormData
+                        });
+
+                        const uploadData = await uploadResponse.json();
+                        if (!uploadData.success) {
+                            throw new Error('Failed to upload ' + file.name + ': ' + uploadData.error);
+                        }
+                    }
+
+                    // Success - redirect to campaign or refresh
+                    window.location.href = 'compose.php?id=' + newCampaignId;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error: ' + error.message);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+        }
+
+        // Initialize attachments and form handler when page loads
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeAttachments);
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeAttachments();
+                initializeFormHandler();
+            });
         } else {
             initializeAttachments();
+            initializeFormHandler();
         }
 
         // ═══════════════════════════════════════════════════
