@@ -876,6 +876,23 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                 </p>
 
                 <div class="recipient-count" id="segment-count">
+                    <script>
+                        // Show selected segment count in real-time
+                        function updateSegmentCount() {
+                            const selected = document.querySelector('input[name="send_segment"]:checked');
+                            if (selected) {
+                                const counts = {
+                                    'all': <?php echo get_all_active_count($db); ?>,
+                                    'unreached': <?php echo get_unreached_count($db); ?>,
+                                    'reached': <?php echo get_reached_count($db); ?>
+                                };
+                                const count = counts[selected.value] || 0;
+                                document.getElementById('segment-count').textContent = count.toLocaleString() + ' Recipients';
+                            }
+                        }
+                        document.addEventListener('DOMContentLoaded', updateSegmentCount);
+                        document.addEventListener('change', updateSegmentCount);
+                    </script>
                     <?php
                     $all_count = get_all_active_count($db);
                     $unreached_count = get_unreached_count($db);
