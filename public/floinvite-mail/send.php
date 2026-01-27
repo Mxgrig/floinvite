@@ -97,77 +97,6 @@ function fetch_subscriber_statuses($db, $emails) {
     return $found;
 }
 
-/**
- * Get count of subscribers who have never received a campaign
- */
-function get_never_contacted_count($db) {
-    $stmt = $db->prepare("
-        SELECT COUNT(*) as count FROM subscribers 
-        WHERE status = 'active' 
-        AND id NOT IN (SELECT DISTINCT subscriber_id FROM campaign_sends)
-    ");
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    return (int)($result['count'] ?? 0);
-}
-
-/**
- * Check if subscribers.created_at exists (migration applied).
- */
-function has_subscriber_created_at($db) {
-    static $cached = null;
-    if ($cached !== null) {
-        return $cached;
-    }
-
-    $stmt = $db->prepare("
-        SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'subscribers' AND COLUMN_NAME = 'created_at'
-        LIMIT 1
-    ");
-    $db_name = DB_NAME;
-    $stmt->bind_param("s", $db_name);
-    $stmt->execute();
-    $cached = (bool) $stmt->get_result()->fetch_assoc();
-    return $cached;
-}
-
-/**
- * Get the most recent campaign start timestamp, if any.
- */
-function get_last_campaign_started_at($db) {
-    $stmt = $db->prepare("
-        SELECT MAX(started_at) as last_campaign FROM campaigns
-        WHERE status IN ('completed', 'sending') AND started_at IS NOT NULL
-    ");
-    $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    return $row['last_campaign'] ?? null;
-}
-
-/**
- * Get count of new subscribers (created after most recent campaign started)
- */
-function get_new_subscribers_count($db) {
-    if (!has_subscriber_created_at($db)) {
-        return 0;
-    }
-
-    $last_campaign = get_last_campaign_started_at($db);
-    if (!$last_campaign) {
-        return 0;
-    }
-
-    $stmt = $db->prepare("
-        SELECT COUNT(*) as count FROM subscribers 
-        WHERE status = 'active' 
-        AND created_at > ?
-    ");
-    $stmt->bind_param("s", $last_campaign);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    return (int)($result['count'] ?? 0);
-}
 
 /**
  * Get count of all active subscribers
@@ -180,31 +109,69 @@ function get_all_active_count($db) {
 }
 
 /**
+ * Get count of unreached subscribers (never received a sent campaign)
+ */
+function get_unreached_count($db) {
+    $stmt = $db->prepare("
+        SELECT COUNT(*) as count
+        FROM subscribers s
+        WHERE s.status = 'active'
+        AND NOT EXISTS (
+            SELECT 1 FROM campaign_sends cs
+            WHERE cs.subscriber_id = s.id
+            AND cs.status = 'sent'
+        )
+    ");
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    return (int)($result['count'] ?? 0);
+}
+
+/**
+ * Get count of reached subscribers (received at least one sent campaign)
+ */
+function get_reached_count($db) {
+    $stmt = $db->prepare("
+        SELECT COUNT(*) as count
+        FROM subscribers s
+        WHERE s.status = 'active'
+        AND EXISTS (
+            SELECT 1 FROM campaign_sends cs
+            WHERE cs.subscriber_id = s.id
+            AND cs.status = 'sent'
+        )
+    ");
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    return (int)($result['count'] ?? 0);
+}
+
+/**
  * Fetch subscribers for a given segment
  */
 function get_segment_subscribers($db, $segment) {
-    if ($segment === 'never_contacted') {
+    if ($segment === 'unreached') {
         $stmt = $db->prepare("
-            SELECT id, email, name, company FROM subscribers
-            WHERE status = 'active' 
-            AND id NOT IN (SELECT DISTINCT subscriber_id FROM campaign_sends)
-            ORDER BY id
+            SELECT id, email, name, company FROM subscribers s
+            WHERE s.status = 'active'
+            AND NOT EXISTS (
+                SELECT 1 FROM campaign_sends cs
+                WHERE cs.subscriber_id = s.id
+                AND cs.status = 'sent'
+            )
+            ORDER BY s.id
         ");
-    } elseif ($segment === 'new_subscribers') {
-        if (!has_subscriber_created_at($db)) {
-            return [];
-        }
-        $last_campaign = get_last_campaign_started_at($db);
-        if (!$last_campaign) {
-            return [];
-        }
+    } elseif ($segment === 'reached') {
         $stmt = $db->prepare("
-            SELECT id, email, name, company FROM subscribers
-            WHERE status = 'active'
-            AND created_at > ?
-            ORDER BY id
+            SELECT id, email, name, company FROM subscribers s
+            WHERE s.status = 'active'
+            AND EXISTS (
+                SELECT 1 FROM campaign_sends cs
+                WHERE cs.subscriber_id = s.id
+                AND cs.status = 'sent'
+            )
+            ORDER BY s.id
         ");
-        $stmt->bind_param("s", $last_campaign);
     } else {
         // Default to all active
         $stmt = $db->prepare("
@@ -213,7 +180,7 @@ function get_segment_subscribers($db, $segment) {
             ORDER BY id
         ");
     }
-    
+
     $stmt->execute();
     return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
@@ -492,15 +459,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'preview' && $validation['ok']) {
         // Get subscriber counts for selected segment
         $segment = $_POST['send_segment'] ?? 'all';
-        
-        if ($segment === 'never_contacted') {
-            $count = get_never_contacted_count($db);
-        } elseif ($segment === 'new_subscribers') {
-            $count = get_new_subscribers_count($db);
+
+        if ($segment === 'unreached') {
+            $count = get_unreached_count($db);
+        } elseif ($segment === 'reached') {
+            $count = get_reached_count($db);
         } else {
             $count = get_all_active_count($db);
         }
-        
+
         $preview = [
             'mode' => 'segment',
             'segment' => $segment,
@@ -939,11 +906,11 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                             <div class="preview-grid">
                                 <div class="preview-item">
                                     <?php echo number_format($preview['counts']['active']); ?>
-                                    <span><?php 
+                                    <span><?php
                                         $segment_labels = [
                                             'all' => 'All Active Subscribers',
-                                            'never_contacted' => 'Never Contacted',
-                                            'new_subscribers' => 'New Subscribers'
+                                            'unreached' => 'Unreached Subscribers',
+                                            'reached' => 'Reached Subscribers'
                                         ];
                                         echo $segment_labels[$preview['segment']] ?? 'Recipients';
                                     ?></span>
@@ -956,29 +923,31 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                     <div class="send-mode">
-                        <label for="send_segment" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
-                            Select segment:
-                        </label>
-                        <select name="send_segment" id="send_segment" style="padding: 0.5rem; font-size: 1rem; border: 1px solid #ddd; border-radius: 4px; width: 100%; max-width: 400px; margin-bottom: 1rem;">
-                            <?php
-                                $all_count = get_all_active_count($db);
-                                $never_contacted_count = get_never_contacted_count($db);
-                                $new_count = get_new_subscribers_count($db);
-                                $selected_segment = $_POST['send_segment'] ?? 'all';
-                            ?>
-                            <option value="all" <?php echo $selected_segment === 'all' ? 'selected' : ''; ?>>
-                                All Active Subscribers (<?php echo number_format($all_count); ?>)
-                            </option>
-                            <option value="never_contacted" <?php echo $selected_segment === 'never_contacted' ? 'selected' : ''; ?>>
-                                Never Contacted (<?php echo number_format($never_contacted_count); ?>)
-                            </option>
-                            <option value="new_subscribers" <?php echo $selected_segment === 'new_subscribers' ? 'selected' : ''; ?>>
-                                New Subscribers (<?php echo number_format($new_count); ?>)
-                            </option>
-                        </select>
-                        <div class="custom-only" style="display: none;">
-                            <textarea class="custom-emails" name="custom_emails" placeholder="name@company.com, another@domain.com&#10;one@more.com"><?php echo htmlspecialchars($custom_emails_display); ?></textarea>
-                            <div class="helper-text">Comma, space, or newline separated.</div>
+                        <?php
+                            $all_count = get_all_active_count($db);
+                            $unreached_count = get_unreached_count($db);
+                            $reached_count = get_reached_count($db);
+                            $selected_segment = $_POST['send_segment'] ?? 'all';
+                        ?>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" id="send-all" name="send_segment" value="all" <?php echo $selected_segment === 'all' ? 'checked' : ''; ?> style="cursor: pointer;">
+                                <label for="send-all" style="cursor: pointer; margin: 0;">
+                                    Send to all active subscribers (<?php echo number_format($all_count); ?>)
+                                </label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" id="send-unreached" name="send_segment" value="unreached" <?php echo $selected_segment === 'unreached' ? 'checked' : ''; ?> style="cursor: pointer;">
+                                <label for="send-unreached" style="cursor: pointer; margin: 0;">
+                                    Send to unreached subscribers (<?php echo number_format($unreached_count); ?>)
+                                </label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" id="send-reached" name="send_segment" value="reached" <?php echo $selected_segment === 'reached' ? 'checked' : ''; ?> style="cursor: pointer;">
+                                <label for="send-reached" style="cursor: pointer; margin: 0;">
+                                    Send to reached subscribers (<?php echo number_format($reached_count); ?>)
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="button-group">
