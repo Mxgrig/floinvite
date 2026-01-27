@@ -1087,7 +1087,32 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
         <?php endif; ?>
     </div>
 
-    <!-- Segment mode: no custom JavaScript needed -->
+    <!-- Segment mode: update count when selection changes -->
+    <script>
+        if (document.querySelector('input[name="send_segment"]')) {
+            const radioButtons = document.querySelectorAll('input[name="send_segment"]');
+            const segmentCount = document.getElementById('segment-count');
+
+            const counts = {
+                'all': <?php echo get_all_active_count($db); ?>,
+                'unreached': <?php echo get_unreached_count($db); ?>,
+                'reached': <?php echo get_reached_count($db); ?>
+            };
+
+            const updateCount = () => {
+                const selected = document.querySelector('input[name="send_segment"]:checked')?.value || 'all';
+                if (segmentCount) {
+                    segmentCount.textContent = 'Sending to ' + (counts[selected] || 0).toLocaleString() + ' recipients';
+                }
+            };
+
+            radioButtons.forEach(btn => {
+                btn.addEventListener('change', updateCount);
+            });
+
+            updateCount();
+        }
+    </script>
 
     <!-- Footer -->
     <div class="container">
