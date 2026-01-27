@@ -803,6 +803,14 @@ if (!empty($_GET['api'])) {
 }
 
 $selected_segment = $_POST['send_segment'] ?? 'all';
+$segment_counts = [
+    'all' => get_all_active_count($db),
+    'unreached' => get_unreached_count($db),
+    'reached' => get_reached_count($db),
+];
+$all_count = $segment_counts['all'];
+$unreached_count = $segment_counts['unreached'];
+$reached_count = $segment_counts['reached'];
 $custom_emails_display = $_POST['custom_emails'] ?? $prefill_custom;
 
 $csrf_token = get_csrf_token();
@@ -876,29 +884,7 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                 </p>
 
                 <div class="recipient-count" id="segment-count">
-                    <script>
-                        // Show selected segment count in real-time
-                        function updateSegmentCount() {
-                            const selected = document.querySelector('input[name="send_segment"]:checked');
-                            if (selected) {
-                                const counts = {
-                                    'all': <?php echo get_all_active_count($db); ?>,
-                                    'unreached': <?php echo get_unreached_count($db); ?>,
-                                    'reached': <?php echo get_reached_count($db); ?>
-                                };
-                                const count = counts[selected.value] || 0;
-                                document.getElementById('segment-count').textContent = count.toLocaleString() + ' Recipients';
-                            }
-                        }
-                        document.addEventListener('DOMContentLoaded', updateSegmentCount);
-                        document.addEventListener('change', updateSegmentCount);
-                    </script>
                     <?php
-                    $all_count = get_all_active_count($db);
-                    $unreached_count = get_unreached_count($db);
-                    $reached_count = get_reached_count($db);
-                    $selected_segment = $_POST['send_segment'] ?? 'all';
-
                     if ($selected_segment === 'unreached') {
                         echo number_format($unreached_count);
                     } elseif ($selected_segment === 'reached') {
@@ -908,6 +894,25 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                     }
                     ?> Recipients
                 </div>
+                <script>
+                    // Show selected segment count in real-time without re-querying.
+                    (function () {
+                        const counts = <?php echo json_encode($segment_counts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+
+                        function updateSegmentCount() {
+                            const selected = document.querySelector('input[name="send_segment"]:checked');
+                            const segmentCount = document.getElementById('segment-count');
+                            if (!selected || !segmentCount) {
+                                return;
+                            }
+                            const count = counts[selected.value] ?? 0;
+                            segmentCount.textContent = count.toLocaleString() + ' Recipients';
+                        }
+
+                        document.addEventListener('DOMContentLoaded', updateSegmentCount);
+                        document.addEventListener('change', updateSegmentCount);
+                    })();
+                </script>
 
                 <?php if ($preview_error): ?>
                     <div class="message error"><?php echo htmlspecialchars($preview_error); ?></div>
@@ -935,12 +940,6 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                     <div class="send-mode">
-                        <?php
-                            $all_count = get_all_active_count($db);
-                            $unreached_count = get_unreached_count($db);
-                            $reached_count = get_reached_count($db);
-                            $selected_segment = $_POST['send_segment'] ?? 'all';
-                        ?>
                         <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                 <input type="radio" id="send-all" name="send_segment" value="all" <?php echo $selected_segment === 'all' ? 'checked' : ''; ?> style="cursor: pointer;">
