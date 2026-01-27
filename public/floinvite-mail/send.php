@@ -908,43 +908,36 @@ if ($prefill && isset($_SESSION['send_prefill'][$campaign_id])) {
                     }
                     ?> Recipients
                 </div>
-                <script>
-                    // Show selected segment count in real-time without re-querying.
-                    (function () {
-                        const counts = <?php echo json_encode($segment_counts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
-                        console.log('Segment counts loaded:', counts);
+	                <script>
+	                    // Show selected segment count in real-time without re-querying.
+	                    (function () {
+	                        const counts = <?php echo json_encode($segment_counts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 
-                        function updateSegmentCount() {
-                            const selected = document.querySelector('input[name="send_segment"]:checked');
-                            const segmentCount = document.getElementById('segment-count');
-                            console.log('updateSegmentCount called', { selected: selected?.value, segmentCount: !!segmentCount });
+	                        function updateSegmentCount() {
+	                            const selected = document.querySelector('input[name="send_segment"]:checked');
+	                            const segmentCount = document.getElementById('segment-count');
 
-                            if (!selected || !segmentCount) {
-                                console.warn('Missing selected or segmentCount element');
-                                return;
-                            }
-                            const count = counts[selected.value] ?? 0;
-                            console.log('Setting count to:', count, 'for segment:', selected.value);
-                            segmentCount.textContent = count.toLocaleString() + ' Recipients';
-                        }
+	                            if (!selected || !segmentCount) {
+	                                return;
+	                            }
+	                            const count = counts[selected.value] ?? 0;
+	                            segmentCount.textContent = count.toLocaleString() + ' Recipients';
+	                        }
 
-                        function wireSegmentListeners() {
-                            const radios = document.querySelectorAll('input[name="send_segment"]');
-                            console.log('Found radio buttons:', radios.length);
-                            radios.forEach(function (radio) {
-                                console.log('Adding listeners to radio:', radio.value);
-                                radio.addEventListener('change', updateSegmentCount);
-                                radio.addEventListener('input', updateSegmentCount);
-                            });
-                        }
+	                        function wireSegmentListeners() {
+	                            const radios = document.querySelectorAll('input[name="send_segment"]');
+	                            radios.forEach(function (radio) {
+	                                radio.addEventListener('change', updateSegmentCount);
+	                                radio.addEventListener('input', updateSegmentCount);
+	                            });
+	                        }
 
-                        document.addEventListener('DOMContentLoaded', function () {
-                            console.log('DOMContentLoaded fired');
-                            wireSegmentListeners();
-                            updateSegmentCount();
-                        });
-                    })();
-                </script>
+	                        document.addEventListener('DOMContentLoaded', function () {
+	                            wireSegmentListeners();
+	                            updateSegmentCount();
+	                        });
+	                    })();
+	                </script>
 
                 <?php if ($preview_error): ?>
                     <div class="message error"><?php echo htmlspecialchars($preview_error); ?></div>
