@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { Check, X, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { LoopingVideo } from './LoopingVideo';
 import { getLogoPath } from '../utils/logoHelper';
 import './TierSelectionPage.css';
@@ -38,18 +38,18 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
 
   const features = {
     shared: [
-      { name: 'Unlimited check-ins', icon: '✓' },
-      { name: 'Host management', icon: '✓' },
-      { name: 'Access logbook & search', icon: '✓' },
-      { name: 'Email notifications', icon: '✓' },
-      { name: 'Expected arrival lookup', icon: '✓' }
+      { name: 'Unlimited check-ins' },
+      { name: 'Host management' },
+      { name: 'Access logbook & search' },
+      { name: 'Email notifications' },
+      { name: 'Expected arrival lookup' }
     ],
-    professional: [
-      { name: 'Returning arrival tracking', icon: '✓' },
-      { name: 'SMS & WhatsApp notifications', icon: '✓' },
-      { name: 'Cloud backup & export', icon: '✓' },
-      { name: 'CSV & JSON export', icon: '✓' },
-      { name: 'Email support', icon: '✓' }
+    compliance: [
+      { name: 'Returning arrival tracking' },
+      { name: 'SMS & WhatsApp notifications' },
+      { name: 'Cloud backup & export' },
+      { name: 'CSV & JSON export' },
+      { name: 'Email support' }
     ]
   };
 
@@ -97,7 +97,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
               <ul className="features-list">
                 {features.shared.map((feature, idx) => (
                   <li key={idx} className="feature-item">
-                    <span className="feature-icon">✓</span>
+                    <span className="feature-icon">Yes</span>
                     <span className="feature-name">{feature.name}</span>
                   </li>
                 ))}
@@ -105,9 +105,9 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
 
               <h3 className="features-title locked-title">Compliance+ Only</h3>
               <ul className="features-list locked">
-                {features.professional.map((feature, idx) => (
+                {features.compliance.map((feature, idx) => (
                   <li key={idx} className="feature-item locked">
-                    <span className="feature-icon">✗</span>
+                    <span className="feature-icon">No</span>
                     <span className="feature-name">{feature.name}</span>
                   </li>
                 ))}
@@ -115,7 +115,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
 
               <div className="tier-usage-limit">
                 <p className="usage-limit-text">
-                  💡 <strong>Free for the first 20 items</strong><br />
+                  <strong>Free for the first 20 items</strong><br />
                   <small>Then $29/month after 20 items (includes expected arrivals)</small>
                 </p>
               </div>
@@ -132,7 +132,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
           </div>
 
           {/* Compliance+ Tier Card */}
-          <div className="tier-card professional recommended">
+          <div className="tier-card compliance recommended">
             <div className="tier-badge">RECOMMENDED</div>
 
             <div className="tier-card-header">
@@ -151,14 +151,14 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
               <ul className="features-list">
                 {features.shared.map((feature, idx) => (
                   <li key={idx} className="feature-item">
-                    <span className="feature-icon">✓</span>
+                    <span className="feature-icon">Yes</span>
                     <span className="feature-name">{feature.name}</span>
                   </li>
                 ))}
 
-                {features.professional.map((feature, idx) => (
+                {features.compliance.map((feature, idx) => (
                   <li key={idx} className="feature-item highlight">
-                    <span className="feature-icon highlight">✓</span>
+                    <span className="feature-icon highlight">Yes</span>
                     <span className="feature-name">{feature.name}</span>
                   </li>
                 ))}
@@ -166,8 +166,8 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
 
               <div className="tier-value-prop">
                 <p className="value-prop-text">
-                  ⭐ <strong>Unlimited everything</strong><br />
-                  <small>No usage limits • Advanced features • Priority support</small>
+                  <strong>Unlimited everything</strong><br />
+                  <small>No usage limits - Advanced features - Priority support</small>
                 </p>
               </div>
             </div>
@@ -187,7 +187,7 @@ export function TierSelectionPage({ onTierSelected, onNavigate }: TierSelectionP
             </button>
 
             <p className="tier-secure-checkout">
-              💡 Upgrade anytime in settings if you need more features
+              Upgrade anytime in settings if you need more features
             </p>
           </div>
         </div>

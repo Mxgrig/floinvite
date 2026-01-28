@@ -32,8 +32,6 @@ export class MigrationService {
    * Only runs once - safe to call multiple times
    */
   static async runMigration(): Promise<MigrationStatus> {
-    console.log('Starting localStorage to IndexedDB migration...');
-
     const status: MigrationStatus = {
       completed: false,
       hostsCount: 0,
@@ -44,7 +42,6 @@ export class MigrationService {
 
     // Skip if already migrated
     if (this.isMigrationCompleted()) {
-      console.log('Migration already completed, skipping');
       return {
         ...status,
         completed: true,
@@ -60,7 +57,6 @@ export class MigrationService {
           const hosts = this.normalizeHosts(hostsData);
           await dbUtils.bulkUpsertHosts(hosts);
           status.hostsCount = hosts.length;
-          console.log(`✓ Migrated ${hosts.length} hosts`);
         } catch (error) {
           const msg = `Error migrating hosts: ${error}`;
           console.error(msg);
@@ -75,7 +71,6 @@ export class MigrationService {
           const guests = this.normalizeGuests(guestsData);
           await dbUtils.bulkUpsertGuests(guests);
           status.guestsCount = guests.length;
-          console.log(`✓ Migrated ${guests.length} guests`);
         } catch (error) {
           const msg = `Error migrating guests: ${error}`;
           console.error(msg);
@@ -90,7 +85,6 @@ export class MigrationService {
           const settings = this.normalizeSettings(settingsData);
           await dbUtils.updateSettings(settings);
           status.settingsCount = 1;
-          console.log('✓ Migrated settings');
         } catch (error) {
           const msg = `Error migrating settings: ${error}`;
           console.error(msg);
@@ -105,9 +99,6 @@ export class MigrationService {
       status.completed = true;
       status.migratedAt = now;
 
-      console.log('✓ Migration completed successfully');
-      console.log(`Summary: ${status.hostsCount} hosts, ${status.guestsCount} guests, ${status.settingsCount} settings`);
-
       return status;
     } catch (error) {
       const msg = `Fatal migration error: ${error}`;
@@ -121,10 +112,10 @@ export class MigrationService {
   /**
    * Get data from localStorage with error handling
    */
-  private static getFromLocalStorage(key: string): any {
+  private static getFromLocalStorage<T>(key: string): T | null {
     try {
       const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : null;
+      return data ? (JSON.parse(data) as T) : null;
     } catch (error) {
       console.error(`Error reading from localStorage key "${key}":`, error);
       return null;
@@ -135,59 +126,66 @@ export class MigrationService {
    * Normalize host data from localStorage
    * Adds any missing required fields with defaults
    */
-  private static normalizeHosts(data: any[]): StoredHost[] {
-    return data.map((host: any) => ({
-      id: host.id || crypto.randomUUID(),
-      name: host.name || 'Unknown',
-      email: host.email || '',
-      phone: host.phone,
-      department: host.department,
-      notificationMethod: host.notificationMethod || 'email',
-      smsNumber: host.smsNumber,
-      createdAt: host.createdAt || new Date().toISOString(),
-      updatedAt: host.updatedAt || new Date().toISOString()
-    }));
+  private static normalizeHosts(data: unknown[]): StoredHost[] {
+    return data.map((raw) => {
+      const host = raw as Partial<Host> & Partial<StoredHost>;
+      return {
+        id: host.id || crypto.randomUUID(),
+        name: host.name || 'Unknown',
+        email: host.email || '',
+        phone: host.phone,
+        department: host.department,
+        notificationMethod: host.notificationMethod || 'email',
+        smsNumber: host.smsNumber,
+        createdAt: host.createdAt || new Date().toISOString(),
+        updatedAt: host.updatedAt || new Date().toISOString()
+      };
+    });
   }
 
   /**
    * Normalize guest data from localStorage
    * Adds any missing required fields with defaults
    */
-  private static normalizeGuests(data: any[]): StoredGuest[] {
-    return data.map((guest: any) => ({
-      id: guest.id || crypto.randomUUID(),
-      name: guest.name || 'Unknown',
-      email: guest.email,
-      phone: guest.phone,
-      company: guest.company,
-      hostId: guest.hostId || 'unknown',
-      checkInTime: guest.checkInTime || new Date().toISOString(),
-      estimatedDepartureTime: guest.estimatedDepartureTime,
-      checkOutTime: guest.checkOutTime,
-      status: guest.status || GuestStatus.CHECKED_IN,
-      lastVisit: guest.lastVisit,
-      visitCount: guest.visitCount,
-      preRegistered: guest.preRegistered || false,
-      updatedAt: guest.updatedAt || new Date().toISOString()
-    }));
+  private static normalizeGuests(data: unknown[]): StoredGuest[] {
+    return data.map((raw) => {
+      const guest = raw as Partial<Guest> & Partial<StoredGuest>;
+      return {
+        id: guest.id || crypto.randomUUID(),
+        name: guest.name || 'Unknown',
+        email: guest.email,
+        phone: guest.phone,
+        company: guest.company,
+        hostId: guest.hostId || 'unknown',
+        checkInTime: guest.checkInTime || new Date().toISOString(),
+        estimatedDepartureTime: guest.estimatedDepartureTime,
+        checkOutTime: guest.checkOutTime,
+        status: guest.status || GuestStatus.CHECKED_IN,
+        lastVisit: guest.lastVisit,
+        visitCount: guest.visitCount,
+        preRegistered: guest.preRegistered || false,
+        updatedAt: guest.updatedAt || new Date().toISOString()
+      };
+    });
   }
 
   /**
    * Normalize settings data from localStorage
    * Adds any missing required fields with defaults
    */
-  private static normalizeSettings(data: any): StoredSettings {
+  private static normalizeSettings(data: unknown): StoredSettings {
+    const settings = data as Partial<AppSettings> & Partial<StoredSettings>;
     return {
-      businessName: data.businessName || 'My Company',
-      businessAddress: data.businessAddress,
-      logoUrl: data.logoUrl,
-      primaryColor: data.primaryColor,
-      notificationEmail: data.notificationEmail || 'admin@floinvite.com',
-      kioskMode: data.kioskMode || false,
-      labelPreset: data.labelPreset || 'default',
-      labelSettings: data.labelSettings || DEFAULT_LABELS,
-      createdAt: data.createdAt || new Date().toISOString(),
-      updatedAt: data.updatedAt || new Date().toISOString()
+      businessName: settings.businessName || 'My Company',
+      businessAddress: settings.businessAddress,
+      logoUrl: settings.logoUrl,
+      primaryColor: settings.primaryColor,
+      notificationEmail: settings.notificationEmail || 'admin@floinvite.com',
+      kioskMode: settings.kioskMode || false,
+      labelPreset: settings.labelPreset || 'default',
+      labelSettings: settings.labelSettings || DEFAULT_LABELS,
+      createdAt: settings.createdAt || new Date().toISOString(),
+      updatedAt: settings.updatedAt || new Date().toISOString()
     };
   }
 
@@ -232,7 +230,6 @@ export class MigrationService {
       }
 
       await dbUtils.importAllData(backup.data);
-      console.log('✓ Data restored from backup');
     } catch (error) {
       console.error('Error restoring backup:', error);
       throw error;

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
-import { Guest, Host, AppSettings } from '../types';
+import { Guest, Host, AppSettings, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
 import { usePersistedState, useDebounce } from '../utils/hooks';
@@ -89,7 +89,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
       const updatedGuest: Guest = {
         ...guest,
         checkOutTime: new Date().toISOString(),
-        status: 'Checked Out' as any,
+        status: GuestStatus.CHECKED_OUT,
         updatedAt: new Date().toISOString()
       };
       StorageService.updateGuest(guest.id, updatedGuest);
@@ -113,7 +113,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
           const checkedOutGuest = {
             ...guest,
             checkOutTime: new Date().toISOString(),
-            status: 'Checked Out' as any,
+            status: GuestStatus.CHECKED_OUT,
             updatedAt: new Date().toISOString()
           };
           StorageService.updateGuest(guest.id, checkedOutGuest);
@@ -249,7 +249,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
                       <div className="guest-name">{guest.name}</div>
                       {guest.email && <div className="guest-email">{guest.email}</div>}
                     </div>
-                    <div className="guest-company">{guest.company || '—'}</div>
+                    <div className="guest-company">{guest.company || '-'}</div>
                     <div className="guest-host">{host?.name || 'Unknown'}</div>
                     <div className="guest-times">
                       <div className="time-label">Check-in</div>
@@ -263,7 +263,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
                             {formatTime(estimatedDeparture)}
                             {isCheckedIn && (
                               <div className="time-remaining">
-                                ⏰ {estimatedDeparture > new Date()
+                                ETA {estimatedDeparture > new Date()
                                   ? `${Math.round((estimatedDeparture.getTime() - Date.now()) / 60000)}m`
                                   : 'exp'}
                               </div>
@@ -271,7 +271,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
                           </div>
                         </>
                       ) : (
-                        <div className="time-label" style={{ marginTop: '0.5rem' }}>—</div>
+                        <div className="time-label" style={{ marginTop: '0.5rem' }}>-</div>
                       )}
                     </div>
                     <div className="row-status">

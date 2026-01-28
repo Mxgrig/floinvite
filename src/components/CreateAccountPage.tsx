@@ -161,7 +161,7 @@ export function CreateAccountPage({
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="********"
                 className="form-input"
                 disabled={loading}
               />
@@ -174,7 +174,7 @@ export function CreateAccountPage({
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="********"
                 className="form-input"
                 disabled={loading}
               />

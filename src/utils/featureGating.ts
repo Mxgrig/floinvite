@@ -19,125 +19,125 @@ const FEATURE_MATRIX: Record<string, Record<SubscriptionTier, boolean>> = {
   // Core Features
   'guest_checkin': {
     starter: true,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'host_management': {
     starter: true,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'visitor_logbook': {
     starter: true,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'expected_guests': {
     starter: true,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'returning_visitors': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
 
   // Notifications
   'email_notifications': {
     starter: true,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'sms_notifications': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'slack_integration': {
     starter: false,
-    professional: false,
+    compliance: false,
     enterprise: true
   },
   'teams_integration': {
     starter: false,
-    professional: false,
+    compliance: false,
     enterprise: true
   },
   'custom_templates': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
 
   // Data & Export
   'csv_export': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'json_export': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'pdf_export': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'cloud_backup': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
 
   // Advanced Features
   'advanced_search': {
     starter: true,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'analytics_dashboard': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'multi_device_sync': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'webhooks': {
     starter: false,
-    professional: false,
+    compliance: false,
     enterprise: true
   },
   'api_access': {
     starter: false,
-    professional: false,
+    compliance: false,
     enterprise: true
   },
 
   // Support
   'email_support': {
     starter: false,
-    professional: true,
+    compliance: true,
     enterprise: true
   },
   'priority_support': {
     starter: false,
-    professional: false,
+    compliance: false,
     enterprise: true
   },
   'phone_support': {
     starter: false,
-    professional: false,
+    compliance: false,
     enterprise: true
   },
   'dedicated_account_manager': {
     starter: false,
-    professional: false,
+    compliance: false,
     enterprise: true
   }
 };
@@ -168,7 +168,7 @@ export function getFeatureStatus(tier: SubscriptionTier, feature: string): Featu
 
   let message = '';
   if (!available && tier === 'starter') {
-    message = `Upgrade to Professional to unlock ${feature.replace(/_/g, ' ')}`;
+    message = `Upgrade to Compliance+ to unlock ${feature.replace(/_/g, ' ')}`;
   } else if (!available && tier === 'compliance') {
     message = `Contact sales for ${feature.replace(/_/g, ' ')} access`;
   }
@@ -249,5 +249,5 @@ export function getUpgradeRecommendation(tier: SubscriptionTier, attemptedFeatur
   }
 
   // tier === 'starter'
-  return `Upgrade to Professional to use ${getFeatureName(attemptedFeature)}`;
+  return `Upgrade to Compliance+ to use ${getFeatureName(attemptedFeature)}`;
 }

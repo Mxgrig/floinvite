@@ -23,7 +23,7 @@ export function Footer({ onNavigate, hidden = false }: FooterProps) {
           <span className="brand-wordmark">
             <span className="brand-wordmark-flo">flo</span><span className="brand-wordmark-invite">invite</span>
           </span>{' '}
-          — A product of{' '}
+          - A product of{' '}
           <a
             href="https://www.xtenalyze.co.uk"
             target="_blank"

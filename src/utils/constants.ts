@@ -71,10 +71,10 @@ export const PRICING_TIERS_CONFIG = {
     price: 5,
     description: 'Full notifications included - perfect for SME'
   },
-  professional: {
-    name: 'Professional',
+  compliance: {
+    name: 'Compliance+',
     price: 15,
-    description: 'Team messaging + cloud sync - for growing teams'
+    description: 'Audit-ready features + cloud sync - for growing teams'
   },
   enterprise: {
     name: 'Enterprise',
@@ -181,7 +181,7 @@ export const FEATURE_ACCESS = {
     'whatsapp_templates',
     'notification_tones'
   ],
-  professional: [
+  compliance: [
     'slack_integration',
     'teams_integration',
     'quiet_hours',

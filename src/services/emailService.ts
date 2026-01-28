@@ -42,12 +42,7 @@ class EmailService {
       isConfigured: !!apiUrl
     };
 
-    if (isEnabled) {
-      console.log('✅ Email service: ENABLED (Hostinger backend)');
-      console.log('📧 API Endpoint:', this.config.apiUrl);
-    } else {
-      console.log('📧 Email service: DISABLED (Phase 1 - logging to console)');
-    }
+    void isEnabled;
   }
 
   /**
@@ -63,17 +58,10 @@ class EmailService {
   async send(message: EmailMessage): Promise<EmailResponse> {
     // If disabled, just log to console (Phase 1)
     if (!this.config.isEnabled) {
-      console.log('📧 [PHASE 1 - NOT SENDING] Email notification:', {
-        to: message.to,
-        subject: message.subject,
-        body: message.body,
-        timestamp: new Date().toISOString()
-      });
-
       return {
         success: true,
         messageId: `phase1_${Date.now()}`,
-        message: 'Phase 1: Email logged to console (not sent)'
+        message: 'Phase 1: Email not sent (email service disabled)'
       };
     }
 
@@ -103,29 +91,32 @@ class EmailService {
         // Validate response is valid JSON before parsing
         const contentType = response.headers.get('content-type');
         if (!contentType?.includes('application/json')) {
-          console.error('❌ Invalid response type:', contentType);
+          console.error('Invalid response type:', contentType);
           return {
             success: false,
             error: 'Invalid server response - expected JSON'
           };
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as EmailResponse & {
+          errors?: string | string[];
+          details?: string;
+          error?: string;
+        };
 
         if (!response.ok) {
-          const errorMsg = (data as any).error || (data as any).errors || 'Unknown error';
-          const details = (data as any).details || '';
-          console.error('❌ Email send failed:', errorMsg);
-          console.error('📋 Details:', details);
-          console.error('📊 Response:', data);
+          const errorMsg = data.error || data.errors || 'Unknown error';
+          const details = data.details || '';
+          console.error('Email send failed:', errorMsg);
+          if (details) {
+            console.error('Details:', details);
+          }
           return {
             success: false,
             error: Array.isArray(errorMsg) ? errorMsg.join(', ') : `${errorMsg}${details ? ' - ' + details : ''}`
           };
         }
 
-        console.log(`✅ Email sent to ${message.to}`);
-        console.log('📧 Response:', data);
         return {
           success: true,
           messageId: `${Date.now()}`
@@ -136,19 +127,19 @@ class EmailService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          console.error('❌ Email service timeout (30s) - request took too long');
+          console.error('Email service timeout (30s) - request took too long');
           return {
             success: false,
             error: 'Request timeout - email service is slow. Guest checked in but notification may not be sent.'
           };
         }
-        console.error('❌ Email service error:', error.message);
+        console.error('Email service error:', error.message);
         return {
           success: false,
           error: error.message
         };
       }
-      console.error('❌ Email service error:', error);
+      console.error('Email service error:', error);
       return {
         success: false,
         error: 'Network error or service unavailable'

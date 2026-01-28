@@ -35,6 +35,7 @@ export function HostManagement() {
   const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [step, setStep] = useState<HostStep>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState<Partial<Host>>({
@@ -45,6 +46,13 @@ export function HostManagement() {
     notificationMethod: 'email'
   });
   const [errors, setErrors] = useState<string[]>([]);
+
+  const normalizeNotificationMethod = (value?: string): Host['notificationMethod'] => {
+    if (value === 'sms' || value === 'both' || value === 'email') {
+      return value;
+    }
+    return 'email';
+  };
 
   const handleAdd = () => {
     setStep('add');
@@ -57,6 +65,7 @@ export function HostManagement() {
       notificationMethod: 'email'
     });
     setErrors([]);
+    setSuccessMessage(null);
   };
 
   const handleEdit = (host: Host) => {
@@ -64,6 +73,7 @@ export function HostManagement() {
     setEditingId(host.id);
     setFormData(host);
     setErrors([]);
+    setSuccessMessage(null);
   };
 
   const handleSave = async () => {
@@ -202,7 +212,7 @@ export function HostManagement() {
           email: row.Email || '',
           phone: row.Phone,
           department: row.Department,
-          notificationMethod: (row.NotificationMethod as any) || 'email',
+          notificationMethod: normalizeNotificationMethod(row.NotificationMethod),
           createdAt: now,
           updatedAt: now
         })).filter(h => h.name && h.email) as Host[];
@@ -210,7 +220,7 @@ export function HostManagement() {
         const result = StorageService.importHosts(newHosts, false);
         setHosts(StorageService.getHosts());
 
-        alert(`Imported ${result.added} hosts${result.skipped > 0 ? ` (${result.skipped} duplicates skipped)` : ''}`);
+        setSuccessMessage(`Imported ${result.added} hosts${result.skipped > 0 ? ` (${result.skipped} duplicates skipped)` : ''}`);
         setStep('list');
         setErrors([]);
       } catch (error) {
@@ -237,10 +247,12 @@ export function HostManagement() {
           <button onClick={handleAdd} className="btn btn-primary">
             + Add {labels.hostSingular}
           </button>
-          <button onClick={() => setStep('import')} className="btn btn-secondary">
+          <button onClick={() => { setStep('import'); setSuccessMessage(null); }} className="btn btn-secondary">
             Import CSV
           </button>
         </div>
+
+        {successMessage && <div className="success-message">{successMessage}</div>}
 
         {hosts.length > 0 ? (
           <div className="hosts-table">
@@ -259,7 +271,7 @@ export function HostManagement() {
                   {host.department && <small>{host.department}</small>}
                 </div>
                 <div className="col-email" data-label="Email">{host.email}</div>
-                <div className="col-phone" data-label="Phone">{host.phone || '—'}</div>
+                <div className="col-phone" data-label="Phone">{host.phone || '-'}</div>
                 <div className="col-notifications" data-label="Notifications">
                   <span className="badge email">
                     <Mail size={12} /> Email
@@ -288,7 +300,7 @@ export function HostManagement() {
       <div className="host-form-container">
         <div className="host-form">
           <button className="back-button" onClick={() => setStep('list')}>
-            ← Back
+            Back
           </button>
 
           <h1>{editingId ? 'Edit Host' : 'Add New Host'}</h1>
@@ -296,7 +308,7 @@ export function HostManagement() {
           {errors.length > 0 && (
             <div className="error-message">
               {errors.map((error, i) => (
-                <p key={i}>• {error}</p>
+                <p key={i}>- {error}</p>
               ))}
             </div>
           )}
@@ -358,7 +370,7 @@ export function HostManagement() {
                       name="notificationMethod"
                       value="email"
                       checked={formData.notificationMethod === 'email'}
-                      onChange={(e) => setFormData({ ...formData, notificationMethod: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, notificationMethod: normalizeNotificationMethod(e.target.value) })}
                     />
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Mail size={16} /> Email only
@@ -383,7 +395,7 @@ export function HostManagement() {
       <div className="host-import-container">
         <div className="import-box">
           <button className="back-button" onClick={() => setStep('list')}>
-            ← Back
+            Back
           </button>
 
           <h1>Import Hosts from CSV</h1>
@@ -392,7 +404,7 @@ export function HostManagement() {
           {errors.length > 0 && (
             <div className="error-message">
               {errors.map((error, i) => (
-                <p key={i}>• {error}</p>
+                <p key={i}>- {error}</p>
               ))}
             </div>
           )}
@@ -405,7 +417,7 @@ export function HostManagement() {
               id="csv-upload"
             />
             <label htmlFor="csv-upload" className="upload-label">
-              📁 Choose CSV File
+              Choose CSV File
             </label>
           </div>
 

@@ -16,6 +16,14 @@ export interface SubscriptionStatus {
   cancelAtPeriodEnd: boolean;
 }
 
+interface CheckoutSessionResponse {
+  success: boolean;
+  sessionId?: string;
+  url?: string;
+  error?: string;
+  message?: string;
+}
+
 export class PaymentService {
   private static STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   // Payment integration is Phase 3 - no local API needed for MVP
@@ -79,7 +87,7 @@ export class PaymentService {
         throw new Error(error.error || error.message || 'Failed to create checkout session');
       }
 
-      const session: any = await response.json();
+      const session = (await response.json()) as CheckoutSessionResponse;
 
       if (!session.success) {
         throw new Error(session.error || 'Failed to create checkout session');
@@ -276,11 +284,11 @@ export class PaymentService {
    * Handle Stripe webhook for subscription updates
    * This is typically handled on the backend, but included for reference
    */
-  static async handleWebhook(event: any): Promise<boolean> {
+  static async handleWebhook(event: unknown): Promise<boolean> {
     try {
       // This should be handled by backend for security
       // Frontend should only process webhook confirmations
-      console.log('Webhook received:', event.type);
+      void event;
       return true;
     } catch (error) {
       console.error('Webhook handling error:', error);
@@ -458,7 +466,7 @@ export const hasFeature = (
       'csv_export',
       'pdf_export'
     ],
-    professional: [
+    compliance: [
       ...['starter'], // All starter features
       'sms_notifications',
       'slack_integration',
@@ -472,7 +480,7 @@ export const hasFeature = (
       'advanced_analytics'
     ],
     enterprise: [
-      // All professional features plus:
+      // All compliance features plus:
       'sms_notifications_discount',
       'webhooks',
       'custom_templates',

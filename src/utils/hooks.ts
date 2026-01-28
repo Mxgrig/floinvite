@@ -34,7 +34,7 @@ export function usePersistedState<T>(
   useEffect(() => {
     const loadData = async () => {
       try {
-        let data: any = defaultValue;
+        let data: T | null = defaultValue;
 
         // Load from IndexedDB for user data
         if (key === 'hosts') {
@@ -70,18 +70,18 @@ export function usePersistedState<T>(
         // Save to appropriate storage
         if (key === 'hosts') {
           if (Array.isArray(newValue)) {
-            dbUtils.bulkUpsertHosts(newValue as any[]).catch(error =>
+            dbUtils.bulkUpsertHosts(newValue as Host[]).catch(error =>
               console.error('Failed to save hosts to IndexedDB:', error)
             );
           }
         } else if (key === 'guests') {
           if (Array.isArray(newValue)) {
-            dbUtils.bulkUpsertGuests(newValue as any[]).catch(error =>
+            dbUtils.bulkUpsertGuests(newValue as Guest[]).catch(error =>
               console.error('Failed to save guests to IndexedDB:', error)
             );
           }
         } else if (key === 'settings') {
-          dbUtils.updateSettings(newValue as any).catch(error =>
+          dbUtils.updateSettings(newValue as AppSettings).catch(error =>
             console.error('Failed to save settings to IndexedDB:', error)
           );
         } else {
@@ -319,7 +319,7 @@ export function useClickOutside(
  * Manages form state with validation
  * Useful for: form handling, validation feedback
  */
-export function useFormState<T extends Record<string, any>>(
+export function useFormState<T extends Record<string, unknown>>(
   initialValues: T
 ) {
   const [values, setValues] = useState(initialValues);
@@ -398,7 +398,6 @@ export function useInactivityLogout(
     }
 
     timeoutRef.current = setTimeout(() => {
-      console.log(`User inactive for ${timeoutMinutes} minutes. Logging out...`);
       onLogout();
     }, timeoutMs);
   }, [timeoutMs, onLogout, timeoutMinutes]);

@@ -284,11 +284,11 @@ export const PRICING_TIERS: PricingTier[] = [
 
 // Feature categories
 export const FEATURE_CATEGORIES = [
-  { id: 'core', label: 'Core Features', icon: '✓' },
-  { id: 'notifications', label: '📧 Arrival Notifications (THE DIFFERENTIATOR)', icon: '🔔' },
-  { id: 'data', label: 'Data & Backup', icon: '💾' },
-  { id: 'support', label: 'Support', icon: '💬' },
-  { id: 'admin', label: 'Administration', icon: '⚙️' }
+  { id: 'core', label: 'Core Features', icon: 'Core' },
+  { id: 'notifications', label: 'Arrival Notifications (THE DIFFERENTIATOR)', icon: 'Notify' },
+  { id: 'data', label: 'Data & Backup', icon: 'Data' },
+  { id: 'support', label: 'Support', icon: 'Support' },
+  { id: 'admin', label: 'Administration', icon: 'Admin' }
 ];
 
 // Comparison table

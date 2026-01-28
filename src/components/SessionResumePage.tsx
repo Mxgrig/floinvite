@@ -82,7 +82,7 @@ export function SessionResumePage({
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="********"
                 className="form-input"
                 disabled={loading}
                 autoFocus

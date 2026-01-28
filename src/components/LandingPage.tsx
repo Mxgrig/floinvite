@@ -162,7 +162,7 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
             className="landing-link"
             onClick={(e) => handleNavClick(e, 'marketing')}
           >
-            Learn how this works <span className="arrow">→</span>
+            Learn how this works <span className="arrow">&gt;</span>
           </a>
         </div>
       </div>

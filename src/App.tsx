@@ -41,6 +41,7 @@ export function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState<'starter' | 'compliance' | null>(null);
+  const [upgradeError, setUpgradeError] = useState<string | null>(null);
   const [selectedTierForSignup, setSelectedTierForSignup] = useState<'starter' | 'compliance' | null>(null);
   const [settings] = usePersistedState<AppSettings>(
     STORAGE_KEYS.settings,
@@ -64,7 +65,7 @@ export function App() {
   // Handle tier selection during signup
   const handleTierSelected = (tier: 'starter' | 'compliance') => {
     setSelectedTierForSignup(tier);
-    // Both starter and professional proceed to account creation
+    // Both starter and compliance proceed to account creation
     // No payment prompt - users can upgrade anytime they want
     setCurrentPage('createaccount');
   };
@@ -73,7 +74,6 @@ export function App() {
   // Only active when authenticated and not on login page
   useInactivityLogout(() => {
     handleLogout();
-    console.log('Session logged out due to inactivity');
   }, 15);
 
   // Update URL when page changes
@@ -149,7 +149,6 @@ export function App() {
     const runMigration = async () => {
       try {
         const status = await MigrationService.runMigration();
-        console.log('Migration status:', status);
         if (status.errors.length > 0) {
           console.warn('Migration completed with errors:', status.errors);
         }
@@ -221,11 +220,12 @@ export function App() {
 
   const handleUpgrade = async (tier: 'starter' | 'compliance') => {
     setUpgradeLoading(tier);
+    setUpgradeError(null);
     try {
       await PaymentService.createCheckoutSession(tier, 'month');
     } catch (error) {
       console.error('Upgrade failed:', error);
-      alert('Failed to initiate checkout. Please try again.');
+      setUpgradeError('Failed to initiate checkout. Please try again.');
       setUpgradeLoading(null);
     }
   };
@@ -295,6 +295,7 @@ export function App() {
                 {upgradeLoading === 'compliance' ? 'Processing...' : 'Upgrade to $49/mo'}
               </button>
             </div>
+            {upgradeError && <div className="upgrade-notice-error">{upgradeError}</div>}
           </div>
         </div>
       )}
@@ -340,7 +341,7 @@ export function App() {
       {isMobile && isAuthenticated && !publicPages.includes(currentPage) && (
         <div className="mobile-warning">
           <div className="mobile-warning-content">
-            <h1>⚠️ Small Screen Detected</h1>
+            <h1>Small Screen Detected</h1>
             <p>
               This app is optimized for <strong>tablets and desktops</strong> in landscape mode.
             </p>

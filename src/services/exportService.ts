@@ -307,7 +307,7 @@ export class ExportService {
     this.downloadFile(csv, filename, 'text/csv;charset=utf-8;');
   }
 
-  private static downloadJSON(data: any, filename: string): void {
+  private static downloadJSON(data: unknown, filename: string): void {
     const json = JSON.stringify(data, null, 2);
     this.downloadFile(json, filename, 'application/json;charset=utf-8;');
   }
