@@ -84,7 +84,8 @@ body {
   margin-left: auto;
 }
 
-.branding-nav button {
+.branding-nav button,
+.branding-nav a {
   background: none;
   border: none;
   padding: 0.5rem 1.25rem;
@@ -94,15 +95,17 @@ body {
   color: var(--text-secondary);
   border-bottom: 2px solid transparent;
   transition: all 0.2s;
+  text-decoration: none;
 }
 
-.branding-nav button:hover {
+.branding-nav button:hover,
+.branding-nav a:hover {
   color: var(--primary);
 }
 
-.branding-nav button.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+.branding-nav button.active,
+.branding-nav a.active {
+  font-weight: 700;
 }
 
 .evacuation-nav {
