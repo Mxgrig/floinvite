@@ -82,17 +82,8 @@ export const getActiveChannels = (): (keyof NotificationChannels)[] => {
 export const logNotificationConfig = (): void => {
   const config = getNotificationConfig();
   const activeChannels = getActiveChannels();
-
-  console.group('📧 Notification Configuration');
-  console.log('Active Channels:', activeChannels.length > 0 ? activeChannels : 'NONE');
-  console.log('Email Service:', {
-    provider: config.emailService.provider,
-    configured: config.emailService.isConfigured,
-    from: config.emailService.fromEmail
-  });
-  console.log('Channel Status:', config.channels);
-  console.log('Debug Mode:', config.debug);
-  console.groupEnd();
+  void config;
+  void activeChannels;
 };
 
 /**
@@ -100,20 +91,8 @@ export const logNotificationConfig = (): void => {
  */
 export const initNotificationConfig = (): NotificationConfig => {
   const config = getNotificationConfig();
-
   if (config.debug) {
     logNotificationConfig();
-  } else {
-    // Minimal logging in production
-    const activeChannels = getActiveChannels();
-    if (activeChannels.length > 0) {
-      console.log(
-        `📧 Notifications enabled: ${activeChannels.join(', ')}`
-      );
-    } else {
-      console.log('📧 Notifications disabled (Phase 1 - template-based only)');
-    }
   }
-
   return config;
 };

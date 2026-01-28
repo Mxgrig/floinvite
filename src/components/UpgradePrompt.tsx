@@ -17,12 +17,14 @@ interface UpgradePromptProps {
 export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'compliance' | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const usage = UsageTracker.getUsage();
   const percentage = UsageTracker.getUsagePercentage();
 
   const handleUpgrade = async (tier: 'starter' | 'compliance') => {
     setLoading(true);
     setSelectedPlan(tier);
+    setErrorMessage(null);
 
     try {
       // Both Starter and Compliance+ require Stripe payment
@@ -31,7 +33,7 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
       // Will redirect to Stripe checkout
     } catch (error) {
       console.error('Upgrade failed:', error);
-      alert('Failed to initiate checkout. Please try again.');
+      setErrorMessage('Failed to initiate checkout. Please try again.');
       setLoading(false);
       setSelectedPlan(null);
     }
@@ -40,7 +42,7 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
   const handleDismiss = () => {
     // Do NOT allow dismissal when over limit
     // User must choose a plan
-    alert('You must choose a plan to continue using Floinvite.');
+    setErrorMessage('You must choose a plan to continue using Floinvite.');
   };
 
   return (
@@ -78,6 +80,7 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
             {usage.totalHosts + usage.totalVisitors} / {usage.hostsLimit} used ({percentage}%)
           </p>
         </div>
+        {errorMessage && <p className="upgrade-prompt-error">{errorMessage}</p>}
 
         {/* Plan Comparison */}
         <div className="plan-comparison">
@@ -86,10 +89,10 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
             <p className="plan-price">$29<span>/month</span></p>
             <p className="plan-subtitle">Everything you need</p>
             <ul className="plan-features">
-              <li>✓ Unlimited check-ins</li>
-              <li>✓ Email notifications</li>
-              <li>✓ Access logbook & search</li>
-              <li>✓ 90-day data exports</li>
+              <li>Unlimited check-ins</li>
+              <li>Email notifications</li>
+              <li>Access logbook & search</li>
+              <li>90-day data exports</li>
             </ul>
           </div>
 
@@ -98,11 +101,11 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
             <p className="plan-price">$49<span>/month</span></p>
             <p className="plan-subtitle">Audit-ready + retention</p>
             <ul className="plan-features">
-              <li>✓ 7-year record retention</li>
-              <li>✓ Automatic daily backups</li>
-              <li>✓ Full history exports</li>
-              <li>✓ Audit-ready reports</li>
-              <li>✓ Priority support</li>
+              <li>7-year record retention</li>
+              <li>Automatic daily backups</li>
+              <li>Full history exports</li>
+              <li>Audit-ready reports</li>
+              <li>Priority support</li>
             </ul>
           </div>
         </div>

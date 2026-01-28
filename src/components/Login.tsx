@@ -282,7 +282,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
 
               {/* Footer */}
               <p className="login-footer">
-                Secure login • Password protected
+                Secure login - Password protected
               </p>
             </div>
           </div>
@@ -415,7 +415,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
                   disabled={loading}
                   tabIndex={-1}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
 
@@ -467,7 +467,7 @@ export function Login({ onLoginSuccess, onNavigate, onLoginSuccessNavigate, curr
 
             {/* Footer */}
             <p className="login-footer">
-              Secure login • Password protected
+              Secure login - Password protected
             </p>
           </div>
         </div>

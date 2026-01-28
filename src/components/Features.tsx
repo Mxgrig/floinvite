@@ -60,54 +60,54 @@ export function Features({ onNavigate }: FeaturesPageProps) {
             <div className="feature-category">
               <h3>Smart Check-In</h3>
               <ul className="feature-list">
-                <li>✓ 30-second average check-in time</li>
-                <li>✓ Two-path flow for walk-ins and expected arrivals</li>
-                <li>✓ Works offline out of the box</li>
+                <li>30-second average check-in time</li>
+                <li>Two-path flow for walk-ins and expected arrivals</li>
+                <li>Works offline out of the box</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Instant Notifications</h3>
               <ul className="feature-list">
-                <li>✓ Email notifications sent automatically</li>
-                <li>✓ SMS support via carrier gateways</li>
-                <li>✓ Customizable notification templates</li>
+                <li>Email notifications sent automatically</li>
+                <li>SMS support via carrier gateways</li>
+                <li>Customizable notification templates</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Complete Logbook</h3>
               <ul className="feature-list">
-                <li>✓ Searchable access history</li>
-                <li>✓ CSV/JSON export formats</li>
-                <li>✓ Filtering by date, contact, or person</li>
+                <li>Searchable access history</li>
+                <li>CSV/JSON export formats</li>
+                <li>Filtering by date, contact, or person</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Host Management</h3>
               <ul className="feature-list">
-                <li>✓ CSV bulk import for 100+ hosts</li>
-                <li>✓ Per-host notification preferences</li>
-                <li>✓ Department and role tracking</li>
+                <li>CSV bulk import for 100+ hosts</li>
+                <li>Per-host notification preferences</li>
+                <li>Department and role tracking</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Lightning Fast</h3>
               <ul className="feature-list">
-                <li>✓ Real-time search and filtering</li>
-                <li>✓ Optimized for mobile and tablet</li>
-                <li>✓ Sub-second response times</li>
+                <li>Real-time search and filtering</li>
+                <li>Optimized for mobile and tablet</li>
+                <li>Sub-second response times</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Secure by Default</h3>
               <ul className="feature-list">
-                <li>✓ Password-protected access</li>
-                <li>✓ No cloud data required</li>
-                <li>✓ GDPR-ready architecture</li>
+                <li>Password-protected access</li>
+                <li>No cloud data required</li>
+                <li>GDPR-ready architecture</li>
               </ul>
             </div>
           </div>
@@ -122,54 +122,54 @@ export function Features({ onNavigate }: FeaturesPageProps) {
             <div className="feature-category">
               <h3>Expected Arrival Tracking</h3>
               <ul className="feature-list">
-                <li>✓ Pre-register expected arrivals</li>
-                <li>✓ Automatic identification during check-in</li>
-                <li>✓ Faster processing for returning arrivals</li>
+                <li>Pre-register expected arrivals</li>
+                <li>Automatic identification during check-in</li>
+                <li>Faster processing for returning arrivals</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Access Analytics</h3>
               <ul className="feature-list">
-                <li>✓ Insights into access patterns</li>
-                <li>✓ Identify busiest times</li>
-                <li>✓ Host activity reports</li>
+                <li>Insights into access patterns</li>
+                <li>Identify busiest times</li>
+                <li>Host activity reports</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Data Export</h3>
               <ul className="feature-list">
-                <li>✓ CSV format export</li>
-                <li>✓ JSON format export</li>
-                <li>✓ Compliance report generation</li>
+                <li>CSV format export</li>
+                <li>JSON format export</li>
+                <li>Compliance report generation</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Email Integration</h3>
               <ul className="feature-list">
-                <li>✓ Seamless email notifications</li>
-                <li>✓ Customizable email templates</li>
-                <li>✓ Compliance+ access experience</li>
+                <li>Seamless email notifications</li>
+                <li>Customizable email templates</li>
+                <li>Compliance+ access experience</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Mobile Responsive</h3>
               <ul className="feature-list">
-                <li>✓ Works on tablets and phones</li>
-                <li>✓ Works on desktop browsers</li>
-                <li>✓ Responsive design for all screens</li>
+                <li>Works on tablets and phones</li>
+                <li>Works on desktop browsers</li>
+                <li>Responsive design for all screens</li>
               </ul>
             </div>
 
             <div className="feature-category">
               <h3>Customization</h3>
               <ul className="feature-list">
-                <li>✓ Custom business details</li>
-                <li>✓ Notification preferences</li>
-                <li>✓ Configurable check-in flow</li>
+                <li>Custom business details</li>
+                <li>Notification preferences</li>
+                <li>Configurable check-in flow</li>
               </ul>
             </div>
           </div>
@@ -193,21 +193,21 @@ export function Features({ onNavigate }: FeaturesPageProps) {
               <tbody>
                 <tr>
                   <td>Smart Check-In</td>
-                  <td className="check">✓</td>
-                  <td className="check">✓</td>
-                  <td className="check">✓</td>
+                  <td className="check">Yes</td>
+                  <td className="check">Yes</td>
+                  <td className="check">Yes</td>
                 </tr>
                 <tr>
                   <td>Email Notifications</td>
-                  <td className="check">✓</td>
-                  <td className="check">✓</td>
-                  <td className="check">✓</td>
+                  <td className="check">Yes</td>
+                  <td className="check">Yes</td>
+                  <td className="check">Yes</td>
                 </tr>
                 <tr>
                   <td>Access Logbook</td>
-                  <td className="check">✓</td>
-                  <td className="check">✓</td>
-                  <td className="check">✓</td>
+                  <td className="check">Yes</td>
+                  <td className="check">Yes</td>
+                  <td className="check">Yes</td>
                 </tr>
                 <tr>
                   <td>Host Management</td>
@@ -217,27 +217,27 @@ export function Features({ onNavigate }: FeaturesPageProps) {
                 </tr>
                 <tr>
                   <td>Expected Arrival Import</td>
-                  <td className="x">–</td>
-                  <td className="check">✓</td>
-                  <td className="check">✓</td>
+                  <td className="x">No</td>
+                  <td className="check">Yes</td>
+                  <td className="check">Yes</td>
                 </tr>
                 <tr>
                   <td>SMS Notifications</td>
-                  <td className="x">–</td>
-                  <td className="check">✓</td>
-                  <td className="check">✓</td>
+                  <td className="x">No</td>
+                  <td className="check">Yes</td>
+                  <td className="check">Yes</td>
                 </tr>
                 <tr>
                   <td>API Access</td>
-                  <td className="x">–</td>
-                  <td className="x">–</td>
-                  <td className="check">✓</td>
+                  <td className="x">No</td>
+                  <td className="x">No</td>
+                  <td className="check">Yes</td>
                 </tr>
                 <tr>
                   <td>Custom Branding</td>
-                  <td className="x">–</td>
-                  <td className="x">–</td>
-                  <td className="check">✓</td>
+                  <td className="x">No</td>
+                  <td className="x">No</td>
+                  <td className="check">Yes</td>
                 </tr>
               </tbody>
             </table>

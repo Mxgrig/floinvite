@@ -3,6 +3,7 @@
  * Shows when user tries to access a feature they don't have access to
  */
 
+import { useState } from 'react';
 import { Lock } from 'lucide-react';
 import { PaymentService } from '../services/paymentService';
 import { getFeatureName, getUpgradeRecommendation, SubscriptionTier } from '../utils/featureGating';
@@ -17,13 +18,15 @@ interface FeatureLockedProps {
 export const FeatureLocked = ({ feature, tier, onUpgrade }: FeatureLockedProps) => {
   const featureName = getFeatureName(feature);
   const message = getUpgradeRecommendation(tier, feature);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleUpgrade = async () => {
+    setErrorMessage(null);
     try {
       await PaymentService.createCheckoutSession('compliance', 'month');
     } catch (error) {
       console.error('Upgrade failed:', error);
-      alert('Failed to start checkout. Please try again.');
+      setErrorMessage('Failed to start checkout. Please try again.');
     }
     onUpgrade?.();
   };
@@ -34,6 +37,7 @@ export const FeatureLocked = ({ feature, tier, onUpgrade }: FeatureLockedProps) 
         <Lock className="feature-locked-icon" size={48} />
         <h3 className="feature-locked-title">{featureName} Locked</h3>
         <p className="feature-locked-message">{message}</p>
+        {errorMessage && <p className="feature-locked-error">{errorMessage}</p>}
 
         {tier === 'starter' && (
           <button className="feature-locked-upgrade" onClick={handleUpgrade}>

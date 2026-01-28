@@ -164,6 +164,13 @@ body {
   flex-wrap: wrap;
 }
 
+.upgrade-notice-error {
+  width: 100%;
+  color: #b45309;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .upgrade-notice-primary,
 .upgrade-notice-secondary,
 .upgrade-notice-dismiss {

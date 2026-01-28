@@ -118,6 +118,14 @@
   text-align: center;
 }
 
+.upgrade-prompt-error {
+  margin: -12px 0 24px 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* Plan Comparison */
 .plan-comparison {
   display: grid;

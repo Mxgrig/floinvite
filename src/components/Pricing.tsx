@@ -14,6 +14,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Inject pricing schema markup for SEO
   useEffect(() => {
@@ -56,11 +57,12 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
 
     setSelectedTier(tierId);
     setLoading(true);
+    setErrorMessage(null);
     try {
       await PaymentService.createCheckoutSession(tierId, billingCycle);
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Failed to initiate checkout. Please try again.');
+      setErrorMessage('Failed to initiate checkout. Please try again.');
       setLoading(false);
     }
   };
@@ -100,6 +102,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
       title="Simple, Transparent Pricing"
       subtitle="All plans include powerful access management. Notifications set them apart."
     >
+      {errorMessage && <div className="pricing-error">{errorMessage}</div>}
       <div className="pricing-content">
 
       {/* Billing Toggle */}
@@ -188,7 +191,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
                       {tier.features
                         .filter((f) => f.category === 'core' && f.included)
                         .map((feature, idx) => (
-                          <li key={idx}>✓ {feature.text}</li>
+                          <li key={idx}>{feature.text}</li>
                         ))}
                     </ul>
                   </div>
@@ -201,7 +204,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
                     <ul className="feature-text-list">
                       {notificationFeatures.map((feature, idx) => (
                         <li key={idx} className={feature.included ? 'included' : 'excluded'}>
-                          {feature.included ? '✓' : '✗'} {feature.text}
+                          {feature.included ? 'Included: ' : 'Not included: '}{feature.text}
                         </li>
                       ))}
                     </ul>
@@ -217,7 +220,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
                         .filter((f) => f.category === 'data')
                         .map((feature, idx) => (
                           <li key={idx} className={feature.included ? 'included' : 'excluded'}>
-                            {feature.included ? '✓' : '✗'} {feature.text}
+                            {feature.included ? 'Included: ' : 'Not included: '}{feature.text}
                           </li>
                         ))}
                     </ul>
@@ -232,7 +235,7 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
                       {tier.features
                         .filter((f) => f.category === 'support' && f.included)
                         .map((feature, idx) => (
-                          <li key={idx}>✓ {feature.text}</li>
+                          <li key={idx}>{feature.text}</li>
                         ))}
                     </ul>
                   </div>

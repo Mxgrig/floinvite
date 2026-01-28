@@ -39,6 +39,7 @@ export function Settings({ onNavigate }: SettingsProps) {
   );
   const [formData, setFormData] = useState(settings);
   const [saved, setSaved] = useState(false);
+  const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const labelSettings = getLabelSettings(formData);
 
@@ -79,21 +80,24 @@ export function Settings({ onNavigate }: SettingsProps) {
     URL.revokeObjectURL(url);
   };
 
-  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleImportFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
       if (StorageService.importAllData(text)) {
-        alert('Data imported successfully!');
-        window.location.reload();
+        setImportStatus({ type: 'success', message: 'Data imported successfully. Reloading...' });
+        setTimeout(() => window.location.reload(), 800);
       } else {
-        alert('Failed to import data');
+        setImportStatus({ type: 'error', message: 'Failed to import data.' });
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    handleImportFile(file);
   };
 
   const handleClearAllData = () => {
@@ -422,6 +426,11 @@ export function Settings({ onNavigate }: SettingsProps) {
 
               <div className="backup-actions">
                 <h3>Backup, Restore & Emergency</h3>
+                {importStatus && (
+                  <div className={`import-status ${importStatus.type}`}>
+                    {importStatus.message}
+                  </div>
+                )}
 
                 <button onClick={handleExportData} className="btn btn-secondary">
                   <Download size={18} />
@@ -436,13 +445,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                   input.onchange = (event) => {
                     const file = (event.target as HTMLInputElement).files?.[0];
                     if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        handleImportData({
-                          target: { files: [file] }
-                        } as any);
-                      };
-                      reader.readAsText(file);
+                      handleImportFile(file);
                     }
                   };
                   input.click();

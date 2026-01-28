@@ -202,9 +202,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
 
   return (
     <main className="marketing-page">
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* HEADER WITH BRANDING */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <header className="marketing-header">
         <div className="container">
           <a
@@ -225,9 +223,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </header>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* HERO SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section className="hero-section py-5 py-lg-6 position-relative overflow-hidden">
         <div className="container position-relative">
           <div className="row align-items-center min-vh-75">
@@ -275,7 +271,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                     onClick={startFree}
                   >
                     Start Free
-                    <span className="fs-5">→</span>
+                    <span className="fs-5">&gt;</span>
                   </button>
                   <button
                     className="btn btn-outline-primary btn-lg fw-semibold px-4 py-3"
@@ -346,7 +342,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                   </div>
                 </div>
                 <div className="hero-panel-footer">
-                  <span className="text-success">✓</span> Start free, upgrade anytime
+                  Start free, upgrade anytime
                 </div>
               </div>
             </div>
@@ -354,9 +350,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* STATS SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section className="stats-section py-5 bg-light">
         <div className="container">
           <div className="row g-4 justify-content-center">
@@ -372,9 +366,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* HOW IT WORKS SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section className="how-it-works-section py-5">
         <div className="container">
           <div className="text-center mb-5">
@@ -398,9 +390,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* FEATURES SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section className="features-section py-5 bg-light">
         <div className="container">
           <div className="text-center mb-5">
@@ -428,9 +418,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* WHO IT'S FOR SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section className="use-cases-section py-5">
         <div className="container">
           <div className="text-center mb-5">
@@ -458,9 +446,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* TRUST & COMPLIANCE SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section className="trust-section py-5 bg-light">
         <div className="container">
           <div className="row align-items-center">
@@ -499,9 +485,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* PRICING SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section id="pricing" className="pricing-section py-5" aria-labelledby="pricing-heading">
         <div className="container">
           <div className="text-center mb-5">
@@ -596,7 +580,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                                 .filter((f) => f.category === 'core' && f.included)
                                 .map((feature, idx) => (
                                   <li key={idx} className="mb-2">
-                                    <span className="text-success">✓</span> {feature.text}
+                                    {feature.text}
                                   </li>
                                 ))}
                             </ul>
@@ -610,7 +594,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                               {notificationFeatures.map((feature, idx) => (
                                 <li key={idx} className={`mb-2 ${feature.included ? '' : 'text-muted'}`}>
                                   <span className={feature.included ? 'text-success' : 'text-danger'}>
-                                    {feature.included ? '✓' : '✗'}
+                                    {feature.included ? 'Included' : 'Not included'}
                                   </span>{' '}
                                   {feature.text}
                                 </li>
@@ -628,7 +612,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                                 .map((feature, idx) => (
                                   <li key={idx} className={`mb-2 ${feature.included ? '' : 'text-muted'}`}>
                                     <span className={feature.included ? 'text-success' : 'text-danger'}>
-                                      {feature.included ? '✓' : '✗'}
+                                      {feature.included ? 'Included' : 'Not included'}
                                     </span>{' '}
                                     {feature.text}
                                   </li>
@@ -645,7 +629,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                                 .filter((f) => f.category === 'support' && f.included)
                                 .map((feature, idx) => (
                                   <li key={idx} className="mb-2">
-                                    <span className="text-success">✓</span> {feature.text}
+                                    {feature.text}
                                   </li>
                                 ))}
                             </ul>
@@ -661,9 +645,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* CONTACT SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section id="contact" className="contact-section py-5 bg-light" aria-labelledby="contact-heading">
         <div className="container">
           <h2 id="contact-heading" className="display-5 fw-bold text-center mb-5">Questions?</h2>
@@ -813,9 +795,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* FINAL CTA SECTION */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
       <section className="cta-section py-5 position-relative overflow-hidden">
         <img
           src="/heroimg.png"
@@ -836,7 +816,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
               onClick={startFree}
             >
               Start Free
-              <span className="fs-5">→</span>
+              <span className="fs-5">&gt;</span>
             </button>
           </div>
         </div>
@@ -844,3 +824,4 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
     </main>
   );
 }
+

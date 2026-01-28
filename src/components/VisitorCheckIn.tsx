@@ -19,7 +19,6 @@ import {
 } from '../services/notificationService';
 import { validateGuestName } from '../utils/validators';
 import { usePersistedState } from '../utils/hooks';
-import { isEmailReady, getActiveChannels } from '../utils/notificationConfig';
 import { GUEST_STATUS, STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
 import { UsageTracker } from '../utils/usageTracker';
@@ -66,23 +65,6 @@ export function VisitorCheckIn() {
   // Error state
   const [errors, setErrors] = useState<string[]>([]);
 
-  // Initialize notification config on mount
-  useEffect(() => {
-    const emailReady = isEmailReady();
-    console.log('🔧 SmartTriage initialized');
-    console.log('📊 Hosts loaded:', hosts.length);
-    console.log('📧 Email service status:', emailReady ? 'READY' : 'DISABLED (Phase 1)');
-    
-    if (hosts.length > 0) {
-      console.log('📋 Hosts:', hosts.map(h => ({
-        name: h.name,
-        email: h.email,
-        notificationMethod: h.notificationMethod || 'default'
-      })));
-    }
-  }, [hosts]);
-
-
   /**
    * Determine notification method with fallback defaults
    */
@@ -99,8 +81,6 @@ export function VisitorCheckIn() {
     subject: string;
     body: string;
   }): Promise<void> => {
-    console.log('📧 Sending email notification to:', emailNotification.to);
-
     try {
       const result = await emailService.send({
         ...emailNotification,
@@ -109,9 +89,8 @@ export function VisitorCheckIn() {
       if (result.success) {
         setNotificationStatus({
           type: 'success',
-          message: `✅ Email notification sent to ${emailNotification.to}`
+          message: `Email notification sent to ${emailNotification.to}`
         });
-        console.log('✅ Email sent successfully:', result.messageId);
 
         // Auto-clear success message after 3 seconds
         setTimeout(() => setNotificationStatus(null), 3000);
@@ -119,9 +98,9 @@ export function VisitorCheckIn() {
         // Show error but don't block check-in flow
         setNotificationStatus({
           type: 'error',
-          message: `⚠️ Notification warning: ${result.error || 'Email not sent'}`
+          message: `Notification warning: ${result.error || 'Email not sent'}`
         });
-        console.warn('⚠️ Email notification failed:', result.error);
+        console.warn('Email notification failed:', result.error);
 
         // Auto-clear error message after 5 seconds so user can see it
         setTimeout(() => setNotificationStatus(null), 5000);
@@ -130,9 +109,9 @@ export function VisitorCheckIn() {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setNotificationStatus({
         type: 'error',
-        message: `⚠️ Notification failed: ${errorMsg}`
+        message: `Notification failed: ${errorMsg}`
       });
-      console.warn('⚠️ Email service error:', error);
+      console.warn('Email service error:', error);
 
       // Auto-clear error message after 5 seconds
       setTimeout(() => setNotificationStatus(null), 5000);
@@ -204,9 +183,6 @@ export function VisitorCheckIn() {
       return;
     }
 
-    console.log('✅ Host found:', host.name);
-    console.log('📋 Host notification method:', getNotificationMethod(host));
-
     // Create guest record with estimated departure time
     const now = new Date().toISOString();
     const estimatedDeparture = new Date(Date.now() + parseInt(estimatedDuration) * 60 * 1000).toISOString();
@@ -224,28 +200,21 @@ export function VisitorCheckIn() {
       updatedAt: now
     };
 
-    // Log estimated departure
-    console.log('⏰ Estimated departure:', new Date(estimatedDeparture).toLocaleTimeString());
-
     // Save to storage
     StorageService.addGuest(guest);
-    console.log('💾 Guest saved:', guest.name);
 
     // Determine notification method (default to email)
     const notificationMethod = getNotificationMethod(host);
 
     // Send notifications based on host's preference
     if (notificationMethod === 'email' || notificationMethod === 'both') {
-      console.log('📧 Triggering email notification...');
       const emailNotification = generateVisitorArrivalNotification(guest, host, {
         includeCompany: true,
         tone: 'compliance'
       });
-      console.log('📧 Email notification object:', emailNotification);
       await sendEmailNotification(emailNotification);
     }
 
-    console.log('✨ Check-in complete for:', guest.name);
     setLastGuest(guest);
     setStep('success');
 
@@ -255,7 +224,6 @@ export function VisitorCheckIn() {
 
     if (timeUntilDeparture > 0) {
       const autoCheckoutTimer = setTimeout(() => {
-        console.log(`✅ Auto-checking out ${guest.name} after ${estimatedDuration} minutes`);
         const updatedGuest: Guest = {
           ...guest,
           checkOutTime: new Date().toISOString(),
@@ -263,11 +231,10 @@ export function VisitorCheckIn() {
           updatedAt: new Date().toISOString()
         };
         StorageService.updateGuest(guest.id, updatedGuest);
-        console.log('📋 Guest auto-checked out:', guest.name);
       }, timeUntilDeparture);
 
       // Store timer ID for cleanup if needed
-      console.log('⏱️ Auto-checkout scheduled for:', new Date(estimatedDepartureTime).toLocaleTimeString());
+      void autoCheckoutTimer;
     }
 
     // Reset form (only for non-WhatsApp notifications)
@@ -551,20 +518,20 @@ function WalkInStep({
     <div className="triage-panel">
       <div className="panel-heading">
         <button className="back-button" onClick={onBack}>
-          ← Back
+          Back
         </button>
         <div>
           <p className="eyebrow">{labels.walkIn}</p>
           <h2>Capture {labels.personSingular.toLowerCase()} details</h2>
-          <p className="muted">Name, company, and {labels.hostSingular.toLowerCase()} — the fastest way to log a new arrival.</p>
+          <p className="muted">Name, company, and {labels.hostSingular.toLowerCase()} - the fastest way to log a new arrival.</p>
         </div>
       </div>
 
       {errors.length > 0 && (
         <div className="error-message">
-          {errors.map((error, i) => (
-            <p key={i}>• {error}</p>
-          ))}
+            {errors.map((error, i) => (
+              <p key={i}>- {error}</p>
+            ))}
         </div>
       )}
 
@@ -577,7 +544,7 @@ function WalkInStep({
           marginBottom: '16px',
           color: '#991b1b'
         }}>
-          <strong>❌ No hosts configured</strong>
+          <strong>No hosts configured</strong>
           <p style={{ fontSize: '0.9rem', marginTop: '4px' }}>
             You need to add {labels.hostPlural.toLowerCase()} first. Go to Settings and import a CSV or add {labels.hostPlural.toLowerCase()} manually.
           </p>
@@ -678,7 +645,7 @@ function ExpectedStep({
     <div className="triage-panel">
       <div className="panel-heading">
         <button className="back-button" onClick={onBack}>
-          ← Back
+          Back
         </button>
         <div>
           <p className="eyebrow">{labels.expected}</p>

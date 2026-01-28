@@ -217,8 +217,8 @@ export const formatNotificationForDisplay = (
   notification: NotificationMessage
 ): string => {
   return `
-📧 TO: ${notification.to}
-📋 SUBJECT: ${notification.subject}
+TO: ${notification.to}
+SUBJECT: ${notification.subject}
 
 ${notification.body}
 
@@ -238,16 +238,13 @@ export const sendNotificationEmail = async (
   }
 ): Promise<void> => {
   if (!emailService) {
-    console.log('📧 Phase 2: Email service not configured');
-    console.log('Notification ready to send:', notification);
     return;
   }
 
   try {
     await emailService.send(notification);
-    console.log(`✅ Notification sent to ${notification.to}`);
   } catch (error) {
-    console.error(`❌ Failed to send notification to ${notification.to}:`, error);
+    console.error(`Failed to send notification to ${notification.to}:`, error);
     throw new Error(`Failed to send notification: ${error}`);
   }
 };
@@ -346,10 +343,9 @@ export const copyNotificationToClipboard = async (
   try {
     const text = formatNotificationForDisplay(notification);
     await navigator.clipboard.writeText(text);
-    console.log('✅ Notification copied to clipboard');
     return true;
   } catch (error) {
-    console.error('❌ Failed to copy notification:', error);
+    console.error('Failed to copy notification:', error);
     return false;
   }
 };
@@ -407,13 +403,11 @@ export const openWhatsAppChatAndWait = (
   // Listen for page losing focus (user switched to WhatsApp)
   const handleBlur = () => {
     pageLostFocus = true;
-    console.log('📱 User switched to WhatsApp...');
   };
 
   // Listen for page regaining focus (user returned from WhatsApp)
   const handleFocus = () => {
     if (pageLostFocus) {
-      console.log('✅ User returned - message sent!');
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('focus', handleFocus);
       clearTimeout(timeoutId);
@@ -423,7 +417,6 @@ export const openWhatsAppChatAndWait = (
 
   // Fallback timeout: if user doesn't return after 3 minutes, auto-confirm
   const timeoutId = setTimeout(() => {
-    console.log('⏱️ Timeout reached - auto-confirming message');
     window.removeEventListener('blur', handleBlur);
     window.removeEventListener('focus', handleFocus);
     onTimeout?.();
@@ -500,7 +493,7 @@ export const sendWhatsAppNotification = async (
   }
 ): Promise<void> => {
   if (!host.whatsappNumber) {
-    console.log('⚠️ WhatsApp not configured for host:', host.name);
+    console.warn('WhatsApp not configured for host:', host.name);
     return;
   }
 
@@ -508,24 +501,18 @@ export const sendWhatsAppNotification = async (
     // Phase 2: Use API service
     try {
       await whatsappService.send(host.whatsappNumber, message);
-      console.log(`✅ WhatsApp sent to ${host.name}`);
       onConfirm?.();
     } catch (error) {
-      console.error(`❌ Failed to send WhatsApp to ${host.name}:`, error);
+      console.error(`Failed to send WhatsApp to ${host.name}:`, error);
       throw new Error(`Failed to send WhatsApp: ${error}`);
     }
   } else {
     // Phase 1: Open WhatsApp Web and wait for user to return
-    console.log('📱 Phase 1: Opening WhatsApp Web with confirmation');
-    console.log('WhatsApp message ready:', {
-      to: host.whatsappNumber,
-      message
-    });
     openWhatsAppChatAndWait(
       host.whatsappNumber,
       message,
       onConfirm || (() => {}),
-      () => console.log('⏱️ WhatsApp timeout - auto-confirming')
+      () => null
     );
   }
 };

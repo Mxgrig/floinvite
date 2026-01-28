@@ -3,6 +3,7 @@
  * Get in touch with Floinvite by xtenalyze
  */
 
+import { useState } from 'react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { getLogoPath } from '../utils/logoHelper';
 import './LegalPages.css';
@@ -12,6 +13,8 @@ export interface ContactProps {
 }
 
 export function Contact({ onNavigate }: ContactProps) {
+  const [formStatus, setFormStatus] = useState<'idle' | 'success'>('idle');
+
   return (
     <div className="legal-page">
       {/* Navbar for unauthenticated users */}
@@ -99,9 +102,14 @@ export function Contact({ onNavigate }: ContactProps) {
             {/* Contact Form */}
             <div className="contact-form-section">
               <h2>Send us a Message</h2>
+              {formStatus === 'success' && (
+                <div className="contact-success">
+                  Thanks for your message. We will get back to you soon at admin@floinvite.com.
+                </div>
+              )}
               <form className="contact-form" onSubmit={(e) => {
                 e.preventDefault();
-                alert('Thank you for your message! We will get back to you soon at admin@floinvite.com');
+                setFormStatus('success');
               }}>
                 <div className="form-group">
                   <label htmlFor="name">Your Name *</label>
@@ -166,7 +174,7 @@ export function Contact({ onNavigate }: ContactProps) {
               by bridging complex technical solutions with practical business applications.
             </p>
             <a href="https://www.xtenalyze.co.uk" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
-              Visit xtenalyze →
+              Visit xtenalyze
             </a>
           </div>
         </div>
