@@ -79,7 +79,7 @@ fi
 REMOTE_HOST="45.87.81.67"
 REMOTE_PORT="65002"
 REMOTE_USER="u958180753"
-DEPLOY_DIR="/home/$REMOTE_USER/public_html/floinvite"
+DEPLOY_DIR="/home/$REMOTE_USER/domains/floinvite.com/public_html"
 MAIL_DIR="$DEPLOY_DIR/floinvite-mail"
 BACKUP_DIR="$DEPLOY_DIR/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -240,7 +240,7 @@ if [ "$DEPLOY_MAIL" = "true" ] || [ "$MAIL_ONLY" = "true" ]; then
   scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT -r public/floinvite-mail/* $REMOTE_USER@$REMOTE_HOST:$MAIL_DIR/
 
   # Deploy PHPMailerHelper to API directory (required by mail system)
-  API_DIR="/home/$REMOTE_USER/public_html/floinvite/api"
+  API_DIR="/home/$REMOTE_USER/domains/floinvite.com/public_html/api"
   ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $API_DIR" 2>/dev/null || true
   scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT public/api/PHPMailerHelper.php $REMOTE_USER@$REMOTE_HOST:$API_DIR/ \
     2>/dev/null || true
