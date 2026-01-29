@@ -139,6 +139,8 @@
   font-size: 1rem;
   font-family: inherit;
   transition: all 0.2s;
+  color: var(--dark);
+  background: white;
 }
 
 .form-group input:focus,
@@ -154,7 +156,7 @@
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
-  color: #dc2626;
+  color: #991b1b;
   font-size: 0.9rem;
 }
 
