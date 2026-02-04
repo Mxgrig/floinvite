@@ -132,12 +132,12 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
           </div>
 
           <h1 className="landing-title">
-            Floinvite Access Management<br />
-            Platform
+            SME Site Access<br />
+            Fast & Hardware-Free
           </h1>
 
           <p className="landing-subtitle">
-            Secure {labels.checkIn.toLowerCase()}, instant {labels.logbook.toLowerCase()}, full visibility.
+            Check-in in 30 seconds. No kiosks. No iPads. Just simple, audit-ready site access.
           </p>
 
           <div className="landing-buttons">
