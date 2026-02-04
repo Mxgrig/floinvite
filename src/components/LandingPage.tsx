@@ -132,7 +132,7 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
           </div>
 
           <h1 className="landing-title">
-            Access Management<br />
+            Floinvite Access Management<br />
             Platform
           </h1>
 
