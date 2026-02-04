@@ -427,39 +427,39 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
           </div>
 
           <div className="table-responsive shadow-sm rounded-4">
-            <table className="table table-bordered align-middle mb-0 bg-white">
-              <thead className="table-light">
+            <table className="comparison-table">
+              <thead>
                 <tr>
-                  <th className="py-3 px-4" style={{ width: '33%' }}>Feature</th>
-                  <th className="py-3 px-4 text-center" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>Floinvite</th>
-                  <th className="py-3 px-4 text-center text-muted" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>Traditional Systems</th>
+                  <th>Feature</th>
+                  <th>Floinvite</th>
+                  <th>Traditional Systems</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="py-3 px-4" style={{ width: '33%' }}><strong>Hardware Required</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>None (Zero)</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>iPad & Kiosk Kiosks required</td>
+                  <td><strong>Hardware Required</strong></td>
+                  <td><span className="text-primary fw-bold">None (Zero)</span></td>
+                  <td>iPad & Kiosk Kiosks required</td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-4" style={{ width: '33%' }}><strong>Setup Time</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>&lt; 2 Minutes</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>Hours to Days</td>
+                  <td><strong>Setup Time</strong></td>
+                  <td><span className="text-primary fw-bold">&lt; 2 Minutes</span></td>
+                  <td>Hours to Days</td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-4" style={{ width: '33%' }}><strong>Monthly Pricing</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>From $29/mo</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>Starting at $100+/mo</td>
+                  <td><strong>Monthly Pricing</strong></td>
+                  <td><span className="text-primary fw-bold">From $29/mo</span></td>
+                  <td>Starting at $100+/mo</td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-4" style={{ width: '33%' }}><strong>SME Optimization</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>Primary Focus</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>Enterprise-first (Too complex)</td>
+                  <td><strong>SME Optimization</strong></td>
+                  <td><span className="text-primary fw-bold">Primary Focus</span></td>
+                  <td>Enterprise-first (Too complex)</td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-4" style={{ width: '33%' }}><strong>Audit Readiness</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>Instant Exports</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '33.5%', textAlign: 'justify', textAlignLast: 'center' }}>Often behind paywalls</td>
+                  <td><strong>Audit Readiness</strong></td>
+                  <td><span className="text-primary fw-bold">Instant Exports</span></td>
+                  <td>Often behind paywalls</td>
                 </tr>
               </tbody>
             </table>
