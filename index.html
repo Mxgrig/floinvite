@@ -1,114 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <title>Floinvite - Access Management Platform</title>
-    <meta name="description" content="Fast, simple access management for modern businesses. Check-in in 30 seconds, notify instantly, export anytime. No hardware. No training." />
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Favicons & Branding -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <!-- Primary Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Floinvite - Fast SME Site Access | Zero Hardware</title>
+  <meta name="description"
+    content="The fastest site access management system for SMEs. Check-in in 30 seconds with zero hardware or kiosks. Notify hosts instantly and export audit-ready records." />
 
-    <!-- PNG Favicons (Modern Browsers) -->
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64x64.png" />
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Favicons & Branding -->
+  <!-- ═══════════════════════════════════════════════════ -->
 
-    <!-- Apple Touch Icon (iOS Home Screen) -->
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <!-- Primary Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
-    <!-- Android Chrome Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+  <!-- PNG Favicons (Modern Browsers) -->
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64x64.png" />
 
-    <!-- Web App Manifest (PWA Support) -->
-    <link rel="manifest" href="/site.webmanifest" />
+  <!-- Apple Touch Icon (iOS Home Screen) -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- Theme Color for Browser Chrome -->
-    <meta name="theme-color" content="#4f46e5" />
+  <!-- Android Chrome Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
 
-    <!-- Android Status Bar Color -->
-    <meta name="msapplication-TileColor" content="#4f46e5" />
+  <!-- Web App Manifest (PWA Support) -->
+  <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- iOS Status Bar Style -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Floinvite" />
+  <!-- Theme Color for Browser Chrome -->
+  <meta name="theme-color" content="#4f46e5" />
 
-    <!-- Microsoft Tile Icon (Windows Start Menu) -->
-    <meta name="msapplication-TileImage" content="/android-chrome-192x192.png" />
-    <meta name="msapplication-config" content="/browserconfig.xml" />
+  <!-- Android Status Bar Color -->
+  <meta name="msapplication-TileColor" content="#4f46e5" />
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Open Graph & Social Media -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://floinvite.com/" />
-    <meta property="og:title" content="Floinvite - Access Management Platform" />
-    <meta property="og:description" content="Fast, simple access management for modern businesses. Check-in in 30 seconds, notify instantly, export anytime." />
-    <meta property="og:image" content="/android-chrome-512x512.png" />
+  <!-- iOS Status Bar Style -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Floinvite" />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://floinvite.com/" />
-    <meta name="twitter:title" content="Floinvite - Access Management Platform" />
-    <meta name="twitter:description" content="Fast, simple access management for modern businesses. Check-in in 30 seconds, notify instantly, export anytime." />
-    <meta name="twitter:image" content="/android-chrome-512x512.png" />
+  <!-- Microsoft Tile Icon (Windows Start Menu) -->
+  <meta name="msapplication-TileImage" content="/android-chrome-192x192.png" />
+  <meta name="msapplication-config" content="/browserconfig.xml" />
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Styling & Framework -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Tailwind Dark Mode Config -->
-    <script>
-      if (localStorage.getItem('theme') === 'dark' || 
-          (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    </script>
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Open Graph & Social Media -->
+  <!-- ═══════════════════════════════════════════════════ -->
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Payment Processing (Stripe) -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <script src="https://js.stripe.com/v3/"></script>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://floinvite.com/" />
+  <meta property="og:title" content="Floinvite - Fast SME Site Access | Zero Hardware" />
+  <meta property="og:description"
+    content="Automate your site access in 30 seconds. No iPads, no kiosks, no hassle. Built specifically for SMEs and venues." />
+  <meta property="og:image" content="/android-chrome-512x512.png" />
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Meta Tags for Mobile & SEO -->
-    <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://floinvite.com/" />
+  <meta name="twitter:title" content="Floinvite - Fast SME Site Access | Zero Hardware" />
+  <meta name="twitter:description" content="Automate your site access in 30 seconds. No iPads, no kiosks, no hassle." />
+  <meta name="twitter:image" content="/android-chrome-512x512.png" />
 
-    <meta name="description" content="Floinvite - Access management platform for modern businesses. Fast check-in in 30 seconds, instant arrival notifications, maintain access records. Email & SMS alerts. Free to start." />
-    <meta name="keywords" content="access management, check-in system, office security, arrival tracking, entry management, notification system, SME software" />
-    <meta name="author" content="Floinvite Team" />
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Styling & Framework -->
+  <!-- ═══════════════════════════════════════════════════ -->
 
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://floinvite.com/" />
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Alternate URLs for mobile -->
-    <link rel="alternate" media="only screen and (max-width:640px)" href="https://floinvite.com/" />
+  <!-- Tailwind Dark Mode Config -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark' ||
+      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
 
-    <!-- Language -->
-    <link rel="alternate" hreflang="en" href="https://floinvite.com/" />
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Payment Processing (Stripe) -->
+  <!-- ═══════════════════════════════════════════════════ -->
 
-    <!-- Breadcrumb Schema -->
-    <script type="application/ld+json">
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Meta Tags for Mobile & SEO -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <meta name="description"
+    content="Floinvite - SME site access management platform. Zero hardware, 30-second check-ins, and instant host notifications. The professional choice for venues, construction, and offices." />
+  <meta name="keywords"
+    content="site access management for small business, digital arrival logbook, office check-in system, no-hardware access management, SME workplace security" />
+  <meta name="author" content="Floinvite Team" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://floinvite.com/" />
+
+  <!-- Alternate URLs for mobile -->
+  <link rel="alternate" media="only screen and (max-width:640px)" href="https://floinvite.com/" />
+
+  <!-- Language -->
+  <link rel="alternate" hreflang="en" href="https://floinvite.com/" />
+
+  <!-- Breadcrumb Schema -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
@@ -135,8 +141,8 @@
     }
     </script>
 
-    <!-- Organization Schema -->
-    <script type="application/ld+json">
+  <!-- Organization Schema -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
@@ -165,13 +171,13 @@
     }
     </script>
 
-    <!-- JSON-LD Structured Data -->
-    <script type="application/ld+json">
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "Floinvite",
-      "description": "Access management platform for modern businesses. Fast check-in in 30 seconds, instant arrival notifications, maintain access records.",
+      "description": "Site access management platform for modern businesses. Fast check-in in 30 seconds, instant arrival notifications, maintain access records.",
       "url": "https://floinvite.com",
       "image": "https://floinvite.com/logo.png",
       "applicationCategory": "BusinessApplication",
@@ -199,13 +205,13 @@
           {
             "@type": "Offer",
             "name": "Starter Plan",
-            "price": "5",
+            "price": "29",
             "priceCurrency": "USD"
           },
           {
             "@type": "Offer",
-            "name": "Professional Plan",
-            "price": "10",
+            "name": "Compliance+ Plan",
+            "price": "49",
             "priceCurrency": "USD"
           }
         ]
@@ -216,71 +222,73 @@
     }
     </script>
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Analytics & Tracking -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <!-- Google Analytics 4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'GA_MEASUREMENT_ID', {
-        'page_path': window.location.pathname,
-        'page_title': document.title
-      });
-    </script>
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Analytics & Tracking -->
+  <!-- ═══════════════════════════════════════════════════ -->
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Preload Critical Resources -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  </head>
-  <body class="antialiased">
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- React Root Element -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <div id="root"></div>
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'GA_MEASUREMENT_ID', {
+      'page_path': window.location.pathname,
+      'page_title': document.title
+    });
+  </script>
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Vite Entry Point -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <script type="module" src="/src/main.tsx"></script>
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Preload Critical Resources -->
+  <!-- ═══════════════════════════════════════════════════ -->
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Stripe Global Configuration -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <script>
-      // Make Stripe available globally after page load
-      window.addEventListener('DOMContentLoaded', function() {
-        if (window.Stripe) {
-          const publishableKey = import.meta.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
-          if (publishableKey) {
-            window.stripe = Stripe(publishableKey);
-          }
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+
+<body class="antialiased">
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- React Root Element -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <div id="root"></div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Vite Entry Point -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Stripe Global Configuration -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <script>
+    // Make Stripe available globally after page load
+    window.addEventListener('DOMContentLoaded', function () {
+      if (window.Stripe) {
+        const publishableKey = import.meta.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
+        if (publishableKey) {
+          window.stripe = Stripe(publishableKey);
         }
-      });
-    </script>
+      }
+    });
+  </script>
 
 
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Noscript Fallback -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    
-    <noscript>
-      <div style="text-align: center; padding: 2rem; font-family: sans-serif;">
-        <h1>Floinvite</h1>
-        <p>JavaScript is required to run Floinvite.</p>
-        <p>Please enable JavaScript in your browser settings.</p>
-      </div>
-    </noscript>
-  </body>
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Noscript Fallback -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <noscript>
+    <div style="text-align: center; padding: 2rem; font-family: sans-serif;">
+      <h1>Floinvite</h1>
+      <p>JavaScript is required to run Floinvite.</p>
+      <p>Please enable JavaScript in your browser settings.</p>
+    </div>
+  </noscript>
+</body>
+
 </html>

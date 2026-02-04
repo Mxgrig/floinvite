@@ -194,10 +194,10 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
   ];
 
   const trustPoints = [
-    'Secure, encrypted data',
-    'No software to install',
-    'Works on any browser',
-    'Export anytime',
+    'Secure, ISO-ready data handling',
+    'Audit-ready record retrieval',
+    'GDPR & Privacy compliant',
+    'Instant PDF/CSV exports',
   ];
 
   return (
@@ -236,12 +236,12 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
               <h1 className="display-4 fw-bold mb-4 lh-1 text-dark">
                 30 Seconds to {labels.checkIn}
                 <br />
-                <span className="text-primary">No Hardware, No Hassle</span>
+                <span className="text-primary">Zero Hardware, SME Efficient</span>
               </h1>
 
               <div className="hero-copy">
                 <p className="fs-5 mb-4 lh-base text-secondary">
-                  Process arrivals in seconds, send instant notifications, and export complete access records whenever you need them.
+                  The fastest way for SMEs to manage site access. Zero hardware kiosks, zero training, and zero complexity. Audit-ready in minutes.
                 </p>
 
                 <p className="fs-5 mb-4 lh-base text-secondary">
@@ -395,7 +395,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">Everything You Need</h2>
-            <p className="fs-5 text-muted mb-0">Simple, fast {labels.personSingular.toLowerCase()} management</p>
+            <p className="fs-5 text-muted mb-0">Simple, fast site access management</p>
           </div>
 
           <div className="row g-4 justify-content-center">
@@ -418,7 +418,54 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         </div>
       </section>
 
-      {/* WHO IT'S FOR SECTION */}
+      {/* COMPETITIVE COMPARISON SECTION */}
+      <section className="comparison-section py-5">
+        <div className="container">
+          <div className="text-center mb-5">
+            <h2 className="display-5 fw-bold mb-3">The Floinvite Difference</h2>
+            <p className="fs-5 text-muted mb-0">Why SMEs choose us over "Enterprise" legacy systems</p>
+          </div>
+
+          <div className="table-responsive shadow-sm rounded-4">
+            <table className="table table-bordered align-middle mb-0 bg-white">
+              <thead className="table-light">
+                <tr>
+                  <th className="py-3 px-4" style={{ width: '40%' }}>Feature</th>
+                  <th className="py-3 px-4 text-center">Floinvite</th>
+                  <th className="py-3 px-4 text-center text-muted">Traditional Systems</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="py-3 px-4"><strong>Hardware Required</strong></td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold">None (Zero)</td>
+                  <td className="py-3 px-4 text-center">iPad & Kiosk Kiosks required</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4"><strong>Setup Time</strong></td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold">&lt; 2 Minutes</td>
+                  <td className="py-3 px-4 text-center">Hours to Days</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4"><strong>Monthly Pricing</strong></td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold">From $29/mo</td>
+                  <td className="py-3 px-4 text-center">Starting at $100+/mo</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4"><strong>SME Optimization</strong></td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold">Primary Focus</td>
+                  <td className="py-3 px-4 text-center">Enterprise-first (Too complex)</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4"><strong>Audit Readiness</strong></td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold">Instant Exports</td>
+                  <td className="py-3 px-4 text-center">Often behind paywalls</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
       <section className="use-cases-section py-5">
         <div className="container">
           <div className="text-center mb-5">
@@ -492,7 +539,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
             <span className="badge bg-primary mb-3">Plans & Pricing</span>
             <h2 id="pricing-heading" className="display-5 fw-bold mb-3">Simple, Transparent Pricing</h2>
             <p className="fs-5 text-muted mb-4 mx-auto" style={{ maxWidth: '600px' }}>
-              Start free. Data for your first 20 {labels.personPlural.toLowerCase()}/{labels.hostPlural.toLowerCase()} included.
+              Start free. Data for your first 20 records included.
             </p>
 
             <div className="btn-group mb-5" role="group">
@@ -529,9 +576,8 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
               return (
                 <div key={tier.id} className="col-lg-4 col-md-6 col-12">
                   <div
-                    className={`card h-100 border-0 shadow ${
-                      tier.highlighted ? 'shadow-lg border-primary border-2' : ''
-                    }`}
+                    className={`card h-100 border-0 shadow ${tier.highlighted ? 'shadow-lg border-primary border-2' : ''
+                      }`}
                   >
                     {tier.highlighted && (
                       <div className="position-absolute top-0 start-50 translate-middle-x">
@@ -563,9 +609,8 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                       </div>
 
                       <button
-                        className={`btn ${
-                          tier.buttonColor === 'primary' ? 'btn-primary' : 'btn-outline-primary'
-                        } btn-lg w-100 fw-semibold mb-4`}
+                        className={`btn ${tier.buttonColor === 'primary' ? 'btn-primary' : 'btn-outline-primary'
+                          } btn-lg w-100 fw-semibold mb-4`}
                         onClick={startFree}
                       >
                         Start Free
