@@ -431,35 +431,35 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
               <thead className="table-light">
                 <tr>
                   <th className="py-3 px-4" style={{ width: '40%' }}>Feature</th>
-                  <th className="py-3 px-4 text-center" style={{ width: '30%' }}>Floinvite</th>
-                  <th className="py-3 px-4 text-center text-muted" style={{ width: '30%' }}>Traditional Systems</th>
+                  <th className="py-3 px-4 text-center" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>Floinvite</th>
+                  <th className="py-3 px-4 text-center text-muted" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>Traditional Systems</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td className="py-3 px-4" style={{ width: '40%' }}><strong>Hardware Required</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%' }}>None (Zero)</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '30%' }}>iPad & Kiosk Kiosks required</td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>None (Zero)</td>
+                  <td className="py-3 px-4 text-center" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>iPad & Kiosk Kiosks required</td>
                 </tr>
                 <tr>
                   <td className="py-3 px-4" style={{ width: '40%' }}><strong>Setup Time</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%' }}>&lt; 2 Minutes</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '30%' }}>Hours to Days</td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>&lt; 2 Minutes</td>
+                  <td className="py-3 px-4 text-center" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>Hours to Days</td>
                 </tr>
                 <tr>
                   <td className="py-3 px-4" style={{ width: '40%' }}><strong>Monthly Pricing</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%' }}>From $29/mo</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '30%' }}>Starting at $100+/mo</td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>From $29/mo</td>
+                  <td className="py-3 px-4 text-center" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>Starting at $100+/mo</td>
                 </tr>
                 <tr>
                   <td className="py-3 px-4" style={{ width: '40%' }}><strong>SME Optimization</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%' }}>Primary Focus</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '30%' }}>Enterprise-first (Too complex)</td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>Primary Focus</td>
+                  <td className="py-3 px-4 text-center" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>Enterprise-first (Too complex)</td>
                 </tr>
                 <tr>
                   <td className="py-3 px-4" style={{ width: '40%' }}><strong>Audit Readiness</strong></td>
-                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%' }}>Instant Exports</td>
-                  <td className="py-3 px-4 text-center" style={{ width: '30%' }}>Often behind paywalls</td>
+                  <td className="py-3 px-4 text-center text-primary fw-bold" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>Instant Exports</td>
+                  <td className="py-3 px-4 text-center" style={{ width: '30%', textAlign: 'justify', textAlignLast: 'center' }}>Often behind paywalls</td>
                 </tr>
               </tbody>
             </table>
