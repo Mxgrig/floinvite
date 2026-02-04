@@ -427,10 +427,15 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
           </div>
 
           <div className="table-responsive shadow-sm rounded-4">
-            <table className="table table-bordered align-middle mb-0 bg-white">
+            <table className="table table-bordered align-middle mb-0 bg-white" style={{ tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '35%' }} />
+                <col style={{ width: '32.5%' }} />
+                <col style={{ width: '32.5%' }} />
+              </colgroup>
               <thead className="table-light">
                 <tr>
-                  <th className="py-3 px-4" style={{ width: '40%' }}>Feature</th>
+                  <th className="py-3 px-4">Feature</th>
                   <th className="py-3 px-4 text-center">Floinvite</th>
                   <th className="py-3 px-4 text-center text-muted">Traditional Systems</th>
                 </tr>
