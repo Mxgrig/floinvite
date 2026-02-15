@@ -4,7 +4,7 @@
  * Hero, Stats, Features, Use Cases, How It Works, Trust & Compliance, Pricing, Contact, CTA
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   TrendingUp,
   Check,
@@ -19,7 +19,6 @@ import {
   Phone,
   CheckCircle,
   Building2,
-  GraduationCap,
   Hammer,
   Calendar,
   Shield,
@@ -30,6 +29,7 @@ import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
 import { AppSettings } from '../types';
 import { DEFAULT_LABELS, LABEL_PRESETS, LabelPresetKey, getLabelSettings } from '../utils/labelUtils';
+import { applyPageSeo } from '../utils/seoHelper';
 import './MarketingPage.css';
 
 interface MarketingPageProps {
@@ -57,6 +57,39 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
   });
   const [contactStatus, setContactStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [contactError, setContactError] = useState('');
+
+  useEffect(() => {
+    return applyPageSeo({
+      title: 'Floinvite Features | Visitor Management Platform for Fast Check-Ins',
+      canonicalUrl: 'https://floinvite.com/features',
+      metas: [
+        {
+          selector: 'meta[name="description"]',
+          attr: 'name',
+          key: 'description',
+          content: 'Explore Floinvite features for visitor management, guest check-in, notifications, and export-ready records for growing teams.'
+        },
+        {
+          selector: 'meta[property="og:title"]',
+          attr: 'property',
+          key: 'og:title',
+          content: 'Floinvite Features | Visitor Management Platform for Fast Check-Ins'
+        },
+        {
+          selector: 'meta[property="og:description"]',
+          attr: 'property',
+          key: 'og:description',
+          content: 'Explore Floinvite features for visitor management, guest check-in, notifications, and export-ready records for growing teams.'
+        },
+        {
+          selector: 'meta[property="og:url"]',
+          attr: 'property',
+          key: 'og:url',
+          content: 'https://floinvite.com/features'
+        }
+      ]
+    });
+  }, []);
 
   const startFree = () => {
     onStartCheckIn();
@@ -150,23 +183,31 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
   const useCases = [
     {
       icon: Building2,
-      title: 'Events & Venues',
-      description: `Check in ${labels.personPlural.toLowerCase()} in seconds. Export ${labels.logbook.toLowerCase()} lists for invoicing.`,
-    },
-    {
-      icon: GraduationCap,
-      title: 'Construction & Contractors',
-      description: 'Track crew on-site. Daily accountability for payroll.',
+      title: 'Office Visitor Management',
+      description: 'Fast guest check in system with host notifications and searchable records.',
+      href: '/offices',
+      page: 'offices',
     },
     {
       icon: Hammer,
-      title: 'Small Offices',
-      description: "Better than a clipboard. Know who's here.",
+      title: 'Construction Site Access',
+      description: 'Construction site visitor log and site access management for crews and contractors.',
+      href: '/construction',
+      page: 'construction',
+    },
+    {
+      icon: Heart,
+      title: 'Healthcare Check-In',
+      description: 'Clinic patient check in with a HIPAA visitor log workflow and clean exports.',
+      href: '/healthcare',
+      page: 'healthcare',
     },
     {
       icon: Calendar,
-      title: 'Staffing Coordinators',
-      description: 'Quick intake for temp workers. Compliance-ready records.',
+      title: 'Coworking Member Check In',
+      description: 'Coworking space management for members, guests, and day-pass visitors.',
+      href: '/coworking',
+      page: 'coworking',
     },
   ];
 
@@ -470,13 +511,24 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
         <div className="container">
           <div className="text-center mb-5">
             <h2 className="display-5 fw-bold mb-3">Who It's For</h2>
-            <p className="fs-5 text-muted mb-0">Fast-moving teams that need speed and clarity</p>
+            <p className="fs-5 text-muted mb-2">Fast-moving teams that need speed and clarity</p>
+            <p className="industry-intro mb-0">
+              Explore industry-specific workflows and pages for deeper details.
+            </p>
           </div>
 
           <div className="row g-4">
             {useCases.map((useCase, index) => (
               <div key={index} className="col-lg-3 col-md-6 col-12">
-                <div className="usecase-card card h-100 border-0 shadow-sm">
+                <a
+                  href={useCase.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate(useCase.page);
+                  }}
+                  className="usecase-card card h-100 border-0 shadow-sm"
+                  style={{ textDecoration: 'none' }}
+                >
                   <div className="card-body p-4">
                     <div className="usecase-card-header">
                       <div className="usecase-icon">
@@ -486,9 +538,24 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                     </div>
                     <p className="card-text text-muted">{useCase.description}</p>
                   </div>
-                </div>
+                </a>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="industry-compare-section py-5">
+        <div className="container">
+          <div className="text-center mb-4">
+            <h2 className="display-6 fw-bold mb-2">Compare by Industry</h2>
+            <p className="text-muted mb-0">Choose the workflow that matches your environment.</p>
+          </div>
+          <div className="industry-compare-links">
+            <a href="/offices" onClick={(e) => { e.preventDefault(); onNavigate('offices'); }}>Office visitor management</a>
+            <a href="/construction" onClick={(e) => { e.preventDefault(); onNavigate('construction'); }}>Construction site access</a>
+            <a href="/healthcare" onClick={(e) => { e.preventDefault(); onNavigate('healthcare'); }}>Healthcare check-in workflow</a>
+            <a href="/coworking" onClick={(e) => { e.preventDefault(); onNavigate('coworking'); }}>Coworking member check-in</a>
           </div>
         </div>
       </section>
@@ -869,4 +936,3 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
     </main>
   );
 }
-

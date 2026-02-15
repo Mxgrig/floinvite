@@ -311,6 +311,44 @@
   margin: 0;
 }
 
+.industry-intro {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.industry-compare-section {
+  padding: 3.5rem 0;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.industry-compare-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 0.8rem;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.industry-compare-links a {
+  display: block;
+  padding: 0.95rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #dbe5ff;
+  background: #ffffff;
+  color: #1f2937;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.industry-compare-links a:hover {
+  transform: translateY(-2px);
+  border-color: #4338ca;
+  box-shadow: 0 10px 20px rgba(67, 56, 202, 0.12);
+}
+
 /* How It Works Section */
 .how-it-works-section {
   padding: 5rem 0;
@@ -520,6 +558,12 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .industry-compare-links {
+    grid-template-columns: 1fr;
+  }
 }
 
 .contact-form .form-label {

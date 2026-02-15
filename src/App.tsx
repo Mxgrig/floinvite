@@ -21,6 +21,7 @@ import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import { LandingPage } from './components/LandingPage';
 import { MarketingPage } from './components/MarketingPage';
+import { IndustryPage } from './components/IndustryPage';
 import { SessionVideoBackground } from './components/SessionVideoBackground';
 import { PaymentService } from './services/paymentService';
 import { MigrationService } from './services/migrationService';
@@ -31,7 +32,24 @@ import { getPageHref, handleNavigationClick } from './utils/navigationHelper';
 import { getLogoPath } from './utils/logoHelper';
 import './App.css';
 
-type AppPage = 'landing' | 'signin' | 'createaccount' | 'tier-selection' | 'pricing' | 'marketing' | 'check-in' | 'logbook' | 'hosts' | 'settings' | 'evacuation-list' | 'privacy' | 'terms';
+type AppPage =
+  | 'landing'
+  | 'signin'
+  | 'createaccount'
+  | 'tier-selection'
+  | 'pricing'
+  | 'marketing'
+  | 'construction'
+  | 'offices'
+  | 'healthcare'
+  | 'coworking'
+  | 'check-in'
+  | 'logbook'
+  | 'hosts'
+  | 'settings'
+  | 'evacuation-list'
+  | 'privacy'
+  | 'terms';
 
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
@@ -86,6 +104,10 @@ export function App() {
       'tier-selection': '/tier-selection',
       'pricing': '/pricing',
       'marketing': '/marketing',
+      'construction': '/construction',
+      'offices': '/offices',
+      'healthcare': '/healthcare',
+      'coworking': '/coworking',
       'check-in': '/check-in',
       'logbook': '/logbook',
       'hosts': '/hosts',
@@ -126,8 +148,16 @@ export function App() {
         setCurrentPage('evacuation-list');
       } else if (pathname.includes('/settings')) {
         setCurrentPage('settings');
-      } else if (pathname.includes('/marketing')) {
+      } else if (pathname.includes('/marketing') || pathname.includes('/features')) {
         setCurrentPage('marketing');
+      } else if (pathname.includes('/construction')) {
+        setCurrentPage('construction');
+      } else if (pathname.includes('/offices')) {
+        setCurrentPage('offices');
+      } else if (pathname.includes('/healthcare')) {
+        setCurrentPage('healthcare');
+      } else if (pathname.includes('/coworking')) {
+        setCurrentPage('coworking');
       } else if (pathname.includes('/pricing')) {
         setCurrentPage('pricing');
       } else if (pathname.includes('/signin')) {
@@ -243,6 +273,14 @@ export function App() {
         return <Pricing onNavigate={setCurrentPage} />;
       case 'marketing':
         return <MarketingPage onNavigate={setCurrentPage} onStartCheckIn={handleStartCheckIn} />;
+      case 'construction':
+        return <IndustryPage industry="construction" onNavigate={setCurrentPage} />;
+      case 'offices':
+        return <IndustryPage industry="offices" onNavigate={setCurrentPage} />;
+      case 'healthcare':
+        return <IndustryPage industry="healthcare" onNavigate={setCurrentPage} />;
+      case 'coworking':
+        return <IndustryPage industry="coworking" onNavigate={setCurrentPage} />;
       case 'check-in':
         return <VisitorCheckIn />;
       case 'logbook':
@@ -264,7 +302,20 @@ export function App() {
   };
 
   // Redirect to landing if not authenticated and trying to access protected pages
-  const publicPages = ['pricing', 'marketing', 'privacy', 'terms', 'signin', 'createaccount', 'tier-selection', 'landing'];
+  const publicPages = [
+    'pricing',
+    'marketing',
+    'construction',
+    'offices',
+    'healthcare',
+    'coworking',
+    'privacy',
+    'terms',
+    'signin',
+    'createaccount',
+    'tier-selection',
+    'landing'
+  ];
   if (!isAuthenticated && !publicPages.includes(currentPage)) {
     setCurrentPage('landing');
     return renderPage();
