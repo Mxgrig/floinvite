@@ -38,14 +38,15 @@ This will automatically:
 If deployment fails or breaks:
 
 ```bash
-ssh -p 65002 REDACTED_USER@REDACTED_HOST "cd ~/domains/floinvite.com/public_html && ls -t1 backups/ | head -1 | xargs -I {} cp -r backups/{} . && echo 'Rolled back'"
+# Load credentials from .env.deploy, then:
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST "cd ~/domains/floinvite.com/public_html && ls -t1 backups/ | head -1 | xargs -I {} cp -r backups/{} . && echo 'Rolled back'"
 ```
 
 ## Emergency Contacts
 
-- **Hostinger Support**: Check cPanel if server issues
+- **Hostinger Support**: Check hPanel if server issues
 - **DNS**: Verify domain points to `/domains/floinvite.com/public_html/`
-- **SSL**: Certificate valid until Nov 2026
+- **Credentials**: See `.env.deploy` (gitignored, local only)
 
 ---
 

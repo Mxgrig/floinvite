@@ -137,8 +137,8 @@ git push
 If something breaks after deploy and you need to revert:
 
 ```bash
-ssh -p 65002 REDACTED_USER@REDACTED_HOST << 'EOF'
-cd /home/REDACTED_USER/domains/floinvite.com/public_html
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+cd ~/domains/floinvite.com/public_html
 
 # List available backups
 ls -lh backups/
@@ -155,8 +155,8 @@ Mail system credentials (database password, SMTP config) are stored in `config.p
 
 ```bash
 # To update mail system credentials, use SSH directly:
-ssh -p 65002 REDACTED_USER@REDACTED_HOST << 'EOF'
-nano /home/REDACTED_USER/domains/floinvite.com/public_html/floinvite-mail/config.php
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+nano ~/domains/floinvite.com/public_html/floinvite-mail/config.php
 # Edit database/SMTP credentials
 # Save and exit
 EOF
@@ -187,12 +187,12 @@ npm run build              # Verify it works
 **Cause**: SSH/SCP connection issue
 **Fix**:
 ```bash
-# Test SSH connection
-ssh -p 65002 REDACTED_USER@REDACTED_HOST "echo 'Connected'"
+# Load credentials from .env.deploy, then test:
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST "echo 'Connected'"
 
 # If that fails, check:
-# 1. VPN/firewall is allowing port 65002
-# 2. SSH key is loaded: ssh-add ~/.ssh/id_rsa
+# 1. VPN/firewall is allowing the configured port
+# 2. SSH key is loaded: ssh-add $DEPLOY_SSH_KEY
 # 3. No Hostinger firewall blocking the connection
 ```
 
@@ -204,11 +204,11 @@ ssh -p 65002 REDACTED_USER@REDACTED_HOST "echo 'Connected'"
 ls -lh ~/domains/floinvite.com/public_html/backups/
 
 # Check .htaccess is correct
-ssh -p 65002 REDACTED_USER@REDACTED_HOST \
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST \
   "cat ~/domains/floinvite.com/public_html/.htaccess"
 
 # Check index.html exists
-ssh -p 65002 REDACTED_USER@REDACTED_HOST \
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST \
   "ls -lh ~/domains/floinvite.com/public_html/index.html"
 ```
 
@@ -216,13 +216,13 @@ ssh -p 65002 REDACTED_USER@REDACTED_HOST \
 **Cause**: Mail system files not deployed or permissions wrong
 **Fix**:
 ```bash
-ssh -p 65002 REDACTED_USER@REDACTED_HOST << 'EOF'
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
 # Check files exist
-ls -lh /home/REDACTED_USER/domains/floinvite.com/public_html/floinvite-mail/
+ls -lh ~/domains/floinvite.com/public_html/floinvite-mail/
 
 # Check permissions
-chmod 644 /home/REDACTED_USER/domains/floinvite.com/public_html/floinvite-mail/*.php
-chmod 755 /home/REDACTED_USER/domains/floinvite.com/public_html/floinvite-mail/logs/
+chmod 644 ~/domains/floinvite.com/public_html/floinvite-mail/*.php
+chmod 755 ~/domains/floinvite.com/public_html/floinvite-mail/logs/
 
 # Test
 curl -I https://floinvite.com/floinvite-mail/login.php
@@ -239,15 +239,15 @@ EOF
 ## Infrastructure Details
 
 ### Server Configuration
-- **Host**: Hostinger (REDACTED_HOST)
-- **SSH Port**: 65002
-- **User**: REDACTED_USER
+- **Host**: Hostinger (see `.env.deploy`)
+- **SSH Port**: See `.env.deploy`
+- **User**: See `.env.deploy`
 - **Domain**: floinvite.com
-- **SSL**: Valid until Nov 2026
+- **Credentials**: Stored in `.env.deploy` (gitignored)
 
 ### Directory Structure
 ```
-/home/REDACTED_USER/domains/floinvite.com/public_html/
+~/domains/floinvite.com/public_html/
 ├── index.html                    # React app entry point
 ├── .htaccess                     # Apache routing config
 ├── assets/                       # JS, CSS bundles
@@ -364,7 +364,7 @@ curl -I https://floinvite.com
 curl -I https://floinvite.com/floinvite-mail/login.php
 
 # View recent backups
-ssh -p 65002 REDACTED_USER@REDACTED_HOST \
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST \
   "ls -lh ~/domains/floinvite.com/public_html/backups/ | tail -5"
 ```
 
@@ -377,7 +377,7 @@ ssh -p 65002 REDACTED_USER@REDACTED_HOST \
 - [ ] `npm run build` succeeds with no errors
 - [ ] Committed and pushed to git
 - [ ] `git status` shows clean working tree
-- [ ] SSH connection works: `ssh -p 65002 REDACTED_USER@REDACTED_HOST "echo ok"`
+- [ ] SSH connection works: `ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST "echo ok"`
 - [ ] Run: `./deploy.sh --confirmed`
 
 ### For Mail System Changes:

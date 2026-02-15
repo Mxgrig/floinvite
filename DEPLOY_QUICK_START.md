@@ -84,8 +84,9 @@ Hard refresh: Cmd+Shift+R (or Ctrl+Shift+R on Windows)
 
 ### Need to rollback manually?
 ```bash
-ssh -p 65002 REDACTED_USER@REDACTED_HOST << 'EOF'
-cd /home/REDACTED_USER/domains/floinvite.com/public_html
+# Load credentials from .env.deploy, then:
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+cd ~/domains/floinvite.com/public_html
 ls -lh backups/                    # See available backups
 cp -r backups/backup_TIMESTAMP/* . # Restore one
 EOF
@@ -99,8 +100,9 @@ Mail system credentials (database password, SMTP settings) in `config.php` are *
 
 To update mail credentials:
 ```bash
-ssh -p 65002 REDACTED_USER@REDACTED_HOST \
-  "nano /home/REDACTED_USER/domains/floinvite.com/public_html/floinvite-mail/config.php"
+# Load credentials from .env.deploy, then:
+ssh -p $DEPLOY_PORT $DEPLOY_USER@$DEPLOY_HOST \
+  "nano ~/domains/floinvite.com/public_html/floinvite-mail/config.php"
 ```
 
 ---

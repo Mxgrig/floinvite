@@ -73,12 +73,29 @@ if [ "$CONFIRMED" != "true" ]; then
 fi
 
 # ============================================================================
-# Configuration
+# Configuration (loaded from .env.deploy)
 # ============================================================================
 
-REMOTE_HOST="REDACTED_HOST"
-REMOTE_PORT="65002"
-REMOTE_USER="REDACTED_USER"
+ENV_FILE="$(dirname "$0")/.env.deploy"
+if [ ! -f "$ENV_FILE" ]; then
+  echo -e "${RED}Error: .env.deploy not found.${NC}"
+  echo "Copy .env.deploy.example to .env.deploy and fill in your credentials."
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+
+if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_PORT" ] || [ -z "$DEPLOY_USER" ] || [ -z "$DEPLOY_SSH_KEY" ]; then
+  echo -e "${RED}Error: Missing required values in .env.deploy${NC}"
+  echo "Required: DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER, DEPLOY_SSH_KEY"
+  exit 1
+fi
+
+REMOTE_HOST="$DEPLOY_HOST"
+REMOTE_PORT="$DEPLOY_PORT"
+REMOTE_USER="$DEPLOY_USER"
+SSH_KEY="$DEPLOY_SSH_KEY"
 DEPLOY_DIR="/home/$REMOTE_USER/domains/floinvite.com/public_html"
 MAIL_DIR="$DEPLOY_DIR/floinvite-mail"
 BACKUP_DIR="$DEPLOY_DIR/backups"
@@ -141,7 +158,7 @@ if [ "$MAIL_ONLY" != "true" ]; then
 
   # Step 4: Create backup on remote server
   echo -e "${YELLOW}[4/7]${NC} Creating backup on remote server..."
-  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
+  ssh -i $SSH_KEY -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
     set -e
     mkdir -p $BACKUP_DIR
     
@@ -156,7 +173,7 @@ SSHEOF
 
   # Step 5: Upload React app files
   echo -e "${YELLOW}[5/7]${NC} Uploading React app files..."
-  if scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT -r dist/* $REMOTE_USER@$REMOTE_HOST:$DEPLOY_DIR/ > /tmp/scp.log 2>&1; then
+  if scp -i $SSH_KEY -P $REMOTE_PORT -r dist/* $REMOTE_USER@$REMOTE_HOST:$DEPLOY_DIR/ > /tmp/scp.log 2>&1; then
     echo -e "${GREEN}✓ React app files uploaded${NC}"
   else
     echo -e "${RED}✗ Upload failed${NC}"
@@ -166,7 +183,7 @@ SSHEOF
 
   # Step 6: Set permissions and configure React routing
   echo -e "${YELLOW}[6/7]${NC} Setting permissions and React routing..."
-  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
+  ssh -i $SSH_KEY -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
     set -e
     
     find $DEPLOY_DIR -maxdepth 1 -type d ! -name "floinvite-mail" ! -name "backups" -exec chmod 755 {} \;
@@ -234,19 +251,19 @@ if [ "$DEPLOY_MAIL" = "true" ] || [ "$MAIL_ONLY" = "true" ]; then
   
   # Upload mail system files (SKIP: config.php, .htpasswd)
   echo -e "${YELLOW}[MAIL]${NC} Uploading mail system files..."
-  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $MAIL_DIR" 2>/dev/null || true
+  ssh -i $SSH_KEY -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $MAIL_DIR" 2>/dev/null || true
   
   # Deploy all files EXCEPT config.php and .htpasswd (which contain credentials)
-  scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT -r public/floinvite-mail/* $REMOTE_USER@$REMOTE_HOST:$MAIL_DIR/
+  scp -i $SSH_KEY -P $REMOTE_PORT -r public/floinvite-mail/* $REMOTE_USER@$REMOTE_HOST:$MAIL_DIR/
 
   # Deploy PHPMailerHelper to API directory (required by mail system)
   API_DIR="/home/$REMOTE_USER/domains/floinvite.com/public_html/api"
-  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $API_DIR" 2>/dev/null || true
-  scp -i ~/.ssh/hostinger_new_key -P $REMOTE_PORT public/api/PHPMailerHelper.php $REMOTE_USER@$REMOTE_HOST:$API_DIR/ \
+  ssh -i $SSH_KEY -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "mkdir -p $API_DIR" 2>/dev/null || true
+  scp -i $SSH_KEY -P $REMOTE_PORT public/api/PHPMailerHelper.php $REMOTE_USER@$REMOTE_HOST:$API_DIR/ \
     2>/dev/null || true
 
   # Remove uploaded config.php and .htpasswd (we don't want to overwrite server versions)
-  ssh -i ~/.ssh/hostinger_new_key -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
+  ssh -i $SSH_KEY -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST << SSHEOF
     set -e
     
     # These files should NOT be overwritten from git
