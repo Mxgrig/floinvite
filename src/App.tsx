@@ -84,6 +84,11 @@ export function App() {
   const navigateToPage = (page: string) => {
     if (isAppPage(page)) {
       setCurrentPage(page);
+      const targetPath = getPageHref(page);
+      const currentPath = window.location.pathname;
+      if (targetPath && targetPath !== currentPath) {
+        window.history.pushState({}, '', targetPath);
+      }
     }
   };
 
@@ -227,7 +232,8 @@ export function App() {
 
   // Route to check-in if user is on starter or paid tier
   const handleStartCheckIn = () => {
-    if (userTier === 'starter' || PaymentService.isSubscribed('compliance') || PaymentService.isSubscribed('enterprise')) {
+    const isLegacyStarterPaid = localStorage.getItem('floinvite_user_tier') === 'starter-paid';
+    if (userTier === 'starter' || isLegacyStarterPaid || PaymentService.isSubscribed('compliance') || PaymentService.isSubscribed('enterprise')) {
       setCurrentPage('check-in');
     } else {
       setCurrentPage('pricing');
@@ -274,7 +280,7 @@ export function App() {
       case 'hosts':
         return <HostManagement />;
       case 'evacuation-list':
-        return <EvacuationList onNavigate={navigateToPage} />;
+        return <EvacuationList />;
       case 'settings':
         return <Settings onNavigate={navigateToPage} />;
       case 'privacy':
@@ -360,7 +366,7 @@ export function App() {
               <a href={getPageHref('hosts')} onClick={(e) => handleNavigationClick(e, navigateToPage, 'hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
                 Hosts
               </a>
-              <button onClick={() => setCurrentPage('evacuation-list')} className={`evacuation-btn ${currentPage === 'evacuation-list' ? 'active' : ''}`} title="Emergency evacuation accountability list - for emergency use only" style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem' }}>
+              <button onClick={() => navigateToPage('evacuation-list')} className={`evacuation-btn ${currentPage === 'evacuation-list' ? 'active' : ''}`} title="Emergency evacuation accountability list - for emergency use only" style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem' }}>
                 Evacuation
               </button>
               <a href={getPageHref('settings')} onClick={(e) => handleNavigationClick(e, navigateToPage, 'settings')} className={currentPage === 'settings' ? 'active' : ''}>

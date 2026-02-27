@@ -45,7 +45,7 @@ export function VisitorCheckIn() {
   });
   const labels = getLabelSettings(settings);
   const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
-  const [, setNotificationStatus] = useState<NotificationStatus | null>(null);
+  const [notificationStatus, setNotificationStatus] = useState<NotificationStatus | null>(null);
 
   // Walk-in state
   const [guestName, setGuestName] = useState('');
@@ -347,6 +347,11 @@ export function VisitorCheckIn() {
     <div className="checkin-page">
       <LoopingVideo source="/sessionlogin.mp4" fallbackColor="#0b1220" />
       <div className="checkin-content">
+        {notificationStatus && (
+          <div className={`notification-status ${notificationStatus.type}`}>
+            {notificationStatus.message}
+          </div>
+        )}
         {content}
       </div>
     </div>

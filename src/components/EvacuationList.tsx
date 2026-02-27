@@ -14,12 +14,7 @@ import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
 import PageLayout from './PageLayout';
 import './EvacuationList.css';
 
-interface EvacuationListProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function EvacuationList({ onNavigate: _onNavigate }: EvacuationListProps) {
-  void _onNavigate;
+export function EvacuationList() {
   const [guests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
   const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
