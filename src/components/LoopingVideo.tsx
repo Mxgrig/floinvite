@@ -57,9 +57,7 @@ export function LoopingVideo({
       muted={muted}
       autoPlay={autoplay}
       playsInline
-      style={{
-        fallback: fallbackColor
-      }}
+      style={{ backgroundColor: fallbackColor }}
     >
       <source src={source} type="video/mp4" />
       {/* Fallback for browsers that don't support video */}

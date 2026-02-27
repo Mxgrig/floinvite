@@ -313,7 +313,12 @@ export const parseCSVText = (text: string): Record<string, string>[] => {
   }
 
   // Parse header
-  const headers = lines[0]
+  const firstLine = lines[0];
+  if (!firstLine) {
+    return [];
+  }
+
+  const headers = firstLine
     .split(',')
     .map(h => h.trim())
     .map(h => h.replace(/^["']|["']$/g, '')); // Remove quotes
@@ -321,7 +326,9 @@ export const parseCSVText = (text: string): Record<string, string>[] => {
   // Parse rows
   const rows: Record<string, string>[] = [];
   for (let i = 1; i < lines.length; i++) {
-    const cells = lines[i]
+    const line = lines[i];
+    if (!line) continue;
+    const cells = line
       .split(',')
       .map(cell => cell.trim())
       .map(cell => cell.replace(/^["']|["']$/g, '')); // Remove quotes

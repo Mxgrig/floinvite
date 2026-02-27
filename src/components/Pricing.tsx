@@ -76,6 +76,11 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
       return;
     }
 
+    if (tierId !== 'compliance' && tierId !== 'enterprise') {
+      setErrorMessage('Invalid plan selected.');
+      return;
+    }
+
     setSelectedTier(tierId);
     setLoading(true);
     setErrorMessage(null);

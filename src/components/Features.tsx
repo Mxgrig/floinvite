@@ -3,7 +3,6 @@
  * Comprehensive feature showcase for floinvite
  */
 
-import { ClipboardList, Bell, BookOpen, Users, Clock, Zap, Lock, BarChart3, Download, Mail, Smartphone, Settings } from 'lucide-react';
 import { getLogoPath } from '../utils/logoHelper';
 import './Features.css';
 

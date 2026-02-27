@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { db, dbUtils } from '../db/floinviteDB';
+import { dbUtils } from '../db/floinviteDB';
 import { Host, Guest, AppSettings } from '../types';
 
 /**
@@ -28,7 +28,6 @@ export function usePersistedState<T>(
   defaultValue: T
 ): [T, (value: T | ((val: T) => T)) => void] {
   const [state, setState] = useState<T>(defaultValue);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Load initial data
   useEffect(() => {
@@ -39,11 +38,12 @@ export function usePersistedState<T>(
 
         // Load from IndexedDB for user data
         if (key === 'hosts') {
-          data = await dbUtils.getAllHosts();
+          data = await dbUtils.getAllHosts() as unknown as T;
         } else if (key === 'guests') {
-          data = await dbUtils.getAllGuests();
+          data = await dbUtils.getAllGuests() as unknown as T;
         } else if (key === 'settings') {
-          data = await dbUtils.getSettings();
+          const settings = await dbUtils.getSettings();
+          data = (settings ?? defaultValue) as T;
         } else {
           // Fall back to localStorage for other data
           const item = localStorage.getItem(key);
@@ -57,8 +57,6 @@ export function usePersistedState<T>(
       } catch (error) {
         console.error(`Failed to load persisted state (${key}):`, error);
         setState(defaultValue);
-      } finally {
-        setIsLoading(false);
       }
     };
 

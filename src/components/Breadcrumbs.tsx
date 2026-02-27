@@ -21,7 +21,6 @@ export function Breadcrumbs({ items, onNavigate }: BreadcrumbsProps) {
       <ol className="breadcrumbs-list">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
-          const isFirst = index === 0;
 
           return (
             <li key={index} className="breadcrumb-item">

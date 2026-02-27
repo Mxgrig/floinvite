@@ -259,7 +259,7 @@ export const dbUtils = {
    * Get sync log entries that haven't been synced yet
    */
   async getUnsyncedActions(): Promise<SyncLog[]> {
-    return db.syncLog.where('synced').equals(false).toArray();
+    return db.syncLog.filter(action => !action.synced).toArray();
   },
 
   /**
@@ -281,7 +281,7 @@ export const dbUtils = {
   }> {
     const hostsCount = await db.hosts.count();
     const guestsCount = await db.guests.count();
-    const unsyncedCount = await db.syncLog.where('synced').equals(false).count();
+    const unsyncedCount = (await db.syncLog.filter(action => !action.synced).toArray()).length;
 
     return {
       hostsCount,

@@ -25,7 +25,6 @@ interface CheckoutSessionResponse {
 }
 
 export class PaymentService {
-  private static STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   // Payment integration is Phase 3 - no local API needed for MVP
   private static API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -94,6 +93,9 @@ export class PaymentService {
       }
 
       // Store checkout session ID in localStorage for recovery
+      if (!session.sessionId || !session.url) {
+        throw new Error('Invalid checkout session response');
+      }
       this.storeCheckoutSession(session.sessionId);
 
       // Redirect to Stripe checkout

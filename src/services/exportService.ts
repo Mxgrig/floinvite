@@ -29,16 +29,16 @@ export class ExportService {
       'Pre-Registered'
     ];
 
-    const rows = guests.map(g => [
+    const rows: string[][] = guests.map(g => [
       this.escapeCSV(g.name),
       this.escapeCSV(g.company || ''),
       this.escapeCSV(g.email || ''),
       this.escapeCSV(g.phone || ''),
       this.escapeCSV(g.hostId),
-      g.checkInTime,
-      g.checkOutTime || '',
-      g.status,
-      g.visitCount || 0,
+      this.escapeCSV(g.checkInTime),
+      this.escapeCSV(g.checkOutTime || ''),
+      this.escapeCSV(g.status),
+      this.escapeCSV(String(g.visitCount || 0)),
       g.preRegistered ? 'Yes' : 'No'
     ]);
 
@@ -55,7 +55,7 @@ export class ExportService {
       'Phone',
       'Department',
       'Notification Method',
-      'WhatsApp Number'
+      'SMS Number'
     ];
 
     const rows = hosts.map(h => [
@@ -64,7 +64,7 @@ export class ExportService {
       this.escapeCSV(h.phone || ''),
       this.escapeCSV(h.department || ''),
       this.escapeCSV(h.notificationMethod || 'email'),
-      this.escapeCSV(h.whatsappNumber || '')
+      this.escapeCSV(h.smsNumber || '')
     ]);
 
     this.downloadCSV([headers, ...rows], filename);

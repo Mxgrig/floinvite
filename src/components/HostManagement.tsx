@@ -4,15 +4,13 @@
  */
 
 import { useState } from 'react';
-import { Lock, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { AppSettings, Host } from '../types';
 import { StorageService } from '../services/storageService';
 import { ServerPaymentService } from '../services/serverPaymentService';
 import { usePersistedState } from '../utils/hooks';
 import { validateHostName, validateHostEmail, isValidCSVFile, parseCSVText } from '../utils/validators';
 import { STORAGE_KEYS } from '../utils/constants';
-import { hasFeature } from '../utils/featureGating';
-import { UsageTracker } from '../utils/usageTracker';
 import { dbUtils } from '../db/floinviteDB';
 import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
 import PageLayout from './PageLayout';
@@ -32,7 +30,6 @@ export function HostManagement() {
     updatedAt: new Date().toISOString()
   });
   const labels = getLabelSettings(settings);
-  const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
   const [step, setStep] = useState<HostStep>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

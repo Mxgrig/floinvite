@@ -16,7 +16,6 @@ export interface UsageData {
 import { dbUtils } from '../db/floinviteDB';
 
 export class UsageTracker {
-  private static STORAGE_KEY = 'floinvite_usage_tracking';
   private static HOSTS_LIMIT = parseInt(import.meta.env.VITE_FREE_HOSTS_LIMIT || '20', 10);
   private static VISITORS_LIMIT = parseInt(import.meta.env.VITE_FREE_VISITORS_LIMIT || '20', 10);
 

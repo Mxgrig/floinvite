@@ -435,7 +435,7 @@ export const openWhatsAppChatAndWait = (
  */
 export const generateWhatsAppVisitorMessage = (
   guest: Guest,
-  host: Host
+  _host: Host
 ): string => {
   const company = guest.company ? ` from ${guest.company}` : '';
   const time = new Date(guest.checkInTime).toLocaleTimeString('en-GB', {
@@ -451,7 +451,7 @@ export const generateWhatsAppVisitorMessage = (
  */
 export const generateWhatsAppReturningMessage = (
   guest: Guest,
-  host: Host,
+  _host: Host,
   previousVisitDate: Date
 ): string => {
   const company = guest.company ? ` from ${guest.company}` : '';
@@ -467,8 +467,8 @@ export const generateWhatsAppReturningMessage = (
  */
 export const generateWhatsAppExpectedMessage = (
   guest: Guest,
-  host: Host,
-  expectedTime?: string
+  _host: Host,
+  _expectedTime?: string
 ): string => {
   const company = guest.company ? ` from ${guest.company}` : '';
   const actualTime = new Date(guest.checkInTime).toLocaleTimeString('en-GB', {
@@ -492,7 +492,8 @@ export const sendWhatsAppNotification = async (
     send: (phoneNumber: string, message: string) => Promise<void>;
   }
 ): Promise<void> => {
-  if (!host.whatsappNumber) {
+  const whatsappNumber = host.smsNumber;
+  if (!whatsappNumber) {
     console.warn('WhatsApp not configured for host:', host.name);
     return;
   }
@@ -500,7 +501,7 @@ export const sendWhatsAppNotification = async (
   if (whatsappService) {
     // Phase 2: Use API service
     try {
-      await whatsappService.send(host.whatsappNumber, message);
+      await whatsappService.send(whatsappNumber, message);
       onConfirm?.();
     } catch (error) {
       console.error(`Failed to send WhatsApp to ${host.name}:`, error);
@@ -509,7 +510,7 @@ export const sendWhatsAppNotification = async (
   } else {
     // Phase 1: Open WhatsApp Web and wait for user to return
     openWhatsAppChatAndWait(
-      host.whatsappNumber,
+      whatsappNumber,
       message,
       onConfirm || (() => {}),
       () => null

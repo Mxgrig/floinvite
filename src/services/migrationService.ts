@@ -164,6 +164,7 @@ export class MigrationService {
         lastVisit: guest.lastVisit,
         visitCount: guest.visitCount,
         preRegistered: guest.preRegistered || false,
+        createdAt: guest.createdAt || new Date().toISOString(),
         updatedAt: guest.updatedAt || new Date().toISOString()
       };
     });
