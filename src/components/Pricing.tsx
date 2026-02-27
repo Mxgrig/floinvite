@@ -3,6 +3,7 @@ import { CheckCircle } from 'lucide-react';
 import { getLogoPath } from '../utils/logoHelper';
 import { PRICING_TIERS } from '../services/pricingService';
 import { PaymentService } from '../services/paymentService';
+import { applyPageSeo } from '../utils/seoHelper';
 import PageLayout from './PageLayout';
 import './Pricing.css';
 
@@ -42,10 +43,30 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
     script.textContent = JSON.stringify(schema);
     document.head.appendChild(script);
 
+    const cleanupSeo = applyPageSeo({
+      title: 'Floinvite Pricing | Simple, Transparent Plans for Every Business',
+      canonicalUrl: 'https://floinvite.com/pricing',
+      metas: [
+        {
+          selector: 'meta[name="description"]',
+          attr: 'name',
+          key: 'description',
+          content: 'Choose the right Floinvite plan for your business. From our Starter plan for small offices to Compliance+ for audit-ready estates.'
+        },
+        {
+          selector: 'meta[property="og:title"]',
+          attr: 'property',
+          key: 'og:title',
+          content: 'Floinvite Pricing | Simple, Transparent Plans for Every Business'
+        }
+      ]
+    });
+
     return () => {
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }
+      cleanupSeo();
     };
   }, []);
 

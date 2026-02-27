@@ -4,7 +4,7 @@
  * Uses `<a>` href links for SEO crawlability
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Mail, MapPin, Menu, Phone, X } from 'lucide-react';
 import { getLogoPath } from '../utils/logoHelper';
 import { LoopingVideo } from './LoopingVideo';
@@ -12,6 +12,7 @@ import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
 import { AppSettings } from '../types';
 import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
+import { applyPageSeo } from '../utils/seoHelper';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -31,6 +32,27 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
     updatedAt: new Date().toISOString()
   });
   const labels = getLabelSettings(settings);
+
+  useEffect(() => {
+    return applyPageSeo({
+      title: 'Floinvite - Fast SME Site Access | Zero Hardware',
+      canonicalUrl: 'https://floinvite.com/',
+      metas: [
+        {
+          selector: 'meta[name="description"]',
+          attr: 'name',
+          key: 'description',
+          content: 'The fastest site access management system for SMEs. Check-in in 30 seconds with zero hardware or kiosks. Notify hosts instantly.'
+        },
+        {
+          selector: 'meta[property="og:title"]',
+          attr: 'property',
+          key: 'og:title',
+          content: 'Floinvite - Fast SME Site Access | Zero Hardware'
+        }
+      ]
+    });
+  }, []);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, page: string) => {
     e.preventDefault();

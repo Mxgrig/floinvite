@@ -21,12 +21,14 @@ export class UsageTracker {
   private static VISITORS_LIMIT = parseInt(import.meta.env.VITE_FREE_VISITORS_LIMIT || '20', 10);
 
   /**
-   * Get current usage statistics
+   * Get current usage statistics (Async)
    */
-  static getUsage(): UsageData {
+  static async getUsage(): Promise<UsageData> {
     try {
-      const hosts = this.getHostCount();
-      const visitors = this.getVisitorCount();
+      const [hosts, visitors] = await Promise.all([
+        this.getHostCount(),
+        this.getVisitorCount()
+      ]);
       const totalItems = hosts + visitors;
 
       return {
@@ -53,61 +55,26 @@ export class UsageTracker {
 
   /**
    * Get current usage from IndexedDB (authoritative store)
+   * Alias for getUsage()
    */
   static async getUsageAsync(): Promise<UsageData> {
-    try {
-      const [hosts, visitors] = await Promise.all([
-        dbUtils.getAllHosts(),
-        dbUtils.getAllGuests()
-      ]);
-      const totalItems = hosts.length + visitors.length;
-
-      return {
-        totalHosts: hosts.length,
-        totalVisitors: visitors.length,
-        hostsLimit: this.HOSTS_LIMIT,
-        visitorsLimit: this.VISITORS_LIMIT,
-        isOverLimit: totalItems > this.HOSTS_LIMIT || visitors.length > this.VISITORS_LIMIT,
-        remainingHosts: Math.max(0, this.HOSTS_LIMIT - hosts.length),
-        remainingVisitors: Math.max(0, this.VISITORS_LIMIT - visitors.length)
-      };
-    } catch {
-      return {
-        totalHosts: 0,
-        totalVisitors: 0,
-        hostsLimit: this.HOSTS_LIMIT,
-        visitorsLimit: this.VISITORS_LIMIT,
-        isOverLimit: false,
-        remainingHosts: this.HOSTS_LIMIT,
-        remainingVisitors: this.VISITORS_LIMIT
-      };
-    }
+    return this.getUsage();
   }
 
   /**
-   * Check if user should see upgrade prompt
-   * Returns true if over limit (no dismissal - always show when over limit)
+   * Check if user should see upgrade prompt (Async)
    */
-  static shouldShowUpgradePrompt(): boolean {
-    const usage = this.getUsage();
-    if (!usage.isOverLimit) {
-      return false;
-    }
-
-    // Always show upgrade prompt when over limit - cannot dismiss
-    return true;
+  static async shouldShowUpgradePrompt(): Promise<boolean> {
+    const usage = await this.getUsage();
+    return usage.isOverLimit;
   }
 
   /**
    * Async version that checks IndexedDB
+   * Alias for shouldShowUpgradePrompt()
    */
   static async shouldShowUpgradePromptAsync(): Promise<boolean> {
-    const usage = await this.getUsageAsync();
-    if (!usage.isOverLimit) {
-      return false;
-    }
-
-    return true;
+    return this.shouldShowUpgradePrompt();
   }
 
   /**
@@ -118,55 +85,52 @@ export class UsageTracker {
   }
 
   /**
-   * Get host count from localStorage
+   * Get host count (Async)
    */
-  private static getHostCount(): number {
+  private static async getHostCount(): Promise<number> {
     try {
-      const hosts = localStorage.getItem('floinvite_hosts');
-      if (!hosts) return 0;
-      const parsed = JSON.parse(hosts);
-      return Array.isArray(parsed) ? parsed.length : 0;
+      const hosts = await dbUtils.getAllHosts();
+      return hosts.length;
     } catch {
       return 0;
     }
   }
 
   /**
-   * Get visitor count from localStorage
+   * Get visitor count (Async)
    */
-  private static getVisitorCount(): number {
+  private static async getVisitorCount(): Promise<number> {
     try {
-      const guests = localStorage.getItem('floinvite_guests');
-      if (!guests) return 0;
-      const parsed = JSON.parse(guests);
-      return Array.isArray(parsed) ? parsed.length : 0;
+      const guests = await dbUtils.getAllGuests();
+      return guests.length;
     } catch {
       return 0;
     }
   }
 
   /**
-   * Get usage percentage (0-100)
+   * Get usage percentage (0-100) (Async)
    */
-  static getUsagePercentage(): number {
-    const usage = this.getUsage();
+  static async getUsagePercentage(): Promise<number> {
+    const usage = await this.getUsage();
     const limit = this.HOSTS_LIMIT;
     const total = usage.totalHosts + usage.totalVisitors;
     return Math.min(100, Math.round((total / limit) * 100));
   }
 
   /**
-   * Get warning message based on usage
+   * Get warning message based on usage (Async)
    */
-  static getWarningMessage(): string | null {
-    const usage = this.getUsage();
+  static async getWarningMessage(): Promise<string | null> {
+    const usage = await this.getUsage();
 
     if (usage.isOverLimit) {
       return `You've reached the free tier limit! Continue on Starter for $29/month, or upgrade to Compliance+ for $49/month with audit-ready features.`;
     }
 
+    const percentage = await this.getUsagePercentage();
     if (usage.totalHosts + usage.totalVisitors > this.HOSTS_LIMIT * 0.8) {
-      return `You're using ${this.getUsagePercentage()}% of your free tier limit. Starter continues at $29/month after 20 items.`;
+      return `You're using ${percentage}% of your free tier limit. Starter continues at $29/month after 20 items.`;
     }
 
     return null;

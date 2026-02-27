@@ -32,6 +32,7 @@ export function usePersistedState<T>(
 
   // Load initial data
   useEffect(() => {
+    const isFirstRun = { current: true };
     const loadData = async () => {
       try {
         let data: T | null = defaultValue;
@@ -49,7 +50,10 @@ export function usePersistedState<T>(
           data = item ? JSON.parse(item) : defaultValue;
         }
 
-        setState(data ?? defaultValue);
+        if (isFirstRun.current) {
+          setState(data ?? defaultValue);
+          isFirstRun.current = false;
+        }
       } catch (error) {
         console.error(`Failed to load persisted state (${key}):`, error);
         setState(defaultValue);
@@ -59,7 +63,7 @@ export function usePersistedState<T>(
     };
 
     loadData();
-  }, [key, defaultValue]);
+  }, [key]); // Only depend on key
 
   // Save state changes to appropriate storage
   const setPersistentState = useCallback(

@@ -14,9 +14,9 @@ Disallow: /dist
 # Sitemap location
 Sitemap: https://floinvite.com/sitemap.xml
 
-# Crawl delay (seconds) - be respectful
-Crawl-delay: 0
-Request-rate: 30/60
+
+# Crawl-rate and delays (removed for optimal Google crawling)
+
 
 # Block bad bots
 User-agent: AhrefsBot

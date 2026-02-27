@@ -48,8 +48,16 @@ export function VisitorCheckIn() {
   });
   const labels = getLabelSettings(settings);
   const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
-  const guests = StorageService.getGuests();
+  const [guests, setGuests] = useState<Guest[]>([]);
   const [notificationStatus, setNotificationStatus] = useState<NotificationStatus | null>(null);
+
+  useEffect(() => {
+    const loadGuests = async () => {
+      const data = await StorageService.getGuests();
+      setGuests(data);
+    };
+    loadGuests();
+  }, [step]);
 
   // Walk-in state
   const [guestName, setGuestName] = useState('');
@@ -201,7 +209,7 @@ export function VisitorCheckIn() {
     };
 
     // Save to storage
-    StorageService.addGuest(guest);
+    await StorageService.addGuest(guest);
 
     // Determine notification method (default to email)
     const notificationMethod = getNotificationMethod(host);
@@ -223,14 +231,14 @@ export function VisitorCheckIn() {
     const timeUntilDeparture = estimatedDepartureTime - Date.now();
 
     if (timeUntilDeparture > 0) {
-      const autoCheckoutTimer = setTimeout(() => {
+      const autoCheckoutTimer = setTimeout(async () => {
         const updatedGuest: Guest = {
           ...guest,
           checkOutTime: new Date().toISOString(),
           status: GUEST_STATUS.CHECKED_OUT as GuestStatus,
           updatedAt: new Date().toISOString()
         };
-        StorageService.updateGuest(guest.id, updatedGuest);
+        await StorageService.updateGuest(guest.id, updatedGuest);
       }, timeUntilDeparture);
 
       // Store timer ID for cleanup if needed
@@ -259,7 +267,7 @@ export function VisitorCheckIn() {
     setNotificationStatus(null);
   };
 
-  const handleSearchExpected = (query: string) => {
+  const handleSearchExpected = async (query: string) => {
     setSearchQuery(query);
 
     if (!query.trim()) {
@@ -267,7 +275,7 @@ export function VisitorCheckIn() {
       return;
     }
 
-    const allGuests = StorageService.getGuests();
+    const allGuests = await StorageService.getGuests();
     const expectedGuests = allGuests.filter(g => g.preRegistered && g.status === GUEST_STATUS.EXPECTED);
     const lowerQuery = query.toLowerCase();
 
@@ -308,7 +316,7 @@ export function VisitorCheckIn() {
       }
     }
 
-    const guest = StorageService.getGuest(guestId);
+    const guest = await StorageService.getGuest(guestId);
     if (!guest) return;
 
     // Update guest status to checked in
@@ -319,7 +327,7 @@ export function VisitorCheckIn() {
       visitCount: (guest.visitCount || 0) + 1
     };
 
-    StorageService.updateGuest(guestId, updatedGuest);
+    await StorageService.updateGuest(guestId, updatedGuest);
 
     const host = hosts.find(h => h.id === guest.hostId);
     if (host) {
@@ -529,18 +537,18 @@ function WalkInStep({
 
       {errors.length > 0 && (
         <div className="error-message">
-            {errors.map((error, i) => (
-              <p key={i}>- {error}</p>
-            ))}
+          {errors.map((error, i) => (
+            <p key={i}>- {error}</p>
+          ))}
         </div>
       )}
 
       {hosts.length === 0 && (
-        <div style={{ 
-          backgroundColor: '#fee2e2', 
-          border: '1px solid #fca5a5', 
-          borderRadius: '4px', 
-          padding: '12px', 
+        <div style={{
+          backgroundColor: '#fee2e2',
+          border: '1px solid #fca5a5',
+          borderRadius: '4px',
+          padding: '12px',
           marginBottom: '16px',
           color: '#991b1b'
         }}>

@@ -75,7 +75,23 @@ export function Logbook({ onNavigate }: LogbookProps) {
     );
   };
 
-  const stats = StorageService.getStats();
+  const [stats, setStats] = useState<{
+    totalGuests: number;
+    todayCheckIns: number;
+    checkedInToday: number;
+  }>({ totalGuests: 0, todayCheckIns: 0, checkedInToday: 0 });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      const currentStats = await StorageService.getStats();
+      setStats({
+        totalGuests: currentStats.totalGuests,
+        todayCheckIns: currentStats.todayCheckIns,
+        checkedInToday: currentStats.checkedInToday
+      });
+    };
+    loadStats();
+  }, [guests]);
 
   const pageStats = [
     { value: String(stats.totalGuests), label: `Total ${labels.personPlural.toLowerCase()}` },
@@ -83,7 +99,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
     { value: String(stats.checkedInToday), label: 'Checked in' }
   ];
 
-  const handleEarlyCheckout = (guest: Guest) => {
+  const handleEarlyCheckout = async (guest: Guest) => {
     const confirmed = window.confirm(`Check out ${guest.name} now?`);
     if (confirmed) {
       const updatedGuest: Guest = {
@@ -92,7 +108,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
         status: GuestStatus.CHECKED_OUT,
         updatedAt: new Date().toISOString()
       };
-      StorageService.updateGuest(guest.id, updatedGuest);
+      await StorageService.updateGuest(guest.id, updatedGuest);
       // Update local state to trigger re-render
       const updatedGuests = guests.map(g => g.id === guest.id ? updatedGuest : g);
       setGuests(updatedGuests);
@@ -104,28 +120,34 @@ export function Logbook({ onNavigate }: LogbookProps) {
 
   // Auto-checkout remaining guests at end of day (6 PM / 18:00)
   useEffect(() => {
-    const now = new Date();
-    const endOfDayHour = 18; // 6 PM
+    const checkAutoCheckout = async () => {
+      const now = new Date();
+      const endOfDayHour = 18; // 6 PM
 
-    if (now.getHours() >= endOfDayHour) {
-      const updatedGuests = guests.map(guest => {
-        if (guest.status === 'Checked In') {
-          const checkedOutGuest = {
-            ...guest,
-            checkOutTime: new Date().toISOString(),
-            status: GuestStatus.CHECKED_OUT,
-            updatedAt: new Date().toISOString()
-          };
-          StorageService.updateGuest(guest.id, checkedOutGuest);
-          return checkedOutGuest;
+      if (now.getHours() >= endOfDayHour) {
+        let hasChanges = false;
+        const updatedGuests = await Promise.all(guests.map(async (guest) => {
+          if (guest.status === 'Checked In') {
+            const checkedOutGuest = {
+              ...guest,
+              checkOutTime: new Date().toISOString(),
+              status: GuestStatus.CHECKED_OUT,
+              updatedAt: new Date().toISOString()
+            };
+            await StorageService.updateGuest(guest.id, checkedOutGuest);
+            hasChanges = true;
+            return checkedOutGuest;
+          }
+          return guest;
+        }));
+
+        if (hasChanges) {
+          setGuests(updatedGuests);
         }
-        return guest;
-      });
-
-      if (updatedGuests.some(g => g.status === 'Checked Out' && guests.find(og => og.id === g.id)?.status === 'Checked In')) {
-        setGuests(updatedGuests);
       }
-    }
+    };
+
+    checkAutoCheckout();
   }, [guests, setGuests]);
 
   return (

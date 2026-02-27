@@ -69,8 +69,8 @@ export function Settings({ onNavigate }: SettingsProps) {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleExportData = () => {
-    const data = StorageService.exportAllData();
+  const handleExportData = async () => {
+    const data = await StorageService.exportAllData();
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -82,9 +82,9 @@ export function Settings({ onNavigate }: SettingsProps) {
 
   const handleImportFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const text = event.target?.result as string;
-      if (StorageService.importAllData(text)) {
+      if (await StorageService.importAllData(text)) {
         setImportStatus({ type: 'success', message: 'Data imported successfully. Reloading...' });
         setTimeout(() => window.location.reload(), 800);
       } else {
@@ -100,14 +100,26 @@ export function Settings({ onNavigate }: SettingsProps) {
     handleImportFile(file);
   };
 
-  const handleClearAllData = () => {
+  const handleClearAllData = async () => {
     if (confirm('This will delete ALL data. This action cannot be undone. Are you sure?')) {
-      StorageService.clearAllData();
+      await StorageService.clearAllData();
       window.location.reload();
     }
   };
 
-  const storageInfo = StorageService.getStorageInfo();
+  const [storageInfo, setStorageInfo] = useState<{ used: number; limit: number; percentage: number }>({
+    used: 0,
+    limit: 52428800,
+    percentage: 0
+  });
+
+  useEffect(() => {
+    const loadStorageInfo = async () => {
+      const info = await StorageService.getStorageInfo();
+      setStorageInfo(info);
+    };
+    loadStorageInfo();
+  }, [activeTab]);
 
   return (
     <div className="settings-page">
@@ -396,188 +408,188 @@ export function Settings({ onNavigate }: SettingsProps) {
             </div>
 
             {hasFeature(userTier, 'cloud_backup') ? (
-            <div className="data-section">
-              <div className="storage-info">
-                <h3>Storage Usage</h3>
-                <div className="storage-bar">
-                  <div
-                    className="storage-used"
-                    style={{ width: `${storageInfo.percentage}%` }}
-                  ></div>
+              <div className="data-section">
+                <div className="storage-info">
+                  <h3>Storage Usage</h3>
+                  <div className="storage-bar">
+                    <div
+                      className="storage-used"
+                      style={{ width: `${storageInfo.percentage}%` }}
+                    ></div>
+                  </div>
+                  <p>
+                    {(storageInfo.used / 1024).toFixed(1)} KB / {(storageInfo.limit / 1024 / 1024).toFixed(0)} MB
+                  </p>
+                  {storageInfo.percentage > 80 && (
+                    <div className="warning-box">
+                      <AlertTriangle size={18} />
+                      Storage nearly full. Consider exporting and clearing old data.
+                    </div>
+                  )}
                 </div>
-                <p>
-                  {(storageInfo.used / 1024).toFixed(1)} KB / {(storageInfo.limit / 1024 / 1024).toFixed(0)} MB
-                </p>
-                {storageInfo.percentage > 80 && (
-                  <div className="warning-box">
+
+                <div className="info-box">
+                  <Info size={18} />
+                  <div>
+                    <strong>Your data lives in this browser.</strong> Clearing site data or switching devices will remove your guests, hosts, and settings.
+                    Upgrade to Compliance+ for cloud backup and safer retention.
+                  </div>
+                </div>
+
+                <div className="backup-actions">
+                  <h3>Backup, Restore & Emergency</h3>
+                  {importStatus && (
+                    <div className={`import-status ${importStatus.type}`}>
+                      {importStatus.message}
+                    </div>
+                  )}
+
+                  <button onClick={handleExportData} className="btn btn-secondary">
+                    <Download size={18} />
+                    Export All Data
+                  </button>
+                  <p className="help-text">Download all your data as a JSON file for backup</p>
+
+                  <button className="btn btn-secondary" onClick={(e) => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    input.onchange = (event) => {
+                      const file = (event.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        handleImportFile(file);
+                      }
+                    };
+                    input.click();
+                  }}>
+                    <Upload size={18} />
+                    Import Data
+                  </button>
+                  <p className="help-text">Restore from a previously exported JSON file</p>
+
+                  <button
+                    type="button"
+                    onClick={() => onNavigate?.('evacuation-list')}
+                    style={{
+                      background: '#dc2626',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.625rem 1rem',
+                      fontSize: '14px',
+                      fontWeight: '700',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      marginTop: '1rem',
+                      textDecoration: 'none',
+                      textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
+                  >
+                    <AlertTriangle size={16} />
+                    Create Evacuation List
+                  </button>
+                  <p className="help-text">Generate emergency evacuation accountability list with all checked-in guests</p>
+                </div>
+
+                <div className="danger-zone">
+                  <h3>
                     <AlertTriangle size={18} />
-                    Storage nearly full. Consider exporting and clearing old data.
-                  </div>
-                )}
-              </div>
-
-              <div className="info-box">
-                <Info size={18} />
-                <div>
-                  <strong>Your data lives in this browser.</strong> Clearing site data or switching devices will remove your guests, hosts, and settings.
-                  Upgrade to Compliance+ for cloud backup and safer retention.
+                    Danger Zone
+                  </h3>
+                  <button onClick={handleClearAllData} className="btn btn-danger">
+                    Delete All Data
+                  </button>
+                  <p className="help-text warning-text">
+                    Permanently delete all guests, hosts, and settings. This cannot be undone.
+                  </p>
                 </div>
               </div>
-
-              <div className="backup-actions">
-                <h3>Backup, Restore & Emergency</h3>
-                {importStatus && (
-                  <div className={`import-status ${importStatus.type}`}>
-                    {importStatus.message}
-                  </div>
-                )}
-
-                <button onClick={handleExportData} className="btn btn-secondary">
-                  <Download size={18} />
-                  Export All Data
-                </button>
-                <p className="help-text">Download all your data as a JSON file for backup</p>
-
-                <button className="btn btn-secondary" onClick={(e) => {
-                  const input = document.createElement('input');
-                  input.type = 'file';
-                  input.accept = '.json';
-                  input.onchange = (event) => {
-                    const file = (event.target as HTMLInputElement).files?.[0];
-                    if (file) {
-                      handleImportFile(file);
-                    }
-                  };
-                  input.click();
-                }}>
-                  <Upload size={18} />
-                  Import Data
-                </button>
-                <p className="help-text">Restore from a previously exported JSON file</p>
-
-                <button
-                  type="button"
-                  onClick={() => onNavigate?.('evacuation-list')}
-                  style={{
-                    background: '#dc2626',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.625rem 1rem',
-                    fontSize: '14px',
-                    fontWeight: '700',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    marginTop: '1rem',
-                    textDecoration: 'none',
-                    textAlign: 'center'
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
-                >
-                  <AlertTriangle size={16} />
-                  Create Evacuation List
-                </button>
-                <p className="help-text">Generate emergency evacuation accountability list with all checked-in guests</p>
-              </div>
-
-              <div className="danger-zone">
-                <h3>
-                  <AlertTriangle size={18} />
-                  Danger Zone
-                </h3>
-                <button onClick={handleClearAllData} className="btn btn-danger">
-                  Delete All Data
-                </button>
-                <p className="help-text warning-text">
-                  Permanently delete all guests, hosts, and settings. This cannot be undone.
-                </p>
-              </div>
-            </div>
             ) : (
-            <div style={{
-              backgroundColor: '#f3f4f6',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              padding: '32px',
-              textAlign: 'center'
-            }}>
-              <Lock size={48} style={{ color: '#dc2626', marginBottom: '16px', opacity: 0.6 }} />
-              <h3 style={{ margin: '16px 0', color: '#1f2937' }}>Cloud Backup - Compliance+ Feature</h3>
-              <p style={{ color: '#6b7280', marginBottom: '20px' }}>
-                Export and backup your data to protect against data loss. This feature is available in the Compliance+ tier and above.
-              </p>
-              <div className="info-box" style={{ margin: '0 auto 16px', textAlign: 'left', maxWidth: '520px' }}>
-                <Info size={18} />
-                <div>
-                  <strong>Your data lives in this browser.</strong> Clearing site data or switching devices will remove your guests, hosts, and settings.
-                  Upgrade to Compliance+ for cloud backup and safer retention.
+              <div style={{
+                backgroundColor: '#f3f4f6',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '32px',
+                textAlign: 'center'
+              }}>
+                <Lock size={48} style={{ color: '#dc2626', marginBottom: '16px', opacity: 0.6 }} />
+                <h3 style={{ margin: '16px 0', color: '#1f2937' }}>Cloud Backup - Compliance+ Feature</h3>
+                <p style={{ color: '#6b7280', marginBottom: '20px' }}>
+                  Export and backup your data to protect against data loss. This feature is available in the Compliance+ tier and above.
+                </p>
+                <div className="info-box" style={{ margin: '0 auto 16px', textAlign: 'left', maxWidth: '520px' }}>
+                  <Info size={18} />
+                  <div>
+                    <strong>Your data lives in this browser.</strong> Clearing site data or switching devices will remove your guests, hosts, and settings.
+                    Upgrade to Compliance+ for cloud backup and safer retention.
+                  </div>
                 </div>
-              </div>
-              <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #d1d5db' }}>
-                <strong>Starter tier:</strong> All data is stored locally in your browser<br />
-                <strong>Compliance+ tier:</strong> Enable cloud backup and export capabilities
-              </div>
+                <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #d1d5db' }}>
+                  <strong>Starter tier:</strong> All data is stored locally in your browser<br />
+                  <strong>Compliance+ tier:</strong> Enable cloud backup and export capabilities
+                </div>
 
-              <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #d1d5db', textAlign: 'center' }}>
-                <h3 style={{ color: '#1f2937', marginBottom: '12px', fontSize: '16px' }}>Emergency & Safety</h3>
-                <p style={{ color: '#6b7280', marginBottom: '16px' }}>Available on all tiers:</p>
-                <button
-                  type="button"
-                  onClick={() => onNavigate?.('evacuation-list')}
-                  style={{
-                    background: '#dc2626',
-                    color: 'white',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.625rem 1rem',
-                    fontSize: '14px',
-                    fontWeight: '700',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    textDecoration: 'none',
-                    textAlign: 'center'
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
-                >
-                  <AlertTriangle size={16} />
-                  Create Evacuation List
-                </button>
+                <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #d1d5db', textAlign: 'center' }}>
+                  <h3 style={{ color: '#1f2937', marginBottom: '12px', fontSize: '16px' }}>Emergency & Safety</h3>
+                  <p style={{ color: '#6b7280', marginBottom: '16px' }}>Available on all tiers:</p>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate?.('evacuation-list')}
+                    style={{
+                      background: '#dc2626',
+                      color: 'white',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.625rem 1rem',
+                      fontSize: '14px',
+                      fontWeight: '700',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      textDecoration: 'none',
+                      textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
+                  >
+                    <AlertTriangle size={16} />
+                    Create Evacuation List
+                  </button>
+                </div>
+                {onNavigate && (
+                  <button
+                    onClick={() => onNavigate('pricing')}
+                    style={{
+                      marginTop: '24px',
+                      background: '#4f46e5',
+                      border: 'none',
+                      color: 'white',
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.5rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#4338ca';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#4f46e5';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    View Pricing & Upgrade
+                  </button>
+                )}
               </div>
-              {onNavigate && (
-                <button
-                  onClick={() => onNavigate('pricing')}
-                  style={{
-                    marginTop: '24px',
-                    background: '#4f46e5',
-                    border: 'none',
-                    color: 'white',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.5rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#4338ca';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#4f46e5';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  View Pricing & Upgrade
-                </button>
-              )}
-            </div>
             )}
           </div>
         )}

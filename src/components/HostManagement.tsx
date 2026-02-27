@@ -217,8 +217,9 @@ export function HostManagement() {
           updatedAt: now
         })).filter(h => h.name && h.email) as Host[];
 
-        const result = StorageService.importHosts(newHosts, false);
-        setHosts(StorageService.getHosts());
+        const result = await StorageService.importHosts(newHosts, false);
+        const updatedHosts = await StorageService.getHosts();
+        setHosts(updatedHosts);
 
         setSuccessMessage(`Imported ${result.added} hosts${result.skipped > 0 ? ` (${result.skipped} duplicates skipped)` : ''}`);
         setStep('list');
@@ -424,9 +425,9 @@ export function HostManagement() {
           <div className="import-example">
             <h4>Example CSV Format:</h4>
             <pre>Name,Email,Phone,Department,NotificationMethod
-John Doe,john@example.com,+1234567890,Engineering,email
-Jane Smith,jane@example.com,+1234567891,Sales,email
-Bob Wilson,bob@example.com,+1234567892,HR,email</pre>
+              John Doe,john@example.com,+1234567890,Engineering,email
+              Jane Smith,jane@example.com,+1234567891,Sales,email
+              Bob Wilson,bob@example.com,+1234567892,HR,email</pre>
             <p><small>NotificationMethod options: email (default: email)</small></p>
           </div>
         </div>

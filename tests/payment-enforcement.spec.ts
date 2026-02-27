@@ -184,13 +184,13 @@ test.describe('Payment Enforcement System', () => {
     const starterPlan = page.locator('.plan-card.current');
     await expect(starterPlan).toBeVisible();
     await expect(starterPlan).toContainText('Starter');
-    await expect(starterPlan).toContainText('$5');
+    await expect(starterPlan).toContainText('$29');
 
-    // Verify Professional plan card is visible
-    const proPlan = page.locator('.plan-card.upgrade');
-    await expect(proPlan).toBeVisible();
-    await expect(proPlan).toContainText('Professional');
-    await expect(proPlan).toContainText('$10');
+    // Verify Compliance+ plan card is visible
+    const compliancePlan = page.locator('.plan-card.upgrade');
+    await expect(compliancePlan).toBeVisible();
+    await expect(compliancePlan).toContainText('Compliance+');
+    await expect(compliancePlan).toContainText('$49');
 
     console.log('✓ Both payment plan options are displayed');
   });
@@ -201,14 +201,14 @@ test.describe('Payment Enforcement System', () => {
     await page.waitForSelector('.upgrade-prompt-overlay', { timeout: 10000 });
 
     // Verify Starter payment button
-    const starterButton = page.locator('button.btn-secondary').filter({ hasText: 'Pay $5/mo (Starter)' });
+    const starterButton = page.locator('button.btn-primary').filter({ hasText: 'Pay $29/mo (Starter)' });
     await expect(starterButton).toBeVisible();
     await expect(starterButton).toBeEnabled();
 
-    // Verify Professional payment button
-    const proButton = page.locator('button.btn-primary').filter({ hasText: 'Pay $10/mo (Professional)' });
-    await expect(proButton).toBeVisible();
-    await expect(proButton).toBeEnabled();
+    // Verify Compliance+ payment button
+    const complianceButton = page.locator('button.btn-secondary').filter({ hasText: 'Pay $49/mo (Compliance+)' });
+    await expect(complianceButton).toBeVisible();
+    await expect(complianceButton).toBeEnabled();
 
     console.log('✓ Both payment buttons are visible and clickable');
   });
@@ -237,14 +237,14 @@ test.describe('Payment Enforcement System', () => {
 
     // Verify Starter plan features
     const starterFeatures = page.locator('.plan-card.current .plan-features');
-    await expect(starterFeatures).toContainText('Up to 20 hosts/visitors');
+    await expect(starterFeatures).toContainText('Unlimited check-ins');
     await expect(starterFeatures).toContainText('Email notifications');
 
-    // Verify Professional plan features
-    const proFeatures = page.locator('.plan-card.upgrade .plan-features');
-    await expect(proFeatures).toContainText('Unlimited hosts/visitors');
-    await expect(proFeatures).toContainText('SMS notifications');
-    await expect(proFeatures).toContainText('CSV export');
+    // Verify Compliance+ plan features
+    const complianceFeatures = page.locator('.plan-card.upgrade .plan-features');
+    await expect(complianceFeatures).toContainText('7-year record retention');
+    await expect(complianceFeatures).toContainText('Automatic daily backups');
+    await expect(complianceFeatures).toContainText('Full history exports');
 
     console.log('✓ Plan features comparison is displayed');
   });

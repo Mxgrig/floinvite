@@ -72,18 +72,8 @@
   <!-- Styling & Framework -->
   <!-- ═══════════════════════════════════════════════════ -->
 
-  <!-- Tailwind CSS (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Tailwind Dark Mode Config -->
-  <script>
-    if (localStorage.getItem('theme') === 'dark' ||
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  </script>
+  <!-- Tailwind CSS (Build-time) -->
+  <link rel="stylesheet" href="/src/index.css" />
 
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- Payment Processing (Stripe) -->
