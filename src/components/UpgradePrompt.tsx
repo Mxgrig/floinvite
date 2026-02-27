@@ -3,9 +3,9 @@
  * Appears when user exceeds free tier limits (20 hosts/people)
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
-import { UsageTracker } from '../utils/usageTracker';
+import { UsageTracker, type UsageData } from '../utils/usageTracker';
 import { PaymentService } from '../services/paymentService';
 import './UpgradePrompt.css';
 
@@ -18,8 +18,34 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'compliance' | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const usage = UsageTracker.getUsage();
-  const percentage = UsageTracker.getUsagePercentage();
+  const [usage, setUsage] = useState<UsageData>({
+    totalHosts: 0,
+    totalVisitors: 0,
+    hostsLimit: 20,
+    visitorsLimit: 20,
+    isOverLimit: false,
+    remainingHosts: 20,
+    remainingVisitors: 20
+  });
+  const [percentage, setPercentage] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadUsage = async () => {
+      const currentUsage = await UsageTracker.getUsage();
+      if (!cancelled) {
+        setUsage(currentUsage);
+        const total = currentUsage.totalHosts + currentUsage.totalVisitors;
+        const limit = Math.max(1, currentUsage.hostsLimit);
+        setPercentage(Math.min(100, Math.round((total / limit) * 100)));
+      }
+    };
+
+    loadUsage();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleUpgrade = async (tier: 'starter' | 'compliance') => {
     setLoading(true);

@@ -92,7 +92,7 @@ export class UsageTracker {
       const hosts = await dbUtils.getAllHosts();
       return hosts.length;
     } catch {
-      return 0;
+      return this.getLocalStorageArrayCount('floinvite_hosts');
     }
   }
 
@@ -103,6 +103,17 @@ export class UsageTracker {
     try {
       const guests = await dbUtils.getAllGuests();
       return guests.length;
+    } catch {
+      return this.getLocalStorageArrayCount('floinvite_guests');
+    }
+  }
+
+  private static getLocalStorageArrayCount(key: string): number {
+    try {
+      const data = localStorage.getItem(key);
+      if (!data) return 0;
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed.length : 0;
     } catch {
       return 0;
     }

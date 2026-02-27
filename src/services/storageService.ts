@@ -243,13 +243,24 @@ export class StorageService {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
 
-    const archivedCount = guests.filter(g => new Date(g.checkInTime) < cutoffDate).length;
+    const archived = guests.filter(g => new Date(g.checkInTime) < cutoffDate);
     const remaining = guests.filter(g => new Date(g.checkInTime) >= cutoffDate);
 
-    // [SIMPLIFIED] In this migration, we'll just keep them in primary store if capacity allows
-    // but follow the spirit of archival by syncing state
+    if (archived.length > 0) {
+      try {
+        const existingArchive = localStorage.getItem('floinvite_guests_archive') || '[]';
+        const archivedGuests = JSON.parse(existingArchive);
+        localStorage.setItem(
+          'floinvite_guests_archive',
+          JSON.stringify([...archivedGuests, ...archived])
+        );
+      } catch (error) {
+        console.warn('Failed to archive guests:', error);
+      }
+    }
+
     await this.saveGuests(remaining);
-    return archivedCount;
+    return archived.length;
   }
 
   /**
