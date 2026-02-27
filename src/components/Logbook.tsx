@@ -11,7 +11,6 @@ import { ExportService } from '../services/exportService';
 import { usePersistedState, useDebounce } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
-import { FeatureLocked } from './FeatureLocked';
 import PageLayout from './PageLayout';
 import { DEFAULT_LABELS, getLabelSettings } from '../utils/labelUtils';
 import './Logbook.css';

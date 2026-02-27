@@ -10,6 +10,29 @@ import { STORAGE_KEYS } from '../utils/constants';
 import { dbUtils } from '../db/floinviteDB';
 
 export class StorageService {
+  private static buildDefaultSettings(): AppSettings {
+    const now = new Date().toISOString();
+    return {
+      businessName: 'My Company',
+      notificationEmail: 'admin@floinvite.com',
+      kioskMode: false,
+      labelPreset: 'default',
+      labelSettings: DEFAULT_LABELS,
+      createdAt: now,
+      updatedAt: now
+    };
+  }
+
+  private static normalizeSettings(settings: Partial<AppSettings> | null | undefined): AppSettings {
+    const defaults = this.buildDefaultSettings();
+    if (!settings) return defaults;
+    return {
+      ...defaults,
+      ...settings,
+      labelSettings: settings.labelSettings ?? defaults.labelSettings
+    };
+  }
+
   /**
    * HOSTS Management
    */
@@ -56,7 +79,17 @@ export class StorageService {
     const hosts = await this.getHosts();
     const index = hosts.findIndex(h => h.id === id);
     if (index !== -1) {
-      hosts[index] = { ...hosts[index], ...updates };
+      const current = hosts[index];
+      if (!current) return;
+      hosts[index] = {
+        ...current,
+        ...updates,
+        id: current.id,
+        name: updates.name ?? current.name,
+        email: updates.email ?? current.email,
+        createdAt: updates.createdAt ?? current.createdAt,
+        updatedAt: updates.updatedAt ?? current.updatedAt
+      };
       await this.saveHosts(hosts);
     }
   }
@@ -151,7 +184,19 @@ export class StorageService {
     const guests = await this.getGuests();
     const index = guests.findIndex(g => g.id === id);
     if (index !== -1) {
-      guests[index] = { ...guests[index], ...updates };
+      const current = guests[index];
+      if (!current) return;
+      guests[index] = {
+        ...current,
+        ...updates,
+        id: current.id,
+        name: updates.name ?? current.name,
+        hostId: updates.hostId ?? current.hostId,
+        checkInTime: updates.checkInTime ?? current.checkInTime,
+        status: updates.status ?? current.status,
+        createdAt: updates.createdAt ?? current.createdAt,
+        updatedAt: updates.updatedAt ?? current.updatedAt
+      };
       await this.saveGuests(guests);
     }
   }
@@ -347,26 +392,14 @@ export class StorageService {
   static async getAppSettings(): Promise<AppSettings> {
     try {
       const settings = await dbUtils.getSettings();
-      if (settings) return settings;
+      if (settings) return this.normalizeSettings(settings);
 
       // Fallback
       const data = localStorage.getItem(STORAGE_KEYS.settings);
-      return data
-        ? JSON.parse(data)
-        : {
-          businessName: 'My Company',
-          notificationEmail: 'admin@floinvite.com',
-          labelPreset: 'default',
-          labelSettings: DEFAULT_LABELS
-        };
+      return this.normalizeSettings(data ? JSON.parse(data) : null);
     } catch (error) {
       console.error('Failed to get app settings:', error);
-      return {
-        businessName: 'My Company',
-        notificationEmail: 'admin@floinvite.com',
-        labelPreset: 'default',
-        labelSettings: DEFAULT_LABELS
-      };
+      return this.buildDefaultSettings();
     }
   }
 

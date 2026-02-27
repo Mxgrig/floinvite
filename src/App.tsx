@@ -5,8 +5,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { AppSettings } from './types';
-import { DEFAULT_LABELS } from './utils/labelUtils';
 import { SignInPage } from './components/SignInPage';
 import { CreateAccountPage } from './components/CreateAccountPage';
 import { TierSelectionPage } from './components/TierSelectionPage';
@@ -22,12 +20,10 @@ import { TermsOfService } from './components/TermsOfService';
 import { LandingPage } from './components/LandingPage';
 import { MarketingPage } from './components/MarketingPage';
 import { IndustryPage } from './components/IndustryPage';
-import { SessionVideoBackground } from './components/SessionVideoBackground';
 import { PaymentService } from './services/paymentService';
 import { MigrationService } from './services/migrationService';
 import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { UsageTracker } from './utils/usageTracker';
-import { STORAGE_KEYS } from './utils/constants';
 import { getPageHref, handleNavigationClick } from './utils/navigationHelper';
 import { getLogoPath } from './utils/logoHelper';
 import './App.css';
@@ -61,18 +57,35 @@ export function App() {
   const [upgradeLoading, setUpgradeLoading] = useState<'starter' | 'compliance' | null>(null);
   const [upgradeError, setUpgradeError] = useState<string | null>(null);
   const [selectedTierForSignup, setSelectedTierForSignup] = useState<'starter' | 'compliance' | null>(null);
-  const [settings] = usePersistedState<AppSettings>(
-    STORAGE_KEYS.settings,
-    {
-      businessName: 'My Company',
-      notificationEmail: 'admin@floinvite.com',
-      kioskMode: false,
-      labelPreset: 'default',
-      labelSettings: DEFAULT_LABELS,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+
+  const isAppPage = (page: string): page is AppPage => {
+    const pages: AppPage[] = [
+      'landing',
+      'signin',
+      'createaccount',
+      'tier-selection',
+      'pricing',
+      'marketing',
+      'construction',
+      'offices',
+      'healthcare',
+      'coworking',
+      'check-in',
+      'logbook',
+      'hosts',
+      'settings',
+      'evacuation-list',
+      'privacy',
+      'terms'
+    ];
+    return pages.includes(page as AppPage);
+  };
+
+  const navigateToPage = (page: string) => {
+    if (isAppPage(page)) {
+      setCurrentPage(page);
     }
-  );
+  };
 
   // Handle logout
   const handleLogout = () => {
@@ -93,34 +106,6 @@ export function App() {
   useInactivityLogout(() => {
     handleLogout();
   }, 15);
-
-  // Update URL when page changes
-  const handlePageChange = (page: AppPage) => {
-    setCurrentPage(page);
-    const pathMap: Record<AppPage, string> = {
-      'landing': '/',
-      'signin': '/signin',
-      'createaccount': '/createaccount',
-      'tier-selection': '/tier-selection',
-      'pricing': '/pricing',
-      'marketing': '/marketing',
-      'construction': '/construction',
-      'offices': '/offices',
-      'healthcare': '/healthcare',
-      'coworking': '/coworking',
-      'check-in': '/check-in',
-      'logbook': '/logbook',
-      'hosts': '/hosts',
-      'settings': '/settings',
-      'evacuation-list': '/evacuation-list',
-      'privacy': '/privacy',
-      'terms': '/terms'
-    };
-    const newPath = pathMap[page];
-    if (newPath) {
-      window.history.pushState({}, '', newPath);
-    }
-  };
 
   // Handle URL-based navigation
   useEffect(() => {
@@ -237,11 +222,12 @@ export function App() {
         clearInterval(interval);
       };
     }
+    return undefined;
   }, [isAuthenticated]);
 
   // Route to check-in if user is on starter or paid tier
   const handleStartCheckIn = () => {
-    if (userTier === 'starter' || userTier === 'starter-paid' || PaymentService.isSubscribed('compliance') || PaymentService.isSubscribed('enterprise')) {
+    if (userTier === 'starter' || PaymentService.isSubscribed('compliance') || PaymentService.isSubscribed('enterprise')) {
       setCurrentPage('check-in');
     } else {
       setCurrentPage('pricing');
@@ -264,40 +250,40 @@ export function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'signin':
-        return <SignInPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} onLoginSuccessNavigate={setCurrentPage} currentPage={currentPage} />;
+        return <SignInPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={navigateToPage} onLoginSuccessNavigate={navigateToPage} currentPage={currentPage} />;
       case 'tier-selection':
-        return <TierSelectionPage onTierSelected={handleTierSelected} onNavigate={setCurrentPage} />;
+        return <TierSelectionPage onTierSelected={handleTierSelected} onNavigate={navigateToPage} />;
       case 'createaccount':
-        return <CreateAccountPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={setCurrentPage} onLoginSuccessNavigate={setCurrentPage} selectedTier={selectedTierForSignup} setUserTier={setUserTier} currentPage={currentPage} />;
+        return <CreateAccountPage onLoginSuccess={() => setIsAuthenticated(true)} onNavigate={navigateToPage} onLoginSuccessNavigate={navigateToPage} selectedTier={selectedTierForSignup} setUserTier={setUserTier} currentPage={currentPage} />;
       case 'pricing':
-        return <Pricing onNavigate={setCurrentPage} />;
+        return <Pricing onNavigate={navigateToPage} />;
       case 'marketing':
-        return <MarketingPage onNavigate={setCurrentPage} onStartCheckIn={handleStartCheckIn} />;
+        return <MarketingPage onNavigate={navigateToPage} onStartCheckIn={handleStartCheckIn} />;
       case 'construction':
-        return <IndustryPage industry="construction" onNavigate={setCurrentPage} />;
+        return <IndustryPage industry="construction" onNavigate={navigateToPage} />;
       case 'offices':
-        return <IndustryPage industry="offices" onNavigate={setCurrentPage} />;
+        return <IndustryPage industry="offices" onNavigate={navigateToPage} />;
       case 'healthcare':
-        return <IndustryPage industry="healthcare" onNavigate={setCurrentPage} />;
+        return <IndustryPage industry="healthcare" onNavigate={navigateToPage} />;
       case 'coworking':
-        return <IndustryPage industry="coworking" onNavigate={setCurrentPage} />;
+        return <IndustryPage industry="coworking" onNavigate={navigateToPage} />;
       case 'check-in':
         return <VisitorCheckIn />;
       case 'logbook':
-        return <Logbook onNavigate={setCurrentPage} />;
+        return <Logbook onNavigate={navigateToPage} />;
       case 'hosts':
         return <HostManagement />;
       case 'evacuation-list':
-        return <EvacuationList onNavigate={setCurrentPage} />;
+        return <EvacuationList onNavigate={navigateToPage} />;
       case 'settings':
-        return <Settings onNavigate={setCurrentPage} />;
+        return <Settings onNavigate={navigateToPage} />;
       case 'privacy':
-        return <PrivacyPolicy onNavigate={setCurrentPage} />;
+        return <PrivacyPolicy onNavigate={navigateToPage} />;
       case 'terms':
-        return <TermsOfService onNavigate={setCurrentPage} />;
+        return <TermsOfService onNavigate={navigateToPage} />;
       case 'landing':
       default:
-        return <LandingPage onNavigate={setCurrentPage as (page: string) => void} onStartCheckIn={handleStartCheckIn} />;
+        return <LandingPage onNavigate={navigateToPage} onStartCheckIn={handleStartCheckIn} />;
     }
   };
 
@@ -357,7 +343,7 @@ export function App() {
       {isAuthenticated && (
         <header className="branding-header">
           <div className="branding-content">
-            <a href="/" className="branding-logo" onClick={(e) => handleNavigationClick(e, setCurrentPage, 'landing')} title="Back to home">
+            <a href="/" className="branding-logo" onClick={(e) => handleNavigationClick(e, navigateToPage, 'landing')} title="Back to home">
               <img src={getLogoPath()} alt="floinvite" />
               <span className="brand-wordmark">
                 <span className="brand-wordmark-flo">flo</span>
@@ -365,19 +351,19 @@ export function App() {
               </span>
             </a>
             <nav className="branding-nav" role="navigation" aria-label="Main navigation">
-              <a href={getPageHref('logbook')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'logbook')} className={currentPage === 'logbook' ? 'active' : ''}>
+              <a href={getPageHref('logbook')} onClick={(e) => handleNavigationClick(e, navigateToPage, 'logbook')} className={currentPage === 'logbook' ? 'active' : ''}>
                 Logbook
               </a>
-              <a href={getPageHref('check-in')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'check-in')} className={currentPage === 'check-in' ? 'active' : ''}>
+              <a href={getPageHref('check-in')} onClick={(e) => handleNavigationClick(e, navigateToPage, 'check-in')} className={currentPage === 'check-in' ? 'active' : ''}>
                 Site Access
               </a>
-              <a href={getPageHref('hosts')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
+              <a href={getPageHref('hosts')} onClick={(e) => handleNavigationClick(e, navigateToPage, 'hosts')} className={currentPage === 'hosts' ? 'active' : ''}>
                 Hosts
               </a>
               <button onClick={() => setCurrentPage('evacuation-list')} className={`evacuation-btn ${currentPage === 'evacuation-list' ? 'active' : ''}`} title="Emergency evacuation accountability list - for emergency use only" style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem' }}>
                 Evacuation
               </button>
-              <a href={getPageHref('settings')} onClick={(e) => handleNavigationClick(e, setCurrentPage, 'settings')} className={currentPage === 'settings' ? 'active' : ''}>
+              <a href={getPageHref('settings')} onClick={(e) => handleNavigationClick(e, navigateToPage, 'settings')} className={currentPage === 'settings' ? 'active' : ''}>
                 Settings
               </a>
               <a href="/" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="logout-btn">
@@ -418,7 +404,7 @@ export function App() {
       </main>
 
       {/* Footer - Hidden on landing page and email marketing login */}
-      <Footer onNavigate={setCurrentPage} hidden={currentPage === 'landing'} />
+      <Footer onNavigate={navigateToPage} hidden={currentPage === 'landing'} />
     </div>
   );
 }

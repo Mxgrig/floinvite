@@ -7,7 +7,6 @@
 import { useState } from 'react';
 import { AlertTriangle, Printer, Download, Clock, Building2, User } from 'lucide-react';
 import { Guest, Host, GuestStatus, AppSettings } from '../types';
-import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
 import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
@@ -19,7 +18,8 @@ interface EvacuationListProps {
   onNavigate?: (page: string) => void;
 }
 
-export function EvacuationList({ onNavigate }: EvacuationListProps) {
+export function EvacuationList({ onNavigate: _onNavigate }: EvacuationListProps) {
+  void _onNavigate;
   const [guests] = usePersistedState<Guest[]>(STORAGE_KEYS.guests, []);
   const [hosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
   const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
@@ -41,7 +41,7 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
   const hostMap = new Map(hosts.map(host => [host.id, host]));
 
   // Group guests by host if requested
-  const groupedGuests = groupBy === 'host'
+  const groupedGuests: Array<[string, Guest[]]> = groupBy === 'host'
     ? Array.from(
         checkedInGuests.reduce((map, guest) => {
           const hostId = guest.hostId;
@@ -83,7 +83,7 @@ export function EvacuationList({ onNavigate }: EvacuationListProps) {
   };
 
   return (
-    <PageLayout>
+    <PageLayout title="Evacuation List">
       <div className="evacuation-list-container">
         {/* Header */}
         <div className="evacuation-list-header">

@@ -6,23 +6,20 @@
  * Path 2: Expected visitor lookup
  */
 
-import { useState, useEffect, type ReactNode } from 'react';
-import { UserCheck, Calendar, Mail, Phone, CheckCircle, AlertCircle, Lock } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { UserCheck, Calendar, Mail, Phone, CheckCircle, Lock } from 'lucide-react';
 import { Guest, Host, GuestStatus, AppSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
 import { ServerPaymentService } from '../services/serverPaymentService';
 import { LoopingVideo } from './LoopingVideo';
 import {
-  generateVisitorArrivalNotification,
-  generateReturningVisitorNotification
+  generateVisitorArrivalNotification
 } from '../services/notificationService';
 import { validateGuestName } from '../utils/validators';
 import { usePersistedState } from '../utils/hooks';
 import { GUEST_STATUS, STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
-import { UsageTracker } from '../utils/usageTracker';
-import { FeatureLocked } from './FeatureLocked';
 import { dbUtils } from '../db/floinviteDB';
 import { DEFAULT_LABELS, getLabelSettings, LabelSettings } from '../utils/labelUtils';
 import './VisitorCheckIn.css';
@@ -48,16 +45,7 @@ export function VisitorCheckIn() {
   });
   const labels = getLabelSettings(settings);
   const [userTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
-  const [guests, setGuests] = useState<Guest[]>([]);
-  const [notificationStatus, setNotificationStatus] = useState<NotificationStatus | null>(null);
-
-  useEffect(() => {
-    const loadGuests = async () => {
-      const data = await StorageService.getGuests();
-      setGuests(data);
-    };
-    loadGuests();
-  }, [step]);
+  const [, setNotificationStatus] = useState<NotificationStatus | null>(null);
 
   // Walk-in state
   const [guestName, setGuestName] = useState('');
@@ -374,7 +362,7 @@ export function VisitorCheckIn() {
    */
   switch (step) {
     case 'welcome':
-      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} canUseExpected={canUseExpected} userTier={userTier} labels={labels} />);
+      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} canUseExpected={canUseExpected} labels={labels} />);
 
     case 'walk-in':
       return renderLayout(
@@ -420,13 +408,11 @@ function WelcomeStep({
   onWalkIn,
   onExpected,
   canUseExpected,
-  userTier,
   labels
 }: {
   onWalkIn: () => void;
   onExpected: () => void;
   canUseExpected: boolean;
-  userTier: 'starter' | 'compliance' | 'enterprise';
   labels: LabelSettings;
 }) {
   return (

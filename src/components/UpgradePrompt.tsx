@@ -9,12 +9,7 @@ import { UsageTracker, type UsageData } from '../utils/usageTracker';
 import { PaymentService } from '../services/paymentService';
 import './UpgradePrompt.css';
 
-interface UpgradePromptProps {
-  onClose?: () => void;
-  onUpgrade?: (tier: 'starter' | 'compliance') => void;
-}
-
-export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
+export const UpgradePrompt = () => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'compliance' | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -32,12 +27,13 @@ export const UpgradePrompt = ({ onClose, onUpgrade }: UpgradePromptProps) => {
   useEffect(() => {
     let cancelled = false;
     const loadUsage = async () => {
-      const currentUsage = await UsageTracker.getUsage();
+      const [currentUsage, currentPercentage] = await Promise.all([
+        UsageTracker.getUsage(),
+        UsageTracker.getUsagePercentage()
+      ]);
       if (!cancelled) {
         setUsage(currentUsage);
-        const total = currentUsage.totalHosts + currentUsage.totalVisitors;
-        const limit = Math.max(1, currentUsage.hostsLimit);
-        setPercentage(Math.min(100, Math.round((total / limit) * 100)));
+        setPercentage(currentPercentage);
       }
     };
 

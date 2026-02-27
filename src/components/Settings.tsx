@@ -4,14 +4,13 @@
  * This is the main control panel for administrators after login
  */
 
-import { useState } from 'react';
-import { Users, Clock, Settings as SettingsIcon, Database, Info, Upload, Download, AlertTriangle, CheckCircle, Lock, Shield } from 'lucide-react';
-import { AppSettings, Host } from '../types';
+import { useEffect, useState } from 'react';
+import { Users, Clock, Settings as SettingsIcon, Database, Info, Upload, Download, AlertTriangle, CheckCircle, Lock } from 'lucide-react';
+import { AppSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
-import { FeatureLocked } from './FeatureLocked';
 import { DEFAULT_LABELS, LABEL_PRESETS, LabelPresetKey, getLabelSettings } from '../utils/labelUtils';
 import './Settings.css';
 
@@ -30,6 +29,7 @@ export function Settings({ onNavigate }: SettingsProps) {
     {
       businessName: 'My Company',
       notificationEmail: 'admin@floinvite.com',
+      kioskMode: false,
       labelPreset: 'default',
       labelSettings: DEFAULT_LABELS,
       createdAt: now,
@@ -92,12 +92,6 @@ export function Settings({ onNavigate }: SettingsProps) {
       }
     };
     reader.readAsText(file);
-  };
-
-  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    handleImportFile(file);
   };
 
   const handleClearAllData = async () => {
@@ -450,7 +444,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                   </button>
                   <p className="help-text">Download all your data as a JSON file for backup</p>
 
-                  <button className="btn btn-secondary" onClick={(e) => {
+                  <button className="btn btn-secondary" onClick={() => {
                     const input = document.createElement('input');
                     input.type = 'file';
                     input.accept = '.json';
