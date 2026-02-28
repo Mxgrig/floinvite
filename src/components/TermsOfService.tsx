@@ -3,7 +3,9 @@
  * Floinvite terms and conditions
  */
 
+import { useEffect } from 'react';
 import { getLogoPath } from '../utils/logoHelper';
+import { applyPageSeo } from '../utils/seoHelper';
 import './LegalPages.css';
 
 export interface TermsOfServiceProps {
@@ -11,6 +13,39 @@ export interface TermsOfServiceProps {
 }
 
 export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
+  useEffect(() => {
+    return applyPageSeo({
+      title: 'Terms of Service | Floinvite',
+      canonicalUrl: 'https://floinvite.com/terms',
+      metas: [
+        {
+          selector: 'meta[name="description"]',
+          attr: 'name',
+          key: 'description',
+          content: 'Read the Floinvite Terms of Service covering acceptable use, data responsibilities, liability limits, and legal terms.'
+        },
+        {
+          selector: 'meta[property="og:title"]',
+          attr: 'property',
+          key: 'og:title',
+          content: 'Terms of Service | Floinvite'
+        },
+        {
+          selector: 'meta[property="og:description"]',
+          attr: 'property',
+          key: 'og:description',
+          content: 'Read the Floinvite Terms of Service covering acceptable use, data responsibilities, liability limits, and legal terms.'
+        },
+        {
+          selector: 'meta[property="og:url"]',
+          attr: 'property',
+          key: 'og:url',
+          content: 'https://floinvite.com/terms'
+        }
+      ]
+    });
+  }, []);
+
   return (
     <div className="legal-page">
       {/* Navbar for unauthenticated users */}
@@ -28,15 +63,27 @@ export function TermsOfService({ onNavigate }: TermsOfServiceProps) {
 
           {/* Navigation Links */}
           <div className="legal-navbar-links">
-            <button className="legal-navbar-link" onClick={() => onNavigate?.('pricing')}>
+            <a className="legal-navbar-link" href="/pricing" onClick={(e) => {
+              if (!onNavigate) {
+                return;
+              }
+              e.preventDefault();
+              onNavigate('pricing');
+            }}>
               Pricing
-            </button>
-            <button className="legal-navbar-link" onClick={() => onNavigate?.('features')}>
+            </a>
+            <a className="legal-navbar-link" href="/features" onClick={(e) => {
+              if (!onNavigate) {
+                return;
+              }
+              e.preventDefault();
+              onNavigate('marketing');
+            }}>
               Features
-            </button>
-            <button className="legal-navbar-link" onClick={() => onNavigate?.('contact')}>
+            </a>
+            <a className="legal-navbar-link" href="/features#contact">
               Contact
-            </button>
+            </a>
           </div>
         </div>
       </nav>

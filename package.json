@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run prerender",
+    "build:app": "vite build",
+    "prerender": "node scripts/prerender.mjs",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",

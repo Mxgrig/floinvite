@@ -110,15 +110,27 @@ export const Pricing = ({ onNavigate }: PricingProps) => {
 
           {/* Navigation Links */}
           <div className="legal-navbar-links">
-            <button className="legal-navbar-link legal-navbar-link-active" onClick={() => onNavigate?.('pricing')}>
+            <a className="legal-navbar-link legal-navbar-link-active" href="/pricing" onClick={(e) => {
+              if (!onNavigate) {
+                return;
+              }
+              e.preventDefault();
+              onNavigate('pricing');
+            }}>
               Pricing
-            </button>
-            <button className="legal-navbar-link" onClick={() => onNavigate?.('features')}>
+            </a>
+            <a className="legal-navbar-link" href="/features" onClick={(e) => {
+              if (!onNavigate) {
+                return;
+              }
+              e.preventDefault();
+              onNavigate('marketing');
+            }}>
               Features
-            </button>
-            <button className="legal-navbar-link" onClick={() => onNavigate?.('contact')}>
+            </a>
+            <a className="legal-navbar-link" href="/features#contact">
               Contact
-            </button>
+            </a>
           </div>
         </div>
       </nav>
