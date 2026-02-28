@@ -18,6 +18,7 @@ import {
   MapPin,
   Phone,
   CheckCircle,
+  Minus,
   Building2,
   Hammer,
   Calendar,
@@ -308,7 +309,7 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
 
                 <div className="hero-cta-row">
                   <button
-                    className="btn btn-primary btn-lg fw-semibold px-4 py-3 d-flex align-items-center gap-2"
+                    className="btn btn-primary btn-lg fw-semibold px-4 py-3 d-inline-flex align-items-center gap-2"
                     onClick={startFree}
                   >
                     Start Free
@@ -419,10 +420,12 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
             {steps.map((step, index) => (
               <div key={index} className="col-lg-3 col-md-6 col-12">
                 <div className="steps-card card h-100 border-0 shadow-sm">
-                  <div className="step-number">{step.number}</div>
-                  <div className="step-content">
-                    <h5 className="card-title fw-bold">{step.title}</h5>
-                    <p className="card-text text-muted">{step.description}</p>
+                  <div className="card-body p-4">
+                    <div className="step-number">{step.number}</div>
+                    <div className="step-content">
+                      <h5 className="card-title fw-bold">{step.title}</h5>
+                      <p className="card-text text-muted">{step.description}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -691,8 +694,9 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                               {tier.features
                                 .filter((f) => f.category === 'core' && f.included)
                                 .map((feature, idx) => (
-                                  <li key={idx} className="mb-2">
-                                    {feature.text}
+                                  <li key={idx} className="mb-2 d-flex align-items-center gap-2">
+                                    <Check size={14} className="text-success flex-shrink-0" />
+                                    <span>{feature.text}</span>
                                   </li>
                                 ))}
                             </ul>
@@ -704,11 +708,12 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                             <h6 className="fw-bold text-muted mb-2">Notifications</h6>
                             <ul className="list-unstyled">
                               {notificationFeatures.map((feature, idx) => (
-                                <li key={idx} className={`mb-2 ${feature.included ? '' : 'text-muted'}`}>
-                                  <span className={feature.included ? 'text-success' : 'text-danger'}>
-                                    {feature.included ? 'Included' : 'Not included'}
-                                  </span>{' '}
-                                  {feature.text}
+                                <li key={idx} className={`mb-2 d-flex align-items-center gap-2 ${feature.included ? '' : 'text-muted'}`}>
+                                  {feature.included
+                                    ? <Check size={14} className="text-success flex-shrink-0" />
+                                    : <Minus size={14} className="flex-shrink-0" style={{ opacity: 0.4 }} />
+                                  }
+                                  <span>{feature.text}</span>
                                 </li>
                               ))}
                             </ul>
@@ -722,11 +727,12 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                               {tier.features
                                 .filter((f) => f.category === 'data')
                                 .map((feature, idx) => (
-                                  <li key={idx} className={`mb-2 ${feature.included ? '' : 'text-muted'}`}>
-                                    <span className={feature.included ? 'text-success' : 'text-danger'}>
-                                      {feature.included ? 'Included' : 'Not included'}
-                                    </span>{' '}
-                                    {feature.text}
+                                  <li key={idx} className={`mb-2 d-flex align-items-center gap-2 ${feature.included ? '' : 'text-muted'}`}>
+                                    {feature.included
+                                      ? <Check size={14} className="text-success flex-shrink-0" />
+                                      : <Minus size={14} className="flex-shrink-0" style={{ opacity: 0.4 }} />
+                                    }
+                                    <span>{feature.text}</span>
                                   </li>
                                 ))}
                             </ul>
@@ -740,8 +746,9 @@ export function MarketingPage({ onNavigate, onStartCheckIn }: MarketingPageProps
                               {tier.features
                                 .filter((f) => f.category === 'support' && f.included)
                                 .map((feature, idx) => (
-                                  <li key={idx} className="mb-2">
-                                    {feature.text}
+                                  <li key={idx} className="mb-2 d-flex align-items-center gap-2">
+                                    <Check size={14} className="text-success flex-shrink-0" />
+                                    <span>{feature.text}</span>
                                   </li>
                                 ))}
                             </ul>
