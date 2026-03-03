@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, Users, CalendarDays, UserCheck } from 'lucide-react';
 import { Guest, Host, AppSettings, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
 import { ExportService } from '../services/exportService';
@@ -93,9 +93,9 @@ export function Logbook({ onNavigate }: LogbookProps) {
   }, [guests]);
 
   const pageStats = [
-    { value: String(stats.totalGuests), label: `Total ${labels.personPlural.toLowerCase()}` },
-    { value: String(stats.todayCheckIns), label: 'Today' },
-    { value: String(stats.checkedInToday), label: 'Checked in' }
+    { value: String(stats.totalGuests), label: `Total ${labels.personPlural.toLowerCase()}`, icon: <Users size={16} />, color: 'primary' as const },
+    { value: String(stats.todayCheckIns), label: 'Today', icon: <CalendarDays size={16} />, color: 'info' as const },
+    { value: String(stats.checkedInToday), label: 'Checked in', icon: <UserCheck size={16} />, color: 'success' as const }
   ];
 
   const handleEarlyCheckout = async (guest: Guest) => {

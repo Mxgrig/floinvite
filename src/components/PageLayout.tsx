@@ -9,6 +9,8 @@ import React from 'react';
 interface StatItem {
   value: string;
   label: string;
+  icon?: React.ReactNode;
+  color?: 'primary' | 'success' | 'info' | 'warning';
 }
 
 interface PageLayoutProps {
@@ -37,19 +39,20 @@ export function PageLayout({
           <h1 className="page-title">{title}</h1>
           {subtitle && <p className="page-subtitle">{subtitle}</p>}
         </div>
-
-        {/* Stats Grid */}
-        {stats && stats.length > 0 && (
-          <div className="stats-grid">
-            {stats.map((stat, i) => (
-              <div key={i} className="stat-card">
-                <span className="stat-value">{stat.value}</span>
-                <span className="stat-label">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Stats Row */}
+      {stats && stats.length > 0 && (
+        <div className="stats-row">
+          {stats.map((stat, i) => (
+            <div key={i} className={`stat-card stat-card-${stat.color || 'primary'}`}>
+              {stat.icon && <div className="stat-icon">{stat.icon}</div>}
+              <span className="stat-value">{stat.value}</span>
+              <span className="stat-label">{stat.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Action Buttons (if provided) */}
       {actions && <div className="page-actions">{actions}</div>}
