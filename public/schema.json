@@ -29,19 +29,19 @@
       {
         "@type": "Offer",
         "name": "Starter Plan",
-        "description": "Up to 20 hosts/visitors with email notification",
-        "price": "5",
+        "description": "Unlimited check-ins with email notifications after 20-item free trial",
+        "price": "29",
         "priceCurrency": "USD",
-        "priceValidFrom": "2024-12-01",
+        "priceValidFrom": "2025-01-01",
         "pricingModel": "Subscription"
       },
       {
         "@type": "Offer",
-        "name": "Professional Plan",
-        "description": "Unlimited guests, email & SMS notifications, and data backup",
-        "price": "10",
+        "name": "Compliance+ Plan",
+        "description": "Audit-ready exports, SMS notifications, and advanced access features",
+        "price": "49",
         "priceCurrency": "USD",
-        "priceValidFrom": "2024-12-01",
+        "priceValidFrom": "2025-01-01",
         "pricingModel": "Subscription"
       },
       {

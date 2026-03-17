@@ -3,7 +3,7 @@
  * Visitor history, search, filter, and export
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Lock, Users, CalendarDays, UserCheck } from 'lucide-react';
 import { Guest, Host, AppSettings, GuestStatus } from '../types';
 import { StorageService } from '../services/storageService';
@@ -36,6 +36,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const autoCheckoutDateRef = useRef<string | null>(null);
 
   // Check if export is available
   const canExport = hasFeature(userTier, 'csv_export');
@@ -118,31 +119,39 @@ export function Logbook({ onNavigate }: LogbookProps) {
     date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
   // Auto-checkout remaining guests at end of day (6 PM / 18:00)
+  // Runs at most once per calendar day to avoid re-triggering on every guest state change
   useEffect(() => {
     const checkAutoCheckout = async () => {
       const now = new Date();
+      const today = now.toDateString();
       const endOfDayHour = 18; // 6 PM
 
-      if (now.getHours() >= endOfDayHour) {
-        let hasChanges = false;
-        const updatedGuests = await Promise.all(guests.map(async (guest) => {
-          if (guest.status === 'Checked In') {
-            const checkedOutGuest = {
-              ...guest,
-              checkOutTime: new Date().toISOString(),
-              status: GuestStatus.CHECKED_OUT,
-              updatedAt: new Date().toISOString()
-            };
-            await StorageService.updateGuest(guest.id, checkedOutGuest);
-            hasChanges = true;
-            return checkedOutGuest;
-          }
-          return guest;
-        }));
+      if (now.getHours() < endOfDayHour) return;
+      if (autoCheckoutDateRef.current === today) return;
 
-        if (hasChanges) {
-          setGuests(updatedGuests);
+      const checkedInGuests = guests.filter(g => g.status === 'Checked In');
+      if (checkedInGuests.length === 0) return;
+
+      autoCheckoutDateRef.current = today;
+
+      let hasChanges = false;
+      const updatedGuests = await Promise.all(guests.map(async (guest) => {
+        if (guest.status === 'Checked In') {
+          const checkedOutGuest = {
+            ...guest,
+            checkOutTime: now.toISOString(),
+            status: GuestStatus.CHECKED_OUT,
+            updatedAt: now.toISOString()
+          };
+          await StorageService.updateGuest(guest.id, checkedOutGuest);
+          hasChanges = true;
+          return checkedOutGuest;
         }
+        return guest;
+      }));
+
+      if (hasChanges) {
+        setGuests(updatedGuests);
       }
     };
 

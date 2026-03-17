@@ -14,6 +14,9 @@ Disallow: /dist
 # Sitemap location
 Sitemap: https://floinvite.com/sitemap.xml
 
+# LLM-friendly content
+LLMs: https://floinvite.com/llms.txt
+
 
 # Crawl-rate and delays (removed for optimal Google crawling)
 

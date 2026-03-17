@@ -217,10 +217,10 @@ export function App() {
 
       checkUsage();
 
-      // Re-check usage periodically (every 2 seconds) to catch when user exceeds limit
+      // Re-check usage periodically to catch when user exceeds limit
       const interval = setInterval(() => {
         checkUsage();
-      }, 2000);
+      }, 30000);
 
       return () => {
         cancelled = true;

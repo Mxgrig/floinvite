@@ -1,0 +1,52 @@
+# Floinvite
+
+> Digital site access management for SMEs and venues. Zero hardware. 30-second visitor check-ins with instant host notifications.
+
+Floinvite is a browser-based visitor management system built for small and medium-sized businesses. It replaces paper sign-in books and expensive kiosk hardware with a fast, professional check-in flow that works on any device — tablet, phone, or desktop.
+
+## Key Features
+
+- Walk-in and pre-registered visitor check-in (under 30 seconds)
+- Instant email notifications to hosts on arrival
+- Digital logbook with search, filter, and CSV/JSON export
+- Host and employee directory management with CSV import
+- Emergency evacuation accountability list
+- Expected guest pre-registration and lookup
+- Returning visitor recognition
+
+## Pricing
+
+- **Free tier**: 20 hosts/visitors — no credit card required
+- **Starter**: $29/month — unlimited check-ins, email notifications, logbook export
+- **Compliance+**: $49/month — audit-ready exports, SMS notifications, advanced reporting
+
+## Industries Served
+
+- Construction sites (contractor and subcontractor access control)
+- Corporate offices (professional visitor management)
+- Healthcare facilities (patient and visitor tracking)
+- Co-working spaces (member and guest access)
+
+## Pages
+
+- [Home](https://floinvite.com/): Product overview and sign-up
+- [Features](https://floinvite.com/features): Full feature breakdown
+- [Pricing](https://floinvite.com/pricing): Plan comparison and checkout
+- [Construction](https://floinvite.com/construction): Site access for construction
+- [Offices](https://floinvite.com/offices): Corporate office visitor management
+- [Healthcare](https://floinvite.com/healthcare): Healthcare facility access
+- [Co-working](https://floinvite.com/coworking): Shared space management
+- [Privacy Policy](https://floinvite.com/privacy)
+- [Terms of Service](https://floinvite.com/terms)
+
+## Technical
+
+- Platform: Web (any modern browser)
+- No hardware required — works on existing tablets or reception screens
+- Data stored in browser (localStorage/IndexedDB) — no cloud dependency for core features
+- Email notifications via backend API
+
+## Contact
+
+- Email: admin@floinvite.com
+- Website: https://floinvite.com
