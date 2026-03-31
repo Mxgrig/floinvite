@@ -12,15 +12,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter a valid email address.';
     } else {
-        $csvPath = __DIR__ . '/users.csv';
-        $isNewFile = !file_exists($csvPath) || filesize($csvPath) === 0;
+        // CSV stored outside the web root so it cannot be downloaded directly
+        $csvPath = __DIR__ . '/../data/users.csv';
         $handle = fopen($csvPath, 'ab');
 
         if ($handle === false) {
             $error = 'Unable to save your details right now. Please try again.';
         } else {
             if (flock($handle, LOCK_EX)) {
-                if ($isNewFile) {
+                // Check for header inside the lock to avoid race condition
+                $isEmpty = ftell($handle) === 0;
+                if ($isEmpty) {
                     fputcsv($handle, ['timestamp', 'email', 'organisation']);
                 }
 
@@ -34,11 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flock($handle, LOCK_UN);
                 fclose($handle);
 
+                session_regenerate_id(true);
                 $_SESSION['gate_passed'] = true;
                 header('Location: index.php');
                 exit;
             }
 
+            flock($handle, LOCK_UN);
             fclose($handle);
             $error = 'Unable to save your details right now. Please try again.';
         }
