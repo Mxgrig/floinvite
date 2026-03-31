@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/api/env.php';
+require_once __DIR__ . '/api/PHPMailerHelper.php';
+
 session_start();
 
 $error = '';
@@ -41,6 +44,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     fflush($handle);
                     flock($handle, LOCK_UN);
                     fclose($handle);
+
+                    // Notify owner of new signup
+                    $org     = $organisation !== '' ? $organisation : '(not provided)';
+                    $subject = 'New FloInvite signup: ' . $email;
+                    $body    = "New signup received.\n\nEmail: {$email}\nOrganisation: {$org}\nTime: " . gmdate('c');
+                    $sent    = false;
+
+                    try {
+                        $mailer = new PHPMailerHelper();
+                        $result = $mailer->send([
+                            'to'      => 'mxgrig@gmail.com',
+                            'subject' => $subject,
+                            'body'    => $body,
+                        ]);
+                        $sent = !empty($result['success']);
+                    } catch (Exception $e) {
+                        error_log('Gate SMTP failed: ' . $e->getMessage());
+                    }
+
+                    // Fallback: native mail() if SMTP failed
+                    if (!$sent) {
+                        $sent = mail('mxgrig@gmail.com', $subject, $body, 'From: admin@floinvite.com');
+                    }
+
+                    // Last resort: write to a failure log so no signup is silently lost
+                    if (!$sent) {
+                        $failLog = __DIR__ . '/../data/mail_failures.log';
+                        file_put_contents(
+                            $failLog,
+                            gmdate('c') . " | FAILED | {$email} | {$org}\n",
+                            FILE_APPEND | LOCK_EX
+                        );
+                    }
 
                     session_regenerate_id(true);
                     $_SESSION['gate_passed'] = true;
