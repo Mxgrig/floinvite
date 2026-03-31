@@ -14,37 +14,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // CSV stored outside the web root so it cannot be downloaded directly
         $csvPath = __DIR__ . '/../data/users.csv';
-        $handle = fopen($csvPath, 'ab');
+        $csvDir = dirname($csvPath);
 
-        if ($handle === false) {
+        if (!is_dir($csvDir) && !mkdir($csvDir, 0775, true) && !is_dir($csvDir)) {
             $error = 'Unable to save your details right now. Please try again.';
         } else {
-            if (flock($handle, LOCK_EX)) {
-                // Check for header inside the lock to avoid race condition
-                $isEmpty = ftell($handle) === 0;
-                if ($isEmpty) {
-                    fputcsv($handle, ['timestamp', 'email', 'organisation']);
+            $handle = fopen($csvPath, 'ab');
+
+            if ($handle === false) {
+                $error = 'Unable to save your details right now. Please try again.';
+            } else {
+                if (flock($handle, LOCK_EX)) {
+                    // Re-read size after locking so concurrent first writes do not duplicate the header.
+                    $stats = fstat($handle);
+                    $isEmpty = $stats !== false && (int) ($stats['size'] ?? 0) === 0;
+                    if ($isEmpty) {
+                        fputcsv($handle, ['timestamp', 'email', 'organisation']);
+                    }
+
+                    fputcsv($handle, [
+                        gmdate('c'),
+                        $email,
+                        $organisation,
+                    ]);
+
+                    fflush($handle);
+                    flock($handle, LOCK_UN);
+                    fclose($handle);
+
+                    session_regenerate_id(true);
+                    $_SESSION['gate_passed'] = true;
+                    header('Location: index.php');
+                    exit;
                 }
 
-                fputcsv($handle, [
-                    gmdate('c'),
-                    $email,
-                    $organisation,
-                ]);
-
-                fflush($handle);
                 flock($handle, LOCK_UN);
                 fclose($handle);
-
-                session_regenerate_id(true);
-                $_SESSION['gate_passed'] = true;
-                header('Location: index.php');
-                exit;
+                $error = 'Unable to save your details right now. Please try again.';
             }
-
-            flock($handle, LOCK_UN);
-            fclose($handle);
-            $error = 'Unable to save your details right now. Please try again.';
         }
     }
 }
