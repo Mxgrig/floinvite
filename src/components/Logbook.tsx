@@ -328,11 +328,15 @@ export function Logbook({ onNavigate }: LogbookProps) {
         ) : (
           <div className="empty-state-container" style={{ textAlign: 'center', padding: '4rem 2rem', backgroundColor: '#f9fafb', borderRadius: '12px', border: '2px dashed #e5e7eb', marginTop: '2rem' }}>
             <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#111827', marginBottom: '1rem' }}>No visits recorded yet</h3>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#111827', marginBottom: '1rem' }}>
+                {guests.length === 0 ? 'No visits recorded yet' : 'No matches found'}
+              </h3>
               <p style={{ color: '#4b5563', marginBottom: '2rem', lineHeight: '1.5' }}>
-                Head to Site Access to check in your first visitor.
+                {guests.length === 0 
+                  ? 'Head to Site Access to check in your first visitor.' 
+                  : 'Try adjusting your search query or status filter to find what you are looking for.'}
               </p>
-              {onNavigate && (
+              {guests.length === 0 && onNavigate && (
                 <button
                   onClick={() => onNavigate('check-in')}
                   className="btn btn-primary btn-lg"
@@ -340,10 +344,13 @@ export function Logbook({ onNavigate }: LogbookProps) {
                   Open Site Access
                 </button>
               )}
-              {debouncedSearch && (
-                <div style={{ marginTop: '1rem' }}>
-                  <small style={{ color: '#6b7280' }}>Try adjusting your search</small>
-                </div>
+              {guests.length > 0 && (
+                <button
+                  onClick={() => { setSearchQuery(''); setFilterStatus('all'); }}
+                  className="btn btn-secondary"
+                >
+                  Clear all filters
+                </button>
               )}
             </div>
           </div>
