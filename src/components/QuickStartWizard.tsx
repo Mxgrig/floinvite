@@ -4,33 +4,22 @@
  */
 
 import { useState } from 'react';
-import { CheckCircle, Play, UserPlus, ArrowRight, DesktopIcon } from 'lucide-react';
-import { Host, Guest } from '../types';
+import { CheckCircle, Play, UserPlus, ArrowRight } from 'lucide-react';
+import { Guest } from '../types';
 import './QuickStartWizard.css';
 
 interface QuickStartWizardProps {
   onComplete: (firstHost: { name: string; email: string }) => void;
+  onSkip: () => void;
   userEmail?: string;
 }
 
-export function QuickStartWizard({ onComplete, userEmail = '' }: QuickStartWizardProps) {
+export function QuickStartWizard({ onComplete, onSkip, userEmail = '' }: QuickStartWizardProps) {
   const [step, setStep] = useState(1);
   const [hostName, setHostName] = useState('');
   const [hostEmail, setHostEmail] = useState(userEmail);
 
   // Demo data (only for visual representation in Step 1)
-  const DEMO_HOSTS: Host[] = [
-    { 
-      id: 'demo-host-1', 
-      name: 'Sarah Chen', 
-      email: 'sarah@example.com',
-      department: 'Operations', 
-      notificationMethod: 'email', 
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  ];
-
   const DEMO_GUESTS: Guest[] = [
     { 
       id: 'demo-guest-1', 
@@ -93,6 +82,12 @@ export function QuickStartWizard({ onComplete, userEmail = '' }: QuickStartWizar
             <span className="step-num">3</span>
             <span className="step-label">Try kiosk</span>
           </div>
+        </div>
+
+        <div className="wizard-skip">
+          <button onClick={onSkip} className="wizard-skip-btn">
+            Skip setup, I'll add hosts manually
+          </button>
         </div>
 
         <div className="wizard-content">

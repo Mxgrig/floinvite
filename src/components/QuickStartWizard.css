@@ -252,3 +252,22 @@
   width: 100%;
   justify-content: center;
 }
+
+.wizard-skip {
+  text-align: right;
+  margin-bottom: 1.5rem;
+}
+
+.wizard-skip-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.wizard-skip-btn:hover {
+  color: #6b7280;
+}

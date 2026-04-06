@@ -95,6 +95,11 @@ export function App() {
     setCurrentPage('check-in');
   };
 
+  const handleWizardSkip = () => {
+    setWizardComplete(true);
+    setCurrentPage('hosts');
+  };
+
   const isAppPage = (page: string): page is AppPage => {
     const pages: AppPage[] = [
       'landing',
@@ -353,9 +358,10 @@ export function App() {
   return (
     <div className="floinvite-app">
       {showWizard && (
-        <QuickStartWizard 
-          onComplete={handleWizardComplete} 
-          userEmail={localStorage.getItem('floinvite_user_email') || undefined} 
+        <QuickStartWizard
+          onComplete={handleWizardComplete}
+          onSkip={handleWizardSkip}
+          userEmail={localStorage.getItem('floinvite_user_email') || undefined}
         />
       )}
       {/* Upgrade Notice - Non-blocking */}
