@@ -253,6 +253,67 @@ export function Settings({ onNavigate }: SettingsProps) {
 
             <div className="settings-form">
               <div className="form-group">
+                <label>Company Logo</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '0.5rem' }}>
+                  <div style={{
+                    width: '100px',
+                    height: '100px',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    backgroundColor: '#f9fafb'
+                  }}>
+                    {formData.logoUrl ? (
+                      <img src={formData.logoUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.8rem' }}>No logo</div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg, image/svg+xml"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 2 * 1024 * 1024) {
+                            alert('Logo must be less than 2MB');
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            setFormData({ ...formData, logoUrl: event.target?.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      id="logo-upload"
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="logo-upload" className="btn btn-secondary" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Upload size={16} />
+                      {formData.logoUrl ? 'Change Logo' : 'Upload Logo'}
+                    </label>
+                    {formData.logoUrl && (
+                      <button
+                        onClick={() => setFormData({ ...formData, logoUrl: undefined })}
+                        className="btn-action delete"
+                        style={{ marginLeft: '1rem', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.875rem' }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                      PNG, JPG or SVG. Max 2MB. Recommended 200x200px.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label>Business Name *</label>
                 <input
                   type="text"

@@ -22,8 +22,11 @@ import { MarketingPage } from './components/MarketingPage';
 import { IndustryPage } from './components/IndustryPage';
 import { PaymentService } from './services/paymentService';
 import { MigrationService } from './services/migrationService';
+import { AppSettings } from './types';
 import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { UsageTracker } from './utils/usageTracker';
+import { STORAGE_KEYS } from './utils/constants';
+import { DEFAULT_LABELS } from './utils/labelUtils';
 import { getPageHref, handleNavigationClick } from './utils/navigationHelper';
 import { getLogoPath } from './utils/logoHelper';
 import './App.css';
@@ -51,6 +54,15 @@ export function App() {
   const [isAuthenticated, setIsAuthenticated] = usePersistedState('auth_token', false);
   const [currentPage, setCurrentPage] = useState<AppPage>('landing');
   const [userTier, setUserTier] = usePersistedState<'starter' | 'compliance' | 'enterprise'>('floinvite_user_tier', 'starter');
+  const [settings] = usePersistedState<AppSettings>(STORAGE_KEYS.settings, {
+    businessName: 'My Company',
+    notificationEmail: 'admin@floinvite.com',
+    kioskMode: false,
+    labelPreset: 'default',
+    labelSettings: DEFAULT_LABELS,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
@@ -350,7 +362,7 @@ export function App() {
         <header className="branding-header">
           <div className="branding-content">
             <a href="/" className="branding-logo" onClick={(e) => handleNavigationClick(e, navigateToPage, 'landing')} title="Back to home">
-              <img src={getLogoPath()} alt="floinvite" />
+              <img src={getLogoPath(settings.logoUrl)} alt="floinvite" />
               <span className="brand-wordmark">
                 <span className="brand-wordmark-flo">flo</span>
                 <span className="brand-wordmark-invite">invite</span>

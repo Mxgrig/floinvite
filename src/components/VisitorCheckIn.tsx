@@ -22,6 +22,7 @@ import { GUEST_STATUS, STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
 import { dbUtils } from '../db/floinviteDB';
 import { DEFAULT_LABELS, getLabelSettings, LabelSettings } from '../utils/labelUtils';
+import { getLogoPath } from '../utils/logoHelper';
 import './VisitorCheckIn.css';
 
 type TriageStep = 'welcome' | 'walk-in' | 'expected' | 'success';
@@ -361,7 +362,7 @@ export function VisitorCheckIn() {
    */
   switch (step) {
     case 'welcome':
-      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} canUseExpected={canUseExpected} labels={labels} />);
+      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} canUseExpected={canUseExpected} labels={labels} logoUrl={settings.logoUrl} />);
 
     case 'walk-in':
       return renderLayout(
@@ -407,15 +408,20 @@ function WelcomeStep({
   onWalkIn,
   onExpected,
   canUseExpected,
-  labels
+  labels,
+  logoUrl
 }: {
   onWalkIn: () => void;
   onExpected: () => void;
   canUseExpected: boolean;
   labels: LabelSettings;
+  logoUrl?: string;
 }) {
   return (
     <div className="triage-panel">
+      <div className="welcome-logo" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <img src={getLogoPath(logoUrl)} alt="Company Logo" style={{ maxHeight: '80px', maxWidth: '240px' }} />
+      </div>
       <div className="welcome-header">
         <h1>Welcome</h1>
         <p className="muted">{labels.checkIn} to get started</p>

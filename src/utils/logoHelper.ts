@@ -23,7 +23,8 @@ export function isYuletideSeason(): boolean {
 /**
  * Returns the appropriate logo path for the current season
  */
-export function getLogoPath(): string {
+export function getLogoPath(customLogoUrl?: string): string {
+  if (customLogoUrl) return customLogoUrl;
   return isYuletideSeason() ? '/xmas-logo.png' : '/mainflologo.png';
 }
 
@@ -31,6 +32,7 @@ export function getLogoPath(): string {
  * Returns the appropriate logo URL (supports both relative and absolute URLs)
  * Useful for external links (email templates, etc)
  */
-export function getLogoUrl(baseUrl: string = 'https://floinvite.com'): string {
+export function getLogoUrl(customLogoUrl?: string, baseUrl: string = 'https://floinvite.com'): string {
+  if (customLogoUrl) return customLogoUrl;
   return `${baseUrl}${getLogoPath()}`;
 }
