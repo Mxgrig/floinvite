@@ -91,26 +91,20 @@ export function VisitorCheckIn() {
         // Auto-clear success message after 3 seconds
         setTimeout(() => setNotificationStatus(null), 3000);
       } else {
-        // Show error but don't block check-in flow
+        // Show persistent soft error - don't auto-clear
         setNotificationStatus({
           type: 'error',
-          message: `Notification warning: ${result.error || 'Email not sent'}`
+          message: 'Your guest is checked in. Host notification may be delayed — check your email settings if this persists.'
         });
         console.warn('Email notification failed:', result.error);
-
-        // Auto-clear error message after 5 seconds so user can see it
-        setTimeout(() => setNotificationStatus(null), 5000);
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      // Show persistent soft error - don't auto-clear
       setNotificationStatus({
         type: 'error',
-        message: `Notification failed: ${errorMsg}`
+        message: 'Your guest is checked in. Host notification may be delayed — check your email settings if this persists.'
       });
       console.warn('Email service error:', error);
-
-      // Auto-clear error message after 5 seconds
-      setTimeout(() => setNotificationStatus(null), 5000);
     }
   };
 
