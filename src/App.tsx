@@ -14,6 +14,7 @@ import { Logbook } from './components/Logbook';
 import { HostManagement } from './components/HostManagement';
 import { Settings } from './components/Settings';
 import { EvacuationList } from './components/EvacuationList';
+import { QuickStartWizard } from './components/QuickStartWizard';
 import { Footer } from './components/Footer';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
@@ -22,7 +23,8 @@ import { MarketingPage } from './components/MarketingPage';
 import { IndustryPage } from './components/IndustryPage';
 import { PaymentService } from './services/paymentService';
 import { MigrationService } from './services/migrationService';
-import { AppSettings } from './types';
+import { StorageService } from './services/storageService';
+import { AppSettings, Host } from './types';
 import { usePersistedState, useInactivityLogout } from './utils/hooks';
 import { UsageTracker } from './utils/usageTracker';
 import { STORAGE_KEYS } from './utils/constants';
@@ -63,12 +65,35 @@ export function App() {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
+  const [hosts, setHosts] = usePersistedState<Host[]>(STORAGE_KEYS.hosts, []);
+  const [wizardComplete, setWizardComplete] = usePersistedState('floinvite_wizard_complete', false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState<'starter' | 'compliance' | null>(null);
   const [upgradeError, setUpgradeError] = useState<string | null>(null);
   const [selectedTierForSignup, setSelectedTierForSignup] = useState<'starter' | 'compliance' | null>(null);
+
+  const showWizard = isAuthenticated && hosts.length === 0 && !wizardComplete;
+
+  const handleWizardComplete = async (firstHost: { name: string; email: string }) => {
+    const now = new Date().toISOString();
+    const newHost: Host = {
+      id: crypto.randomUUID(),
+      name: firstHost.name,
+      email: firstHost.email,
+      notificationMethod: 'email',
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    // Save to state and storage
+    setHosts([newHost]);
+    await StorageService.addHost(newHost);
+    
+    setWizardComplete(true);
+    setCurrentPage('check-in');
+  };
 
   const isAppPage = (page: string): page is AppPage => {
     const pages: AppPage[] = [
@@ -327,6 +352,12 @@ export function App() {
 
   return (
     <div className="floinvite-app">
+      {showWizard && (
+        <QuickStartWizard 
+          onComplete={handleWizardComplete} 
+          userEmail={localStorage.getItem('floinvite_user_email') || undefined} 
+        />
+      )}
       {/* Upgrade Notice - Non-blocking */}
       {showUpgradePrompt && (
         <div className="upgrade-notice">
