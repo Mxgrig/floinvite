@@ -283,9 +283,16 @@ export function HostManagement() {
             ))}
           </div>
         ) : (
-          <div className="empty-state">
-            <p>No hosts yet</p>
-            <small>Add hosts to get started</small>
+          <div className="empty-state-container" style={{ textAlign: 'center', padding: '4rem 2rem', backgroundColor: '#f9fafb', borderRadius: '12px', border: '2px dashed #e5e7eb', marginTop: '2rem' }}>
+            <div style={{ maxWidth: '400px', margin: '0 auto' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#111827', marginBottom: '1rem' }}>No hosts added yet</h3>
+              <p style={{ color: '#4b5563', marginBottom: '2rem', lineHeight: '1.5' }}>
+                Add the people your visitors come to see. They'll receive an email when their guest arrives.
+              </p>
+              <button onClick={handleAdd} className="btn btn-primary btn-lg">
+                Add first {labels.hostSingular}
+              </button>
+            </div>
           </div>
         )}
       </PageLayout>
