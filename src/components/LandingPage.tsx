@@ -161,7 +161,7 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
               className="landing-button landing-button-secondary"
               onClick={(e) => handleNavClick(e, 'createaccount')}
             >
-              Create Account
+              Try Free — 20 Check-ins
             </a>
           </div>
 

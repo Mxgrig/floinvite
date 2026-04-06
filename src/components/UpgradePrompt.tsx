@@ -62,9 +62,7 @@ export const UpgradePrompt = () => {
   };
 
   const handleDismiss = () => {
-    // Do NOT allow dismissal when over limit
-    // User must choose a plan
-    setErrorMessage('You must choose a plan to continue using Floinvite.');
+    // Silently block dismissal when over limit — no error message
   };
 
   return (
@@ -139,20 +137,20 @@ export const UpgradePrompt = () => {
             onClick={() => handleUpgrade('starter')}
             disabled={loading || selectedPlan !== null}
           >
-            {loading && selectedPlan === 'starter' ? 'Processing...' : 'Pay $29/mo (Starter)'}
+            {loading && selectedPlan === 'starter' ? 'Processing...' : 'Continue with Starter — $29/mo'}
           </button>
           <button
             className="btn-secondary"
             onClick={() => handleUpgrade('compliance')}
             disabled={loading || selectedPlan !== null}
           >
-            {loading && selectedPlan === 'compliance' ? 'Processing...' : 'Pay $49/mo (Compliance+)'}
+            {loading && selectedPlan === 'compliance' ? 'Processing...' : 'Upgrade to Compliance+ — $49/mo'}
           </button>
         </div>
 
         {/* Footer Note */}
         <p className="upgrade-prompt-note">
-          Select Starter ($29/mo) to continue, or Compliance+ ($49/mo) for audit-ready features with 7-year retention. Cancel anytime.
+          No contracts. Cancel anytime.
         </p>
       </div>
     </div>

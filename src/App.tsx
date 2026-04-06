@@ -377,7 +377,7 @@ export function App() {
                 onClick={() => handleUpgrade('starter')}
                 disabled={upgradeLoading !== null}
               >
-                {upgradeLoading === 'starter' ? 'Processing...' : 'Pay $29/mo'}
+                {upgradeLoading === 'starter' ? 'Processing...' : 'Continue — $29/mo'}
               </button>
               <button
                 className="upgrade-notice-secondary"
