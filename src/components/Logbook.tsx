@@ -39,7 +39,8 @@ export function Logbook({ onNavigate }: LogbookProps) {
   const autoCheckoutDateRef = useRef<string | null>(null);
 
   // Check if export is available
-  const canExport = hasFeature(userTier, 'csv_export');
+  const canExportCSV = hasFeature(userTier, 'csv_export');
+  const canExportJSON = hasFeature(userTier, 'json_export');
 
   // Search and filter guests
   const filteredGuests = guests.filter(guest => {
@@ -54,7 +55,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
   }).sort((a, b) => new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime());
 
   const handleExportCSV = () => {
-    if (!canExport) {
+    if (!canExportCSV) {
       return;
     }
     ExportService.exportGuestsToCSV(
@@ -65,7 +66,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
   };
 
   const handleExportJSON = () => {
-    if (!canExport) {
+    if (!canExportJSON) {
       return;
     }
     ExportService.exportGuestsToJSON(
@@ -191,23 +192,23 @@ export function Logbook({ onNavigate }: LogbookProps) {
 
           <button
             onClick={handleExportCSV}
-            className={`btn btn-secondary ${!canExport ? 'btn-disabled' : ''}`}
-            disabled={!canExport}
+            className={`btn btn-secondary ${!canExportCSV ? 'btn-disabled' : ''}`}
+            disabled={!canExportCSV}
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            Export CSV {!canExport && <Lock size={16} />}
+            Export CSV {!canExportCSV && <Lock size={16} />}
           </button>
           <button
             onClick={handleExportJSON}
-            className={`btn btn-secondary ${!canExport ? 'btn-disabled' : ''}`}
-            disabled={!canExport}
+            className={`btn btn-secondary ${!canExportJSON ? 'btn-disabled' : ''}`}
+            disabled={!canExportJSON}
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            Export JSON {!canExport && <Lock size={16} />}
+            Export JSON {!canExportJSON && <Lock size={16} />}
           </button>
         </div>
 
-        {!canExport && (
+        {!canExportJSON && (
           <div style={{
             backgroundColor: '#fef3c7',
             border: '1px solid #fcd34d',
@@ -222,7 +223,7 @@ export function Logbook({ onNavigate }: LogbookProps) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Lock size={18} />
-              <span><strong>Export features available in Compliance+ tier.</strong> Upgrade to unlock CSV/JSON export and cloud backup.</span>
+              <span><strong>JSON/PDF Export and Cloud Backup are Pro features.</strong> {canExportCSV ? 'You have access to CSV export.' : 'Upgrade to unlock all exports and backup.'}</span>
             </div>
             {onNavigate && (
               <button

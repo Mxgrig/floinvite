@@ -380,8 +380,8 @@ export function App() {
         </header>
       )}
 
-      {/* Mobile Warning - Show only on authenticated app pages (not public pages) */}
-      {isMobile && isAuthenticated && !publicPages.includes(currentPage) && (
+      {/* Mobile Warning - Show only on check-in page for authenticated users */}
+      {isMobile && isAuthenticated && currentPage === 'check-in' && (
         <div className="mobile-warning">
           <div className="mobile-warning-content">
             <h1>Small Screen Detected</h1>

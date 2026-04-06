@@ -72,7 +72,7 @@ const FEATURE_MATRIX: Record<string, Record<SubscriptionTier, boolean>> = {
 
   // Data & Export
   'csv_export': {
-    starter: false,
+    starter: true,
     compliance: true,
     enterprise: true
   },
