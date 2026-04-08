@@ -31,6 +31,7 @@ import { STORAGE_KEYS } from './utils/constants';
 import { DEFAULT_LABELS } from './utils/labelUtils';
 import { getPageHref, handleNavigationClick } from './utils/navigationHelper';
 import { getLogoPath } from './utils/logoHelper';
+import { applyPageSeo } from './utils/seoHelper';
 import './App.css';
 
 type AppPage =
@@ -221,6 +222,60 @@ export function App() {
 
     runMigration();
   }, []);
+
+  useEffect(() => {
+    const nonIndexablePageSeo: Partial<Record<AppPage, { title: string; canonicalUrl: string }>> = {
+      signin: {
+        title: 'Sign In | Floinvite',
+        canonicalUrl: 'https://floinvite.com/signin',
+      },
+      createaccount: {
+        title: 'Create Account | Floinvite',
+        canonicalUrl: 'https://floinvite.com/register',
+      },
+      'tier-selection': {
+        title: 'Choose a Plan | Floinvite',
+        canonicalUrl: 'https://floinvite.com/register',
+      },
+      'check-in': {
+        title: 'Check-In App | Floinvite',
+        canonicalUrl: 'https://floinvite.com/check-in',
+      },
+      logbook: {
+        title: 'Visitor Logbook | Floinvite',
+        canonicalUrl: 'https://floinvite.com/logbook',
+      },
+      hosts: {
+        title: 'Host Management | Floinvite',
+        canonicalUrl: 'https://floinvite.com/hosts',
+      },
+      settings: {
+        title: 'Settings | Floinvite',
+        canonicalUrl: 'https://floinvite.com/settings',
+      },
+      'evacuation-list': {
+        title: 'Evacuation List | Floinvite',
+        canonicalUrl: 'https://floinvite.com/evacuation-list',
+      },
+    };
+
+    const seoConfig = nonIndexablePageSeo[currentPage];
+    if (!seoConfig) {
+      return;
+    }
+
+    return applyPageSeo({
+      title: seoConfig.title,
+      canonicalUrl: seoConfig.canonicalUrl,
+      metas: [
+        { selector: 'meta[name="robots"]', attr: 'name', key: 'robots', content: 'noindex, nofollow' },
+        { selector: 'meta[name="googlebot"]', attr: 'name', key: 'googlebot', content: 'noindex, nofollow' },
+        { selector: 'meta[name="bingbot"]', attr: 'name', key: 'bingbot', content: 'noindex, nofollow' },
+        { selector: 'meta[property="og:url"]', attr: 'property', key: 'og:url', content: seoConfig.canonicalUrl },
+        { selector: 'meta[name="twitter:url"]', attr: 'name', key: 'twitter:url', content: seoConfig.canonicalUrl },
+      ],
+    });
+  }, [currentPage]);
 
   // Check subscription status on mount
   useEffect(() => {
