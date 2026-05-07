@@ -51,7 +51,7 @@ export function LandingPage({ onNavigate, onStartCheckIn }: LandingPageProps) {
 
   return (
     <div className="landing-page">
-      <LoopingVideo source="/login.mp4" fallbackColor="#0b1220" />
+      <LoopingVideo source="/triage-triptych.mp4" fallbackColor="#0b1220" />
 
       <div className="landing-overlay"></div>
 

@@ -12,7 +12,6 @@ import { Guest, Host, GuestStatus, AppSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { emailService } from '../services/emailService';
 import { ServerPaymentService } from '../services/serverPaymentService';
-import { LoopingVideo } from './LoopingVideo';
 import {
   generateVisitorArrivalNotification
 } from '../services/notificationService';
@@ -72,7 +71,8 @@ export function VisitorCheckIn() {
     '--visitor-primary-dark': settings.primaryColor || '#4338ca',
     '--visitor-panel-bg': settings.visitorPanelBackground || '#ffffff',
     '--visitor-text-color': settings.visitorTextColor || '#111827',
-    '--visitor-logo-url': `url("${getLogoPath(settings.logoUrl)}")`
+    '--visitor-logo-url': settings.logoUrl ? `url("${getLogoPath(settings.logoUrl)}")` : 'none',
+    '--visitor-background-image': 'url("/triage-triptych-still.png")'
   } as CSSProperties), [
     settings.logoUrl,
     settings.primaryColor,
@@ -80,6 +80,11 @@ export function VisitorCheckIn() {
     settings.visitorPanelBackground,
     settings.visitorTextColor
   ]);
+
+  const displayCompanyName = settings.businessName?.trim() && settings.businessName !== 'My Company'
+    ? settings.businessName
+    : 'Company Name';
+  const hasCustomLogo = Boolean(settings.logoUrl);
 
   /**
    * Determine notification method with fallback defaults
@@ -359,7 +364,7 @@ export function VisitorCheckIn() {
 
   const renderLayout = (content: ReactNode) => (
     <div className="checkin-page" style={visitorBrandingStyle}>
-      <LoopingVideo source="/triage-triptych.mp4" fallbackColor="#0b1220" />
+      <div className="triage-background-still" aria-hidden="true" />
       <div className="checkin-content">
         {notificationStatus && (
           <div className={`notification-status ${notificationStatus.type}`}>
@@ -369,8 +374,8 @@ export function VisitorCheckIn() {
         {content}
       </div>
       <footer className="triage-footer">
-        <div className="triage-footer-logo" aria-label={`${settings.businessName} logo`} />
-        <p>{settings.businessName}</p>
+        <img src={getLogoPath()} alt="floinvite" className="triage-footer-brand-logo" />
+        <p>Powered by floinvite</p>
       </footer>
     </div>
   );
@@ -385,7 +390,17 @@ export function VisitorCheckIn() {
    */
   switch (step) {
     case 'welcome':
-      return renderLayout(<WelcomeStep onWalkIn={handleWalkIn} onExpected={handleExpected} canUseExpected={canUseExpected} labels={labels} logoUrl={settings.logoUrl} />);
+      return renderLayout(
+        <WelcomeStep
+          onWalkIn={handleWalkIn}
+          onExpected={handleExpected}
+          canUseExpected={canUseExpected}
+          labels={labels}
+          logoUrl={settings.logoUrl}
+          companyName={displayCompanyName}
+          hasCustomLogo={hasCustomLogo}
+        />
+      );
 
     case 'walk-in':
       return renderLayout(
@@ -432,21 +447,29 @@ function WelcomeStep({
   onExpected,
   canUseExpected,
   labels,
-  logoUrl
+  logoUrl,
+  companyName,
+  hasCustomLogo
 }: {
   onWalkIn: () => void;
   onExpected: () => void;
   canUseExpected: boolean;
   labels: LabelSettings;
   logoUrl?: string;
+  companyName: string;
+  hasCustomLogo: boolean;
 }) {
   return (
     <div className="triage-panel">
       <div className="welcome-logo">
-        <img src={getLogoPath(logoUrl)} alt="Company Logo" style={{ maxHeight: '80px', maxWidth: '240px' }} />
+        {hasCustomLogo ? (
+          <img src={getLogoPath(logoUrl)} alt="Company Logo" style={{ maxHeight: '80px', maxWidth: '240px' }} />
+        ) : (
+          <div className="welcome-logo-placeholder">Your Logo</div>
+        )}
       </div>
       <div className="welcome-header">
-        <h1>Welcome</h1>
+        <h1>{companyName}</h1>
         <p className="muted">{labels.checkIn} to get started</p>
       </div>
 

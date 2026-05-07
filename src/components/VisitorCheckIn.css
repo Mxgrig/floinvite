@@ -11,15 +11,17 @@
   color: var(--visitor-text-color, var(--text-primary));
 }
 
-.checkin-page .looping-video {
+.triage-background-still {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  object-fit: cover;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
+  background-image:
+    linear-gradient(135deg, rgba(11, 18, 32, 0.52) 0%, rgba(11, 18, 32, 0.24) 48%, rgba(11, 18, 32, 0.58) 100%),
+    var(--visitor-background-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .checkin-content {
@@ -45,6 +47,22 @@
 .welcome-logo {
   text-align: center;
   margin-bottom: 1.5rem;
+}
+
+.welcome-logo-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  min-height: 80px;
+  padding: 1rem 1.5rem;
+  border: 2px dashed rgba(107, 114, 128, 0.45);
+  border-radius: 0.9rem;
+  background: rgba(248, 250, 252, 0.92);
+  color: #6b7280;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .welcome-header {
@@ -325,16 +343,11 @@
   color: white;
 }
 
-.triage-footer-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  background-color: rgba(255, 255, 255, 0.95);
-  background-image: var(--visitor-logo-url);
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 78%;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.24);
+.triage-footer-brand-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(15, 23, 42, 0.24));
 }
 
 .triage-footer p {

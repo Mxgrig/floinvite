@@ -417,7 +417,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                   </div>
 
                   <small>
-                    These settings style the public triage screen. The background sector video is fixed and will load from `public/triage-triptych.mp4`.
+                    These settings style the public triage screen. The landing page uses `public/triage-triptych.mp4`, and the triage background uses `public/triage-triptych-still.png`.
                   </small>
                 </div>
               </div>
