@@ -12,6 +12,7 @@ import { usePersistedState } from '../utils/hooks';
 import { STORAGE_KEYS } from '../utils/constants';
 import { hasFeature } from '../utils/featureGating';
 import { DEFAULT_LABELS, LABEL_PRESETS, LabelPresetKey, getLabelSettings } from '../utils/labelUtils';
+import { VISITOR_FONT_OPTIONS } from '../utils/visitorBranding';
 import './Settings.css';
 
 type SettingsTab = 'hosts' | 'session' | 'system' | 'backup';
@@ -30,6 +31,9 @@ export function Settings({ onNavigate }: SettingsProps) {
       businessName: 'My Company',
       notificationEmail: 'admin@floinvite.com',
       kioskMode: false,
+      visitorFontFamily: 'outfit',
+      visitorPanelBackground: '#ffffff',
+      visitorTextColor: '#111827',
       labelPreset: 'default',
       labelSettings: DEFAULT_LABELS,
       createdAt: now,
@@ -42,6 +46,26 @@ export function Settings({ onNavigate }: SettingsProps) {
   const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const labelSettings = getLabelSettings(formData);
+
+  useEffect(() => {
+    setFormData(settings);
+  }, [settings]);
+
+  const readImageFile = (file: File, onLoad: (result: string) => void) => {
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Image must be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result;
+      if (typeof result === 'string') {
+        onLoad(result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handlePresetChange = (preset: LabelPresetKey) => {
     const presetLabels = LABEL_PRESETS[preset]?.labels || DEFAULT_LABELS;
@@ -279,15 +303,9 @@ export function Settings({ onNavigate }: SettingsProps) {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          if (file.size > 2 * 1024 * 1024) {
-                            alert('Logo must be less than 2MB');
-                            return;
-                          }
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            setFormData({ ...formData, logoUrl: event.target?.result as string });
-                          };
-                          reader.readAsDataURL(file);
+                          readImageFile(file, (result) => {
+                            setFormData({ ...formData, logoUrl: result });
+                          });
                         }
                       }}
                       id="logo-upload"
@@ -307,7 +325,7 @@ export function Settings({ onNavigate }: SettingsProps) {
                       </button>
                     )}
                     <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                      PNG, JPG or SVG. Max 2MB. Recommended 200x200px.
+                      PNG, JPG or SVG. Max 2MB. Used on the triage welcome panel and footer.
                     </p>
                   </div>
                 </div>
@@ -354,6 +372,53 @@ export function Settings({ onNavigate }: SettingsProps) {
                     onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
                   />
                   <span>{formData.primaryColor || '#4f46e5'}</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Triage Page Branding</label>
+                <div style={{ display: 'grid', gap: '16px', marginTop: '0.5rem' }}>
+                  <div>
+                    <label>Visitor font</label>
+                    <select
+                      value={formData.visitorFontFamily || 'outfit'}
+                      onChange={(e) => setFormData({ ...formData, visitorFontFamily: e.target.value })}
+                    >
+                      {VISITOR_FONT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                    <div>
+                      <label>Panel background</label>
+                      <div className="color-picker-group">
+                        <input
+                          type="color"
+                          value={formData.visitorPanelBackground || '#ffffff'}
+                          onChange={(e) => setFormData({ ...formData, visitorPanelBackground: e.target.value })}
+                        />
+                        <span>{formData.visitorPanelBackground || '#ffffff'}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label>Panel text color</label>
+                      <div className="color-picker-group">
+                        <input
+                          type="color"
+                          value={formData.visitorTextColor || '#111827'}
+                          onChange={(e) => setFormData({ ...formData, visitorTextColor: e.target.value })}
+                        />
+                        <span>{formData.visitorTextColor || '#111827'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <small>
+                    These settings style the public triage screen. The background sector video is fixed and will load from `public/triage-triptych.mp4`.
+                  </small>
                 </div>
               </div>
 

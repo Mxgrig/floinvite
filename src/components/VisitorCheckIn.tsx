@@ -6,7 +6,7 @@
  * Path 2: Expected visitor lookup
  */
 
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { UserCheck, Calendar, Mail, Phone, CheckCircle, Lock } from 'lucide-react';
 import { Guest, Host, GuestStatus, AppSettings } from '../types';
 import { StorageService } from '../services/storageService';
@@ -23,6 +23,7 @@ import { hasFeature } from '../utils/featureGating';
 import { dbUtils } from '../db/floinviteDB';
 import { DEFAULT_LABELS, getLabelSettings, LabelSettings } from '../utils/labelUtils';
 import { getLogoPath } from '../utils/logoHelper';
+import { getVisitorFontFamily } from '../utils/visitorBranding';
 import './VisitorCheckIn.css';
 
 type TriageStep = 'welcome' | 'walk-in' | 'expected' | 'success';
@@ -39,6 +40,9 @@ export function VisitorCheckIn() {
     businessName: 'My Company',
     notificationEmail: 'admin@floinvite.com',
     kioskMode: false,
+    visitorFontFamily: 'outfit',
+    visitorPanelBackground: '#ffffff',
+    visitorTextColor: '#111827',
     labelPreset: 'default',
     labelSettings: DEFAULT_LABELS,
     createdAt: new Date().toISOString(),
@@ -61,6 +65,21 @@ export function VisitorCheckIn() {
 
   // Error state
   const [errors, setErrors] = useState<string[]>([]);
+
+  const visitorBrandingStyle = useMemo(() => ({
+    '--visitor-font-family': getVisitorFontFamily(settings.visitorFontFamily),
+    '--visitor-primary': settings.primaryColor || '#4f46e5',
+    '--visitor-primary-dark': settings.primaryColor || '#4338ca',
+    '--visitor-panel-bg': settings.visitorPanelBackground || '#ffffff',
+    '--visitor-text-color': settings.visitorTextColor || '#111827',
+    '--visitor-logo-url': `url("${getLogoPath(settings.logoUrl)}")`
+  } as CSSProperties), [
+    settings.logoUrl,
+    settings.primaryColor,
+    settings.visitorFontFamily,
+    settings.visitorPanelBackground,
+    settings.visitorTextColor
+  ]);
 
   /**
    * Determine notification method with fallback defaults
@@ -339,8 +358,8 @@ export function VisitorCheckIn() {
   };
 
   const renderLayout = (content: ReactNode) => (
-    <div className="checkin-page">
-      <LoopingVideo source="/sessionlogin.mp4" fallbackColor="#0b1220" />
+    <div className="checkin-page" style={visitorBrandingStyle}>
+      <LoopingVideo source="/triage-triptych.mp4" fallbackColor="#0b1220" />
       <div className="checkin-content">
         {notificationStatus && (
           <div className={`notification-status ${notificationStatus.type}`}>
@@ -349,6 +368,10 @@ export function VisitorCheckIn() {
         )}
         {content}
       </div>
+      <footer className="triage-footer">
+        <div className="triage-footer-logo" aria-label={`${settings.businessName} logo`} />
+        <p>{settings.businessName}</p>
+      </footer>
     </div>
   );
 
@@ -419,7 +442,7 @@ function WelcomeStep({
 }) {
   return (
     <div className="triage-panel">
-      <div className="welcome-logo" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+      <div className="welcome-logo">
         <img src={getLogoPath(logoUrl)} alt="Company Logo" style={{ maxHeight: '80px', maxWidth: '240px' }} />
       </div>
       <div className="welcome-header">

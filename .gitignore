@@ -35,6 +35,11 @@ deployment.log
 /test-results
 /playwright-report
 *.trace.zip
+.playwright-mcp/
+
+# Tool artefacts
+.codex
+.claude/
 
 # Generated files
 *.tsbuildinfo

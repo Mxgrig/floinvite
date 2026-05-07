@@ -86,6 +86,9 @@ export interface AppSettings {
   businessAddress?: string;
   logoUrl?: string;
   primaryColor?: string;
+  visitorFontFamily?: string;
+  visitorPanelBackground?: string;
+  visitorTextColor?: string;
   notificationEmail: string; // admin@floinvite.com
   timezone?: string; // IANA timezone string
   locale?: string; // Language/locale code

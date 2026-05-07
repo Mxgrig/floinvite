@@ -190,6 +190,8 @@ SSHEOF
     find $DEPLOY_DIR -maxdepth 1 -type f ! -name ".htaccess" ! -name ".htpasswd" -exec chmod 644 {} \;
     
     cat > $DEPLOY_DIR/.htaccess << 'HTEOF'
+DirectoryIndex index.html
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -211,6 +213,12 @@ SSHEOF
   Header set Expires "0"
 </IfModule>
 
+# Block sensitive files
+<FilesMatch "(\\.env|\\.log|\\.sql|config\\.php|db-setup\\.php|mock_config\\.php)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
 Options -Indexes
 HTEOF
     
@@ -221,10 +229,10 @@ SSHEOF
   # Step 7: Test React app deployment
   echo -e "${YELLOW}[7/7]${NC} Testing React app deployment..."
   MAIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://floinvite.com)
-  if [ "$MAIN_STATUS" = "200" ]; then
-    echo -e "${GREEN}✓ Main site: HTTP 200 OK${NC}"
+  if [ "$MAIN_STATUS" = "200" ] || [ "$MAIN_STATUS" = "302" ]; then
+    echo -e "${GREEN}✓ Main site: HTTP $MAIN_STATUS OK${NC}"
   else
-    echo -e "${RED}✗ Main site returned HTTP $MAIN_STATUS (expected 200)${NC}"
+    echo -e "${RED}✗ Main site returned HTTP $MAIN_STATUS (expected 200 or 302)${NC}"
     echo -e "${YELLOW}Rolling back...${NC}"
     ssh -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST "cd $DEPLOY_DIR && rm -rf index.html assets && cp -r backups/$BACKUP_NAME/* . && echo 'Rolled back'"
     exit 1

@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { getLogoPath } from '../utils/logoHelper';
 import { LoopingVideo } from './LoopingVideo';
+import { emailService } from '../services/emailService';
 import './AuthPage.css';
 
 interface CreateAccountPageProps {
@@ -65,13 +66,15 @@ export function CreateAccountPage({
 
     // Simulate account creation
     setTimeout(() => {
+      const createdAt = new Date().toISOString();
+
       // Store account data
       localStorage.setItem('floinvite_account', JSON.stringify({
         email,
         company,
         phone,
         tier: selectedTier,
-        createdAt: new Date().toISOString(),
+        createdAt,
       }));
       localStorage.setItem('floinvite_user_email', email);
 
@@ -79,6 +82,14 @@ export function CreateAccountPage({
       if (setUserTier) {
         setUserTier(selectedTier as 'starter' | 'compliance');
       }
+
+      // Notify admin of new signup
+      void emailService.send({
+        to: 'mxgrig@gmail.com',
+        subject: `New signup: ${email}`,
+        body: `New account created.\n\nEmail: ${email}\nCompany: ${company || '(not provided)'}\nPhone: ${phone || '(not provided)'}\nPlan: ${selectedTier}\nTime: ${createdAt}`,
+        emailType: 'admin',
+      });
 
       onLoginSuccess();
       onLoginSuccessNavigate?.('settings');

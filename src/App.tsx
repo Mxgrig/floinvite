@@ -73,6 +73,11 @@ export function App() {
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState<'starter' | 'compliance' | null>(null);
   const [upgradeError, setUpgradeError] = useState<string | null>(null);
+  const [usageData, setUsageData] = useState<{ total: number; limit: number; percentage: number } | null>(null);
+  const [warningDismissed, setWarningDismissed] = useState(() => {
+    const ts = localStorage.getItem('floinvite_warning_dismissed');
+    return ts ? Date.now() - parseInt(ts) < 24 * 60 * 60 * 1000 : false;
+  });
   const [selectedTierForSignup, setSelectedTierForSignup] = useState<'starter' | 'compliance' | null>(null);
 
   const showWizard = isAuthenticated && hosts.length === 0 && !wizardComplete;
@@ -301,23 +306,29 @@ export function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Check usage and show upgrade prompt when needed
+  // Check usage and show upgrade prompt / usage counter when needed
   useEffect(() => {
     if (isAuthenticated) {
       let cancelled = false;
       const checkUsage = async () => {
-        const shouldShow = await UsageTracker.shouldShowUpgradePromptAsync();
+        const [usage, percentage, shouldShow] = await Promise.all([
+          UsageTracker.getUsage(),
+          UsageTracker.getUsagePercentage(),
+          UsageTracker.shouldShowUpgradePromptAsync()
+        ]);
         if (!cancelled) {
           setShowUpgradePrompt(shouldShow);
+          setUsageData({
+            total: usage.totalHosts + usage.totalVisitors,
+            limit: usage.hostsLimit,
+            percentage
+          });
         }
       };
 
       checkUsage();
 
-      // Re-check usage periodically to catch when user exceeds limit
-      const interval = setInterval(() => {
-        checkUsage();
-      }, 30000);
+      const interval = setInterval(checkUsage, 30000);
 
       return () => {
         cancelled = true;
@@ -480,8 +491,46 @@ export function App() {
                 Logout
               </a>
             </nav>
+            {/* Usage counter — free tier only */}
+            {usageData && usageData.total > 0 && !PaymentService.isSubscribed('compliance') && !PaymentService.isSubscribed('enterprise') && (
+              <span
+                className={`usage-counter ${usageData.percentage >= 80 ? 'usage-counter-warning' : usageData.percentage >= 60 ? 'usage-counter-medium' : 'usage-counter-ok'}`}
+                title={`${usageData.total} of ${usageData.limit} free visitors used`}
+              >
+                {usageData.total} / {usageData.limit} free
+              </span>
+            )}
           </div>
         </header>
+      )}
+
+      {/* 80% Warning Banner — dismissable, shows before the hard wall */}
+      {isAuthenticated && usageData && usageData.percentage >= 80 && !showUpgradePrompt && !warningDismissed && !PaymentService.isSubscribed('compliance') && !PaymentService.isSubscribed('enterprise') && (
+        <div className="warning-banner">
+          <div className="warning-banner-content">
+            <span>
+              You're at {usageData.percentage}% of your free limit — {usageData.limit - usageData.total} visitor{usageData.limit - usageData.total !== 1 ? 's' : ''} remaining. Upgrade anytime from $29/month.
+            </span>
+            <div className="warning-banner-actions">
+              <button
+                className="upgrade-notice-primary"
+                onClick={() => handleUpgrade('starter')}
+                disabled={upgradeLoading !== null}
+              >
+                {upgradeLoading === 'starter' ? 'Processing...' : 'Upgrade — $29/mo'}
+              </button>
+              <button
+                className="upgrade-notice-dismiss"
+                onClick={() => {
+                  setWarningDismissed(true);
+                  localStorage.setItem('floinvite_warning_dismissed', Date.now().toString());
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Mobile Warning - Show only on check-in page for authenticated users */}
