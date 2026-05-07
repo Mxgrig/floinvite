@@ -71,8 +71,7 @@ export function VisitorCheckIn() {
     '--visitor-primary-dark': settings.primaryColor || '#4338ca',
     '--visitor-panel-bg': settings.visitorPanelBackground || '#ffffff',
     '--visitor-text-color': settings.visitorTextColor || '#111827',
-    '--visitor-logo-url': settings.logoUrl ? `url("${getLogoPath(settings.logoUrl)}")` : 'none',
-    '--visitor-background-image': 'url("/triage-triptych-still.png")'
+    '--visitor-background-image': 'url("/triage-triptych-still.jpg")'
   } as CSSProperties), [
     settings.logoUrl,
     settings.primaryColor,
